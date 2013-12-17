@@ -2,6 +2,13 @@
 # -*- coding: utf-8 -*-
 #
 
+import sys
+import logging
+import gettext
+from rootfs import RootFS
+from ui.urwid import UrwidUI
+
+
 def parse_cmdline():
     """Parses the relevant cmdline arguments
     """
@@ -20,19 +27,19 @@ def parse_cmdline():
     return parser.parse_args()
 
 
-import sys
-import logging
-import gettext
-from ui.urwid import UrwidUI
+rootfs = RootFS()
+#rootfs.synchronize(None)
 
-
-def load_all_menus():
-    pass
-
+installer = None
 
 class Installer(object):
 
     __version = "0.0"
+
+    _location = None
+    _timezone = None
+    _kbd_layout = None
+    _locale = None
 
     def __init__(self, ui="urwid"):
 
@@ -44,7 +51,7 @@ class Installer(object):
         gettext.install('installer', '/usr/share/locale', unicode=True)
 
         self.logger = logging.getLogger(self.__module__)
-        self.ui = UrwidUI()
+        self.ui = UrwidUI(self)
 
         self.ui.register_hotkey("esc", self.quit)
 
@@ -55,13 +62,39 @@ class Installer(object):
 
     def quit(self):
         self.logger.info("Quitting installer")
+        # FIXME
+        rootfs.umount()
         self.ui.quit()
+
+    @property
+    def kbd_layout(self):
+        return self._kbd_layout
+
+    @kbd_layout.setter
+    def kbd_layout(self, layout):
+        # if system.keyboard.get_layout() != layout:
+        # FIXME: self.ui.info(_("switching current keyboard layout to %s") % layout)
+        # FIXME: system.keyboard.set_layout(layout)
+        self._kbd_layout = layout
+
+    @property
+    def location(self):
+        return self._location
+
+    @location.setter
+    def location(self, place):
+        self._locale     = country_dict[place][3]
+        self._timezone   = country_dict[place][2]
+        self._kbd_layout = country_dict[place][1]
+        self._location   = place
 
 
 if __name__ == "__main__":
     installer = Installer()
     installer.run()
+    rootfs = None
 
-    #import system
-    #kbd = system.Keyboard()
-    #print kbd.list_layouts()
+    # import os, pdb
+    # os.system('reset')
+    # print 'Entering debug mode'
+    # pdb.set_trace()

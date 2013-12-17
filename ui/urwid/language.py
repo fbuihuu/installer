@@ -2,21 +2,11 @@
 # -*- coding: utf-8 -*-
 #
 
-from ui import AbstractMenu
+import menu
 import urwid
-
-
-# [1]: geographic zone (same one used by timezone)
-# [2]: default keymap
-# [3]: default timezone
-# [4]: default locale
-
-countries = {
-    'America':  [ 'America', 'us',       'New_York', 'en_US'],
-    'Brasil':   [ 'Brazil',  'br-abnt2', 'West',     'pt_BR'],
-    'Deutsch':  [ 'Europe',  'de',       'Berlin',   'de_DE'],
-    'France':   [ 'Europe',  'fr',       'Paris',    'fr_FR'],
-}
+import system
+from installer import rootfs
+from localisation import country_dict
 
 #
 # Language selection should be immediate.
@@ -25,46 +15,24 @@ countries = {
 # later (root password setup for example).
 #
 
-class MenuNavigatorEntry(urwid.Text):
+class MenuNavigatorEntry(urwid.Button):
 
     def __init__(self, title):
-        urwid.Text.__init__(self, title, align="center")
-
-    def selectable(self):
-        return True
-
-    def keypress(self, size, key):
-        return key
-
-
-class LanguageMenu(Menu):
-
-    def __init__(self):
-        Menu.__init__(self)
-        self._country = None
+        self._title = title
+        super(MenuNavigatorEntry, self).__init__("")
+        w = urwid.SelectableIcon(title, 1)
+        w = urwid.AttrMap(w, None, focus_map='reversed')
+        self._w = w
 
     @property
-    def country(self):
-        return self._country
-
-    @country.setter
-    def country(self, country):
-        self._country = country
-        self.ui.notify(_("selected %s as country, will set locale, timezone accordingly") % country)
-        (continent, kbd, timezone, locale) = countries[country]
-
-        # register immediate work to call loadkeys
-        w = Work(self.set_kbd_layout)
-        wq.put(w, PRIO_IMMEDIATE)
-
-        # register local, kbd and timezone setting
-        w1 = Work(self.set_timezone)
-        w2 = Work(self.set_kbd_layout)
-        w3 = Work(self.set_locale)
-        wq.put([w1, w2, w3], PHASE_AFTER_ROOT)
+    def name(self):
+        return self._title
 
 
-class Menu(urwid.WidgetWrap, LanguageMenu):
+class Menu(urwid.WidgetWrap, menu.Menu):
+
+    requires = ["licence"]
+    provides = ["language"]
 
     __list_kbd_layout = []
     __list_locales = []
@@ -73,18 +41,17 @@ class Menu(urwid.WidgetWrap, LanguageMenu):
 
     __list_countries = None
 
-    def __init__(self):
-        AbstractMenu.__init__(self, u'Language \u2714')
+    def __init__(self, callback_event=None):
+        menu.Menu.__init__(self, u"Language", callback_event)
 
         items = []
 
-        for c in countries.keys():
+        for c in country_dict.keys():
             item = MenuNavigatorEntry(c)
-            item = urwid.AttrMap(item, None, focus_map='reversed')
             items.append(item)
+            urwid.connect_signal(item, 'click', self.on_click)
 
         walker = urwid.SimpleListWalker(items)
-        urwid.connect_signal(walker, 'click', self.on_click)
         self.__list_countries = urwid.ListBox(walker)
 
         urwid.WidgetWrap.__init__(self, self.__list_countries)
@@ -93,10 +60,8 @@ class Menu(urwid.WidgetWrap, LanguageMenu):
         #return urwid.Columns([self.__list_countries])
         return urwid.Filler(self.__list_countries, 'middle', height=('relative', 40))
 
-    def on_click(self):
-        # FIXME: do the right call
-        self.country = self.__list_countries.get_focus
+    def on_click(self, entry):
+        self.country = entry.name
 
     def set_focus(self, n):
         self.__list_countries.set_focus(n)
-

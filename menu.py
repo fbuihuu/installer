@@ -2,30 +2,33 @@
 # -*- coding: utf-8 -*-
 #
 
-class Work(object):
-
-    PHASE_ANYTIME = 0
-    PHASE_BEFORE_ROOT = 1
-    PHASE_AFTER_ROOT = 2
-
-    def __init__(fn):
-        self._callback = fn
-        self._rank = rank
+from sets import Set
 
 
 class Menu(object):
 
-    STATE_UNCONFIGURED = 0
-    STATE_READY = 1
-    STATE_PROCESSING = 2
-    STATE_FINISHED = 3
+    _STATE_DISABLED = -2
+    _STATE_FAILED = -1
+    _STATE_INIT   = 0
+    _STATE_DONE   = 1
 
-    def __init__(self, notify):
-        self._state = STATE_UNCONFIGURED
-        self._works = []
+    requires = []
+    provides = []
 
+    def __init__(self, title, callback):
+        self._title = _(title)
+        self._callback = callback
+        self.requires = Set(self.requires)
+        self.provides = Set(self.provides)
+
+        if len(self.requires) == 0:
+            self._state = Menu._STATE_INIT
+        else:
+            self._state = Menu._STATE_DISABLED
+
+    @property
     def name(self):
-        raise NotImplementedError()
+        return self._title
 
     @property
     def state(self):
@@ -33,11 +36,35 @@ class Menu(object):
 
     @state.setter
     def state(self, state):
-        # notify listener.
         self._state = state
+        if self._callback:
+            self._callback(self)
 
-    def draw(self):
+    def ui_content(self):
         raise NotImplementedError()
+
+    def enable(self):
+        if self.state == Menu._STATE_DISABLED:
+            self.state = Menu._STATE_INIT
+
+    def undo(self):
+        if self.state == Menu._STATE_DONE or self.state == Menu._STATE_FAILED:
+            self.state = Menu._STATE_INIT
+
+    def disable(self):
+        if len(self.requires) == 0:
+            return
+        if self.state != Menu._STATE_DISABLED:
+            self.state = Menu._STATE_DISABLED
+
+    def is_enabled(self):
+        return self.state != Menu._STATE_DISABLED
+
+    def is_done(self):
+        return self.state == Menu._STATE_DONE
+
+    def is_failed(self):
+        return self.state == Menu._STATE_FAILED
 
 
 def create_menus():
