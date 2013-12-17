@@ -4,6 +4,7 @@
 
 import menu
 import urwid
+from urwid.command_map import ACTIVATE
 import system
 from installer import rootfs
 from localisation import country_dict
@@ -29,44 +30,54 @@ class MenuNavigatorEntry(urwid.Button):
         return self._title
 
 
-class Menu(urwid.WidgetWrap, menu.Menu):
+class ClickableText(urwid.SelectableIcon):
+
+    signals = ["click"]
+
+    def __init__(self, txt):
+        urwid.SelectableIcon.__init__(self, txt, -1)
+
+    def keypress(self, size, key):
+        if self._command_map[key] != ACTIVATE:
+            return key
+        self._emit('click')
+
+
+class ClickableTextList(urwid.WidgetWrap):
+
+    def __init__(self, items, on_click=None):
+        lst = []
+
+        for item in items:
+            txt = ClickableText(item)
+            txt.set_layout('center', 'clip', None)
+            urwid.connect_signal(txt, 'click', on_click)
+            lst.append(urwid.AttrMap(txt, None, focus_map='reversed'))
+
+        walker = urwid.SimpleListWalker(lst)
+        urwid.WidgetWrap.__init__(self, urwid.ListBox(walker))
+
+
+class Menu(menu.Menu):
 
     provides = ["language"]
 
-    __list_kbd_layout = []
-    __list_locales = []
-    __list_timezones = []
-    __list_zones = []
-
-    __list_countries = None
-
-    def __init__(self, menu_event_cb=None):
-        menu.Menu.__init__(self, u"Language", menu_event_cb)
-
-        items = []
-
-        for c in country_dict.keys():
-            item = MenuNavigatorEntry(c)
-            items.append(item)
-            urwid.connect_signal(item, 'click', self.on_click)
-
-        walker = urwid.SimpleListWalker(items)
-        self.__list_countries = urwid.ListBox(walker)
-        self.__list_countries = urwid.Filler(self.__list_countries, 'middle', height=('relative', 40))
-        #self.__list_countries = urwid.Padding(self.__list_countries, align='right')
+    def __init__(self, callback_event=None):
+        menu.Menu.__init__(self, u"Language", callback_event)
 
         header = urwid.Text(u"Select your location", align='center')
+        body = ClickableTextList(country_dict.keys(), self.on_click)
+        # Make the list centered inside its containers
+        body = urwid.Filler(body, 'middle', height=('relative', 40))
+        body = urwid.Padding(body, align='center', width=('relative', 30))
 
-        frame = urwid.Padding(urwid.Frame(self.__list_countries, header), 'center')
-        urwid.WidgetWrap.__init__(self, frame)
+        self._ui_content = urwid.Frame(body, header)
+        self.country = None
 
     def ui_content(self):
-        #return urwid.Columns([self.__list_countries])
-        #return urwid.Filler(self.__list_countries, 'middle', height=('relative', 40))
-        return self
+        return self._ui_content
 
     def on_click(self, entry):
-        self.country = entry.name
-
-    def set_focus(self, n):
-        self.__list_countries.set_focus(n)
+        if self.country != entry.get_text():
+            self.country = entry.get_text()
+            self.state = Menu._STATE_DONE

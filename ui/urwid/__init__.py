@@ -18,6 +18,7 @@ palette = [
     ('mark_ko',       'light red',    ''),
     ('mark_ok',       'dark green',   ''),
     ('entry.disabled','dark blue',    ''),
+    ('menu.bar.hotkey', 'dark blue', 'light gray'),
     ('reversed',      'standout',     '')]
 
 
@@ -49,6 +50,7 @@ class UrwidUI(AbstractUI):
     __menu_frame = None
     __menu_page  = None
     __menu_navigator = None
+    __menu_bar = None
 
     header = ""
     footer = ""
@@ -79,11 +81,17 @@ class UrwidUI(AbstractUI):
         urwid.connect_signal(self.__menu_navigator, 'focus_changed', on_focus_changed)
 
     def __create_main_frame(self):
-        header = urwid.Text(self.header, wrap='clip', align='center')
-        header = urwid.AttrMap(header, 'heading')
+        #header = urwid.Text(self.header, wrap='clip', align='center')
+        header = urwid.AttrMap(self.__menu_bar, 'heading')
         footer = urwid.Text(self.footer, wrap='clip')
         footer = urwid.AttrMap(footer, 'footer')
         self.__main_frame = urwid.Frame(self.__menu_page, header, footer)
+
+    def __create_echo_area(self):
+        pass
+
+    def __create_menu_bar(self):
+        self.__menu_bar = MenuBar(["Main", "Logs", "About"])
 
     def redraw(self):
         self.__loop.draw_screen()
@@ -91,6 +99,7 @@ class UrwidUI(AbstractUI):
     def run(self):
         self.__create_menu_navigator()
         self.__create_menu_page()
+        self.__create_menu_bar()
         self.__create_main_frame()
 
         self.switch_to_first_menu()
@@ -169,7 +178,7 @@ class MenuNavigator(urwid.WidgetWrap):
 
     def refresh(self):
         for e in self.__walker:
-                e.refresh()
+            e.refresh()
 
 
 class MenuNavigatorEntry(urwid.WidgetWrap):
@@ -206,3 +215,17 @@ class MenuNavigatorEntry(urwid.WidgetWrap):
 
         self._title.set_text(title)
         self._mark.set_text(mark)
+
+
+class MenuBar(urwid.WidgetWrap):
+
+    def __init__(self, menus):
+        items = []
+        for (i, menu) in enumerate(menus, 1):
+            if i > 1:
+                items.append("  ")
+            items.append(('menu.bar.hotkey', "F"+str(i)+" "))
+            items.append(menu)
+
+        bar = urwid.Text(items)
+        urwid.WidgetWrap.__init__(self, bar)
