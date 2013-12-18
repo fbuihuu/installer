@@ -71,6 +71,10 @@ class UrwidUI(AbstractUI):
         columns += [urwid.LineBox(self.__menu_frame)]
         self.__menu_page = urwid.Columns(columns, dividechars=1)
 
+        def toggle_menu_page_focus():
+            self.__menu_page.focus_position ^= 1
+        self.register_hotkey('tab', toggle_menu_page_focus)
+
     def __create_menu_navigator(self):
         self.__menu_navigator = MenuNavigator(self._menus)
 
@@ -126,15 +130,9 @@ class UrwidUI(AbstractUI):
 
     def __handle_hotkeys(self, keys, raws):
         for key in keys:
-
             if self._hotkeys.get(key) is not None:
-                self.logger.debug("Running hotkeys: %s" % key)
                 self._hotkeys[key]()
                 keys.remove(key)
-            elif key == 'tab':
-                self.__main_frame.body.focus_position ^= 1
-                keys.remove('tab')
-
         return keys
 
 
