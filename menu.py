@@ -21,10 +21,11 @@ class Menu(object):
     requires = []
     provides = []
 
-    def __init__(self, title, callback, logger):
+    def __init__(self, title, ui, callback):
+        self.ui = ui
         self._title = _(title)
         self._callback = callback
-        self._logger = MenuLogAdapter(logger, {'title': title})
+        self._logger = MenuLogAdapter(ui.logger, {'title': title})
         self.requires = Set(self.requires)
         self.provides = Set(self.provides)
 
