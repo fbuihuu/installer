@@ -8,21 +8,21 @@ from ui import UI
 
 
 palette = [
-    (None,            'light gray',   'black'),
-    ('heading',       'black',        'light gray'),
-    ('line',          'black',        'light gray'),
-    ('options',       'light red',    'black'),
-    ('focus heading', 'white',        'dark red'),
-    ('focus line',    'black',        'dark red'),
-    ('focus options', 'black',        'light gray'),
-    ('selected',      'white',        'dark blue'),
-    ('mark_ko',       'light red',    ''),
-    ('mark_ok',       'dark green',   ''),
-    ('entry.disabled','dark blue',    ''),
-    ('menu.bar.hotkey', 'dark blue',  'light gray'),
-    ('log.warn',      'light red',    ''),
-    ('log.info',      'light green',  ''),
-    ('reversed',      'standout',     '')]
+    (None,                    'light gray',        'black'),
+    ('heading',               'black',             'light gray'),
+    ('line',                  'black',             'light gray'),
+    ('options',               'light red',         'black'),
+    ('focus heading',         'white',             'dark red'),
+    ('focus line',            'black',             'dark red'),
+    ('focus options',         'black',             'light gray'),
+    ('selected',              'white',             'dark blue'),
+    ('mark_ko',               'light red',         ''),
+    ('mark_ok',               'dark green',        ''),
+    ('entry.disabled',        'dark blue',         ''),
+    ('top.bar.hotkey',        'dark blue',         'light gray'),
+    ('log.warn',              'light red',         ''),
+    ('log.info',              'light green',       ''),
+    ('reversed',              'standout',          '')]
 
 
 def debug():
@@ -39,7 +39,7 @@ class UrwidUI(UI):
     __menu_frame = None
     __menu_page  = None
     __menu_navigator = None
-    __menu_bar = None
+    __top_bar = None
 
     header = ""
     footer = ""
@@ -70,15 +70,15 @@ class UrwidUI(UI):
         urwid.connect_signal(self.__menu_navigator, 'focus_changed', on_focus_changed)
 
     def __create_main_frame(self):
-        header = urwid.AttrMap(self.__menu_bar, 'heading')
+        header = urwid.AttrMap(self.__top_bar, 'heading')
         footer = self.__echo_area
         self.__main_frame = urwid.Frame(self.__menu_page, header, footer)
 
     def __create_echo_area(self):
         self.__echo_area = EchoArea()
 
-    def __create_menu_bar(self):
-        self.__menu_bar = MenuBar(["Main", "Summary", "Logs", "About"])
+    def __create_top_bar(self):
+        self.__top_bar = TopBar(["Main", "Summary", "Logs", "About"])
 
     def redraw(self):
         self.__loop.draw_screen()
@@ -101,7 +101,7 @@ class UrwidUI(UI):
     def run(self):
         self.__create_menu_navigator()
         self.__create_menu_page()
-        self.__create_menu_bar()
+        self.__create_top_bar()
         self.__create_echo_area()
         self.__create_main_frame()
 
@@ -252,14 +252,14 @@ class MenuNavigatorEntry(urwid.WidgetWrap):
         self._mark.set_text(mark)
 
 
-class MenuBar(urwid.WidgetWrap):
+class TopBar(urwid.WidgetWrap):
 
     def __init__(self, menus):
         items = []
         for (i, menu) in enumerate(menus, 1):
             if i > 1:
                 items.append("  ")
-            items.append(('menu.bar.hotkey', "F"+str(i)+" "))
+            items.append(('top.bar.hotkey', "F"+str(i)+" "))
             items.append(menu)
 
         bar = urwid.Text(items)
