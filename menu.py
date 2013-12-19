@@ -3,6 +3,12 @@
 #
 
 from sets import Set
+import logging
+
+
+class MenuLogAdapter(logging.LoggerAdapter):
+    def process(self, msg, kwargs):
+        return '%s: %s' % (self.extra['title'], msg), kwargs
 
 
 class Menu(object):
@@ -15,9 +21,10 @@ class Menu(object):
     requires = []
     provides = []
 
-    def __init__(self, title, callback):
+    def __init__(self, title, callback, logger):
         self._title = _(title)
         self._callback = callback
+        self._logger = MenuLogAdapter(logger, {'title': title})
         self.requires = Set(self.requires)
         self.provides = Set(self.provides)
 
@@ -25,6 +32,10 @@ class Menu(object):
             self._state = Menu._STATE_INIT
         else:
             self._state = Menu._STATE_DISABLED
+
+    @property
+    def logger(self):
+        return self._logger
 
     @property
     def name(self):

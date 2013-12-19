@@ -1,11 +1,27 @@
 # -*- coding: utf-8 -*-
 #
 
-from sets import Set
 import logging
+from sets import Set
+from collections import deque
 
 
-class AbstractUI(object):
+class UILogHandler(logging.Handler):
+
+    def __init__(self, ui):
+        logging.Handler.__init__(self)
+        self.ui = ui
+
+    def emit(self, record):
+        lvl = record.levelno
+        msg = self.format(record)
+
+        self.ui.logs.appendleft((lvl, msg))
+        if lvl > logging.DEBUG:
+            self.ui.notify(msg)
+
+
+class UI(object):
 
     _menus = []
     _hotkeys = {}
@@ -13,9 +29,16 @@ class AbstractUI(object):
     current_provides = Set([])
 
     def __init__(self, installer):
-        self._logger = logging.getLogger(self.__module__)
         self.installer = installer
         self._current_menu = None
+        self.logs = deque()
+
+        self._logger = logging.getLogger(self.__module__)
+        handler = UILogHandler(self)
+        formatter = logging.Formatter('[%(asctime)s] %(message)s',' %H:%M:%S')
+        handler.setFormatter(formatter)
+        self._logger.addHandler(handler)
+
         self._load_menus()
 
     @property
@@ -34,13 +57,24 @@ class AbstractUI(object):
     def redraw(self):
         raise NotImplementedError()
 
+    def notify(self, msg):
+        pass
+
     def register_hotkey(self, hotkey, cb):
         self._hotkeys[hotkey] = cb
+
+    def handle_hotkey(self, key):
+        if self._hotkeys.get(key) is not None:
+            self._hotkeys[key]()
+            return True
+        return False
 
     def _switch_to_menu(self, menu):
         raise NotImplementedError()
 
-    def switch_to_menu(self, menu):
+    def switch_to_menu(self, menu=None):
+        if not menu:
+            menu = self._current_menu
         self._current_menu = menu
         self._switch_to_menu(menu)
 

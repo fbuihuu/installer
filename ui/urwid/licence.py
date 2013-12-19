@@ -15,9 +15,9 @@ class Menu(urwid.WidgetWrap, menu.Menu):
     requires = ["language"]
     provides = ["licence"]
 
-    def __init__(self, menu_event_cb=None):
+    def __init__(self, menu_event_cb, logger):
 
-        menu.Menu.__init__(self, "licence", menu_event_cb)
+        menu.Menu.__init__(self, "licence", menu_event_cb, logger)
 
         # Add text licence
         self.licence_text = urwid.Text("")

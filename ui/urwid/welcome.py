@@ -62,10 +62,10 @@ class Menu(menu.Menu):
 
     provides = ["language"]
 
-    def __init__(self, callback_event=None):
-        menu.Menu.__init__(self, u"Language", callback_event)
+    def __init__(self, callback_event, logger):
+        menu.Menu.__init__(self, u"Language", callback_event, logger)
 
-        header = urwid.Text(u"Select your location", align='center')
+        header = urwid.Text(_("Select your location"), align='center')
         body = ClickableTextList(country_dict.keys(), self.on_click)
         # Make the list centered inside its containers
         body = urwid.Filler(body, 'middle', height=('relative', 40))
@@ -78,6 +78,7 @@ class Menu(menu.Menu):
         return self._ui_content
 
     def on_click(self, entry):
-        if self.country != entry.get_text():
-            self.country = entry.get_text()
+        if self.country != entry.text:
+            self.logger.info("Set location to %s", entry.text)
+            self.country = entry.text
             self.state = Menu._STATE_DONE

@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 #
 
-from ui import AbstractUI
+import logging
 import urwid
+from ui import UI
 #from installer import installer
 
 
@@ -19,6 +20,7 @@ palette = [
     ('mark_ok',       'dark green',   ''),
     ('entry.disabled','dark blue',    ''),
     ('menu.bar.hotkey', 'dark blue', 'light gray'),
+    ('log.warn',      'dark green',   ''),
     ('reversed',      'standout',     '')]
 
 
@@ -28,22 +30,8 @@ def debug():
     print 'Entering debug mode'
     pdb.set_trace()
 
-#
-# The screen is made up by:
-#
-#    - header: a simple bar to navigate through the different views of
-#              menu (config, logs...)
-#
-#    - side bar: to navigate throught the different menus and to see
-#                their status
-#
-#    - main frame: display the menu's main frame or logs (cf header)
-#
-#    - footer: a notification area that menu can use to display
-#              information. It's a ring buffer and each message is
-#              displayed during a limited amount of time.
-#
-class UrwidUI(AbstractUI):
+
+class UrwidUI(UI):
 
     __loop = None
     __main_frame = None
@@ -56,24 +44,20 @@ class UrwidUI(AbstractUI):
     footer = ""
 
     def __init__(self, installer):
-        AbstractUI.__init__(self, installer)
+        UI.__init__(self, installer)
         urwid.set_encoding("utf8")
 
     def _load_menus(self):
         # FIXME: modules loading should be in abstract class.
         import welcome, licence
-        self._menus.append(welcome.Menu(self.on_menu_event))
-        self._menus.append(licence.Menu(self.on_menu_event))
+        self._menus.append(welcome.Menu(self.on_menu_event, self.logger))
+        self._menus.append(licence.Menu(self.on_menu_event, self.logger))
 
     def __create_menu_page(self):
         self.__menu_frame = urwid.Frame(urwid.Filler(urwid.Text("")))
         columns  = [("weight", 0.2, self.__menu_navigator)]
         columns += [urwid.LineBox(self.__menu_frame)]
         self.__menu_page = urwid.Columns(columns, dividechars=1)
-
-        def toggle_menu_page_focus():
-            self.__menu_page.focus_position ^= 1
-        self.register_hotkey('tab', toggle_menu_page_focus)
 
     def __create_menu_navigator(self):
         self.__menu_navigator = MenuNavigator(self._menus)
@@ -85,14 +69,12 @@ class UrwidUI(AbstractUI):
         urwid.connect_signal(self.__menu_navigator, 'focus_changed', on_focus_changed)
 
     def __create_main_frame(self):
-        #header = urwid.Text(self.header, wrap='clip', align='center')
         header = urwid.AttrMap(self.__menu_bar, 'heading')
-        footer = urwid.Text(self.footer, wrap='clip')
-        footer = urwid.AttrMap(footer, 'footer')
+        footer = self.__echo_area
         self.__main_frame = urwid.Frame(self.__menu_page, header, footer)
 
     def __create_echo_area(self):
-        pass
+        self.__echo_area = urwid.Text("")
 
     def __create_menu_bar(self):
         self.__menu_bar = MenuBar(["Main", "Logs", "About"])
@@ -100,40 +82,70 @@ class UrwidUI(AbstractUI):
     def redraw(self):
         self.__loop.draw_screen()
 
-    def run(self):
-        self.__create_menu_navigator()
-        self.__create_menu_page()
-        self.__create_menu_bar()
-        self.__create_main_frame()
-
-        self.switch_to_first_menu()
-
-        self.__loop = urwid.MainLoop(self.__main_frame, palette,
-                                     input_filter=self.__handle_hotkeys)
-        self.__loop.run()
-
-    def on_menu_event(self, menu):
-        AbstractUI.on_menu_event(self, menu)
-        self.__menu_navigator.refresh()
-        self.switch_to_next_menu()
-
-    def _switch_to_menu(self, menu):
-        self.__menu_navigator.set_focus(self._menus.index(menu))
+    def notify(self, msg):
+        self.__echo_area.set_text(" " + msg)
 
     def quit(self):
-        self.logger.info("Quitting, exitting mainloop")
+        self.logger.info("Quitting, exiting mainloop")
         raise urwid.ExitMainLoop()
 
     def suspend(self):
         # see ovirt, ui/urwid_builder.py, suspended() method.
         raise NotImplementedError()
 
+    def run(self):
+        self.__create_menu_navigator()
+        self.__create_menu_page()
+        self.__create_menu_bar()
+        self.__create_echo_area()
+        self.__create_main_frame()
+
+        self.switch_to_first_menu()
+
+        def toggle_menu_page_focus():
+            self.__menu_page.focus_position ^= 1
+        self.register_hotkey('tab', toggle_menu_page_focus)
+        self.register_hotkey('f1', self.switch_to_menu)
+        self.register_hotkey('f2', self.switch_to_logs)
+
+        self.__loop = urwid.MainLoop(self.__main_frame, palette,
+                                     input_filter=self.__handle_hotkeys)
+        self.__loop.run()
+
+    def on_menu_event(self, menu):
+        UI.on_menu_event(self, menu)
+        self.__menu_navigator.refresh()
+        self.switch_to_next_menu()
+
+    def _switch_to_menu(self, menu):
+        self.__menu_navigator.set_focus(self._menus.index(menu))
+
+    def switch_to_logs(self):
+        self.__menu_frame.body = LogFrame(self.logs)
+
     def __handle_hotkeys(self, keys, raws):
         for key in keys:
-            if self._hotkeys.get(key) is not None:
-                self._hotkeys[key]()
+            if self.handle_hotkey(key):
                 keys.remove(key)
         return keys
+
+
+class LogFrame(urwid.WidgetWrap):
+
+    def __init__(self, logs):
+        items = []
+        for (lvl, msg) in logs:
+            txt = urwid.Text(msg)
+            if lvl > logging.INFO:
+                txt = urwid.AttrMap(txt, 'log.warn')
+            items.append(txt)
+
+        if not items:
+            w = urwid.Filler(urwid.Text(""))
+        else:
+            w = urwid.ListBox(items)
+
+        urwid.WidgetWrap.__init__(self, w)
 
 
 class MenuNavigator(urwid.WidgetWrap):

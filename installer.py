@@ -32,6 +32,13 @@ rootfs = RootFS()
 
 installer = None
 
+logging.basicConfig(format='%(name)-12s%(levelname)-8s%(asctime)s  %(message)s',
+                    datefmt='%H:%M:%S',
+                    filename='/tmp/installer.log',
+                    level=logging.DEBUG, filemode='w')
+logger = logging.getLogger('installer')
+
+
 class Installer(object):
 
     __version = "0.0"
@@ -50,18 +57,16 @@ class Installer(object):
         # modules of our application.
         gettext.install('installer', '/usr/share/locale', unicode=True)
 
-        self.logger = logging.getLogger(self.__module__)
         self.ui = UrwidUI(self)
-
         self.ui.register_hotkey("esc", self.quit)
 
     def run(self):
-        self.logger.info("Starting installer")
+        logger.info("Starting installer")
         self.ui.header = "Installer %s for XXX" % self.__version
         self.ui.run()
 
     def quit(self):
-        self.logger.info("Quitting installer")
+        logger.info("Quitting installer")
         # FIXME
         rootfs.umount()
         self.ui.quit()
