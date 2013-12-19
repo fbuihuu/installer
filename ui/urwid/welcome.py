@@ -27,6 +27,10 @@ class ClickableText(urwid.SelectableIcon):
             return key
         self._emit('click')
 
+    def get_cursor_coords(self, size):
+        # Disable cursor.
+        return None
+
 
 class ClickableTextList(urwid.WidgetWrap):
 
