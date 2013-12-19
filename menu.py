@@ -25,6 +25,7 @@ class Menu(object):
         self.ui = ui
         self._title = _(title)
         self._callback = callback
+        self._ui_content = None
         self._logger = MenuLogAdapter(ui.logger, {'title': title})
         self.requires = Set(self.requires)
         self.provides = Set(self.provides)
@@ -52,7 +53,13 @@ class Menu(object):
         if self._callback:
             self._callback(self)
 
+    @property
     def ui_content(self):
+        if not self._ui_content:
+            self._ui_content = self.build_ui_content()
+        return self._ui_content
+
+    def build_ui_content(self):
         raise NotImplementedError()
 
     def enable(self):

@@ -64,9 +64,7 @@ class UrwidUI(UI):
         self.__menu_navigator = MenuNavigator(self._menus)
 
         def on_focus_changed(menu):
-            # FIXME: why not simply doing: self.__menu_frame.body = menu
-            self.__menu_frame.body = menu.ui_content()
-
+            self.__menu_frame.body = menu.ui_content
         urwid.connect_signal(self.__menu_navigator, 'focus_changed', on_focus_changed)
 
     def __create_main_frame(self):

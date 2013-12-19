@@ -16,20 +16,6 @@ from localisation import country_dict
 # later (root password setup for example).
 #
 
-class MenuNavigatorEntry(urwid.Button):
-
-    def __init__(self, title):
-        self._title = title
-        super(MenuNavigatorEntry, self).__init__("")
-        w = urwid.SelectableIcon(title, 1)
-        w = urwid.AttrMap(w, None, focus_map='reversed')
-        self._w = w
-
-    @property
-    def name(self):
-        return self._title
-
-
 class ClickableText(urwid.SelectableIcon):
 
     signals = ["click"]
@@ -64,18 +50,16 @@ class Menu(menu.Menu):
 
     def __init__(self, ui, callback_event):
         menu.Menu.__init__(self, u"Language", ui, callback_event)
+        self.country = None
 
+    def build_ui_content(self):
         header = urwid.Text(_("Select your location"), align='center')
         body = ClickableTextList(country_dict.keys(), self.on_click)
         # Make the list centered inside its containers
         body = urwid.Filler(body, 'middle', height=('relative', 40))
         body = urwid.Padding(body, align='center', width=('relative', 30))
 
-        self._ui_content = urwid.Frame(body, header)
-        self.country = None
-
-    def ui_content(self):
-        return self._ui_content
+        return urwid.Frame(body, header)
 
     def on_click(self, entry):
         if self.country != entry.text:
