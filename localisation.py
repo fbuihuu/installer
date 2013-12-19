@@ -5,7 +5,7 @@
 # [1]: geographic zone (same one used by timezone)
 # [2]: default keymap
 # [3]: default timezone
-# [4]: default locale
+# [4]: default locale (<language>_<country>)
 
 country_dict = {
     'America':  [ 'America', 'us',       'New_York', 'en_US'],

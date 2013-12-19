@@ -23,7 +23,8 @@ class Menu(object):
 
     def __init__(self, title, ui, callback):
         self.ui = ui
-        self._title = _(title)
+        self.installer = ui.installer
+        self._title = title
         self._callback = callback
         self._ui_content = None
         self._logger = MenuLogAdapter(ui.logger, {'title': title})

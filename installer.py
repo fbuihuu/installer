@@ -5,8 +5,8 @@
 import sys
 import logging
 import gettext
-from rootfs import RootFS
 from ui.urwid import UrwidUI
+from localisation import country_dict
 
 
 def parse_cmdline():
@@ -27,11 +27,6 @@ def parse_cmdline():
     return parser.parse_args()
 
 
-rootfs = RootFS()
-#rootfs.synchronize(None)
-
-installer = None
-
 logging.basicConfig(format='%(name)-12s%(levelname)-8s%(asctime)s  %(message)s',
                     datefmt='%H:%M:%S',
                     filename='/tmp/installer.log',
@@ -39,30 +34,60 @@ logging.basicConfig(format='%(name)-12s%(levelname)-8s%(asctime)s  %(message)s',
 logger = logging.getLogger('installer')
 
 
+class InstallerData(dict):
+
+    def __init__(self):
+        dict.__init__(self)
+
+    def __getitem__(self, key):
+        return dict.get(self, key, None)
+
+    def __setitem__(self, key, value):
+
+        if key == "location/country":
+            self["location/locale"]   = country_dict[value][3]
+            self["location/timezone"] = country_dict[value][2]
+            self["location/keyboard"] = country_dict[value][1]
+
+        elif key == "location/locale":
+            # change installer language
+            lang, country = value.split("_")
+            tr = gettext.translation('installer', localedir='po', languages=[lang], fallback=False)
+            tr.install()
+            pass
+
+        elif key == "location/keyboard":
+            #if system.keyboard.get_layout() != value:
+            #  self.logger.info(_("switching keyboard layout to %s") % value)
+            #   system.keyboard.set_layout(value)
+            pass
+
+        dict.__setitem__(self, key, value)
+
+    def __delitem__(self, key):
+        if key in self:
+            dict.__delitem__(self, key)
+
+
 class Installer(object):
 
     __version = "0.0"
 
-    _location = None
-    _timezone = None
-    _kbd_layout = None
-    _locale = None
-
     def __init__(self, ui="urwid"):
+        self.data = InstallerData()
 
         reload(sys)
         sys.setdefaultencoding('utf-8')
         # For convenience, the _() function is installed by gettext.install()
         # in Python’s builtins namespace, so it is easily accessible in all
         # modules of our application.
-        gettext.install('installer', '/usr/share/locale', unicode=True)
+        gettext.install('installer', localedir='po', unicode=True)
 
         self.ui = UrwidUI(self)
         self.ui.register_hotkey("esc", self.quit)
 
     def run(self):
         logger.info("Starting installer")
-        self.ui.header = "Installer %s for XXX" % self.__version
         self.ui.run()
 
     def quit(self):
@@ -70,28 +95,6 @@ class Installer(object):
         # FIXME
         rootfs.umount()
         self.ui.quit()
-
-    @property
-    def kbd_layout(self):
-        return self._kbd_layout
-
-    @kbd_layout.setter
-    def kbd_layout(self, layout):
-        # if system.keyboard.get_layout() != layout:
-        # FIXME: self.ui.info(_("switching current keyboard layout to %s") % layout)
-        # FIXME: system.keyboard.set_layout(layout)
-        self._kbd_layout = layout
-
-    @property
-    def location(self):
-        return self._location
-
-    @location.setter
-    def location(self, place):
-        self._locale     = country_dict[place][3]
-        self._timezone   = country_dict[place][2]
-        self._kbd_layout = country_dict[place][1]
-        self._location   = place
 
 
 if __name__ == "__main__":

@@ -6,7 +6,6 @@ import menu
 import urwid
 from urwid.command_map import ACTIVATE
 import system
-from installer import rootfs
 from localisation import country_dict
 
 #
@@ -49,8 +48,20 @@ class Menu(menu.Menu):
     provides = ["language"]
 
     def __init__(self, ui, callback_event):
-        menu.Menu.__init__(self, u"Language", ui, callback_event)
-        self.country = None
+        menu.Menu.__init__(self, _("Language"), ui, callback_event)
+        self._country = None
+        if self.installer.data["location/country"]:
+            self.country = self.installer.data["location/country"]
+
+    @property
+    def country(self):
+        return self._country
+
+    @country.setter
+    def country(self, place):
+        self._country = place
+        self.installer.data["location/country"] = place
+        self.state = Menu._STATE_DONE
 
     def build_ui_content(self):
         header = urwid.Text(_("Select your location"), align='center')
@@ -62,7 +73,7 @@ class Menu(menu.Menu):
         return urwid.Frame(body, header)
 
     def on_click(self, entry):
-        if self.country != entry.text:
-            self.logger.info("Set location to %s", entry.text)
-            self.country = entry.text
-            self.state = Menu._STATE_DONE
+        place = entry.text
+        if self.country != place:
+            self.country = place
+            self.logger.info(_("Set location to %s"), place)
