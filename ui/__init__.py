@@ -35,7 +35,7 @@ class UI(object):
 
         self._logger = logging.getLogger(self.__module__)
         handler = UILogHandler(self)
-        formatter = logging.Formatter('[%(asctime)s] %(message)s',' %H:%M:%S')
+        formatter = logging.Formatter('[%(asctime)s] %(message)s','%H:%M:%S')
         handler.setFormatter(formatter)
         self._logger.addHandler(handler)
 
