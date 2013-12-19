@@ -78,7 +78,7 @@ class UrwidUI(UI):
         self.__echo_area = EchoArea()
 
     def __create_menu_bar(self):
-        self.__menu_bar = MenuBar(["Main", "Logs", "About"])
+        self.__menu_bar = MenuBar(["Main", "Summary", "Logs", "About"])
 
     def redraw(self):
         self.__loop.draw_screen()
@@ -111,7 +111,7 @@ class UrwidUI(UI):
             self.__menu_page.focus_position ^= 1
         self.register_hotkey('tab', toggle_menu_page_focus)
         self.register_hotkey('f1', self.switch_to_menu)
-        self.register_hotkey('f2', self.switch_to_logs)
+        self.register_hotkey('f3', self.switch_to_logs)
 
         self.__loop = urwid.MainLoop(self.__main_frame, palette,
                                      input_filter=self.filter_input)
