@@ -1,0 +1,10 @@
+git ls-files \*.py | xargs python2.7 /usr/lib/python2.7/Tools/i18n/pygettext.py -d installer -p po/
+
+# creation
+msginit --input=installer.pot --locale=fr
+
+# update
+msgmerge -o fr.po installer.po > fr2.po
+
+# compile en fr.mo
+msgfmt -o fr/LC_MESSAGES/installer.mo fr.po
