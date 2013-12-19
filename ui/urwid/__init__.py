@@ -19,8 +19,9 @@ palette = [
     ('mark_ko',       'light red',    ''),
     ('mark_ok',       'dark green',   ''),
     ('entry.disabled','dark blue',    ''),
-    ('menu.bar.hotkey', 'dark blue', 'light gray'),
-    ('log.warn',      'dark green',   ''),
+    ('menu.bar.hotkey', 'dark blue',  'light gray'),
+    ('log.warn',      'light red',    ''),
+    ('log.info',      'light green',  ''),
     ('reversed',      'standout',     '')]
 
 
@@ -74,7 +75,7 @@ class UrwidUI(UI):
         self.__main_frame = urwid.Frame(self.__menu_page, header, footer)
 
     def __create_echo_area(self):
-        self.__echo_area = urwid.Text("")
+        self.__echo_area = EchoArea()
 
     def __create_menu_bar(self):
         self.__menu_bar = MenuBar(["Main", "Logs", "About"])
@@ -82,8 +83,8 @@ class UrwidUI(UI):
     def redraw(self):
         self.__loop.draw_screen()
 
-    def notify(self, msg):
-        self.__echo_area.set_text(" " + msg)
+    def notify(self, lvl, msg):
+        self.__echo_area.notify(lvl, msg)
 
     def quit(self):
         self.logger.info("Quitting, exiting mainloop")
@@ -109,7 +110,7 @@ class UrwidUI(UI):
         self.register_hotkey('f2', self.switch_to_logs)
 
         self.__loop = urwid.MainLoop(self.__main_frame, palette,
-                                     input_filter=self.__handle_hotkeys)
+                                     input_filter=self.filter_input)
         self.__loop.run()
 
     def on_menu_event(self, menu):
@@ -127,6 +128,11 @@ class UrwidUI(UI):
         for key in keys:
             if self.handle_hotkey(key):
                 keys.remove(key)
+        return keys
+
+    def filter_input(self, keys, raws):
+        self.__echo_area.clear()
+        self.__handle_hotkeys(keys, raws)
         return keys
 
 
@@ -148,6 +154,24 @@ class LogFrame(urwid.WidgetWrap):
         urwid.WidgetWrap.__init__(self, w)
 
 
+class EchoArea(urwid.Text):
+
+    def __init__(self):
+         urwid.Text.__init__(self, "")
+
+    def notify(self, lvl, msg):
+        if lvl > logging.INFO:
+            markup = ('log.warn', msg)
+        elif lvl == logging.INFO:
+            markup = ('log.info', msg)
+        else:
+            markup = msg
+        self.set_text(markup)
+
+    def clear(self):
+        self.set_text("")
+
+
 class MenuNavigator(urwid.WidgetWrap):
 
     signals = ['focus_changed']
@@ -157,7 +181,6 @@ class MenuNavigator(urwid.WidgetWrap):
     __linebox = None
 
     def __init__(self, menus):
-        self.__has_focus = True
         self.__menus = menus
 
         items = []
@@ -182,8 +205,6 @@ class MenuNavigator(urwid.WidgetWrap):
         self.__list.set_focus(n)
 
     def keypress(self, size, key):
-        if not self.__has_focus:
-            return key
         return super(MenuNavigator, self).keypress(size, key)
 
     def refresh(self):

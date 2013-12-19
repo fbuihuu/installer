@@ -18,7 +18,7 @@ class UILogHandler(logging.Handler):
 
         self.ui.logs.appendleft((lvl, msg))
         if lvl > logging.DEBUG:
-            self.ui.notify(msg)
+            self.ui.notify(lvl, msg)
 
 
 class UI(object):
@@ -57,7 +57,7 @@ class UI(object):
     def redraw(self):
         raise NotImplementedError()
 
-    def notify(self, msg):
+    def notify(self, lvl, msg):
         pass
 
     def register_hotkey(self, hotkey, cb):
