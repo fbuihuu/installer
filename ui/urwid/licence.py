@@ -35,6 +35,6 @@ class Menu(urwid.WidgetWrap, menu.Menu):
         self.state = Menu._STATE_DONE
 
     def on_disagreed(self, button):
-        self.logger.critical("you rejected the terms of the licence")
+        self.logger.critical("you rejected the terms of the licence, aborting")
         self.state = Menu._STATE_FAILED
-        #raise urwid.ExitMainLoop()
+        self.ui.quit(3)

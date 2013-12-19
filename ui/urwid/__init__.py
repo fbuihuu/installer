@@ -86,8 +86,12 @@ class UrwidUI(UI):
     def notify(self, lvl, msg):
         self.__echo_area.notify(lvl, msg)
 
-    def quit(self):
-        self.logger.info("Quitting, exiting mainloop")
+    def quit(self, delay=0):
+        if delay:
+            import time
+            # flush any pending screen changes before sleeping.
+            self.redraw()
+            time.sleep(delay)
         raise urwid.ExitMainLoop()
 
     def suspend(self):

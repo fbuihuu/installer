@@ -48,7 +48,7 @@ class UI(object):
     def run(self):
         raise NotImplementedError()
 
-    def quit(self):
+    def quit(self, delay=0):
         raise NotImplementedError()
 
     def suspend(self):
