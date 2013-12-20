@@ -6,7 +6,7 @@ import menu
 import urwid
 from urwid.command_map import ACTIVATE
 import system
-from localisation import country_dict
+from l10n import country_dict
 
 #
 # Language selection should be immediate.
@@ -54,8 +54,8 @@ class Menu(menu.Menu):
     def __init__(self, ui, callback_event):
         menu.Menu.__init__(self, _("Language"), ui, callback_event)
         self._country = None
-        if self.installer.data["location/country"]:
-            self.country = self.installer.data["location/country"]
+        if self.installer.data["localization/country"]:
+            self.country = self.installer.data["localization/country"]
 
     @property
     def country(self):
@@ -64,7 +64,7 @@ class Menu(menu.Menu):
     @country.setter
     def country(self, place):
         self._country = place
-        self.installer.data["location/country"] = place
+        self.installer.data["localization/country"] = place
         self.state = Menu._STATE_DONE
 
     def build_ui_content(self):

@@ -6,7 +6,7 @@ import sys
 import logging
 import gettext
 from ui.urwid import UrwidUI
-from localisation import country_dict
+from l10n import country_dict
 
 
 def parse_cmdline():
@@ -44,19 +44,19 @@ class InstallerData(dict):
 
     def __setitem__(self, key, value):
 
-        if key == "location/country":
-            self["location/locale"]   = country_dict[value][3]
-            self["location/timezone"] = country_dict[value][2]
-            self["location/keyboard"] = country_dict[value][1]
+        if key == "localization/country":
+            self["localization/locale"]   = country_dict[value][3]
+            self["localization/timezone"] = country_dict[value][2]
+            self["localization/keyboard"] = country_dict[value][1]
 
-        elif key == "location/locale":
+        elif key == "localization/locale":
             # change installer language
             lang, country = value.split("_")
             tr = gettext.translation('installer', localedir='po', languages=[lang], fallback=False)
             tr.install()
             pass
 
-        elif key == "location/keyboard":
+        elif key == "localization/keyboard":
             #if system.keyboard.get_layout() != value:
             #  self.logger.info(_("switching keyboard layout to %s") % value)
             #   system.keyboard.set_layout(value)
