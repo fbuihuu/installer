@@ -49,19 +49,6 @@ class InstallerData(dict):
             self["localization/timezone"] = country_dict[value][2]
             self["localization/keyboard"] = country_dict[value][1]
 
-        elif key == "localization/locale":
-            # change installer language
-            lang, country = value.split("_")
-            tr = gettext.translation('installer', localedir='po', languages=[lang], fallback=False)
-            tr.install()
-            pass
-
-        elif key == "localization/keyboard":
-            #if system.keyboard.get_layout() != value:
-            #  self.logger.info(_("switching keyboard layout to %s") % value)
-            #   system.keyboard.set_layout(value)
-            pass
-
         dict.__setitem__(self, key, value)
 
     def __delitem__(self, key):

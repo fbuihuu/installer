@@ -5,37 +5,48 @@ import menu
 import urwid
 
 
-class Menu(urwid.WidgetWrap, menu.Menu):
+class Menu(menu.Menu):
 
     requires = ["language"]
     provides = ["license"]
 
     def __init__(self, ui, menu_event_cb):
         menu.Menu.__init__(self, ui, menu_event_cb)
+        self._locale = None
 
     @property
     def name(self):
         return _("License")
 
-    def build_ui_content(self):
+    def redraw(self):
+        if self._locale == self.installer.data["localization/locale"]:
+            return
+        self._locale = self.installer.data["localization/locale"]
+
+        walker  = self._widget.body
+        lang, country = self._locale.split("_")
+
         content = []
-        with open("LICENCE", "r") as f:
+        with open("LICENCE-" + lang, "r") as f:
             for line in f:
                 content.append(line)
-        items = []
-        items.append(urwid.Padding(urwid.Text(content), "center", ('relative', 90)))
-        items.append(urwid.Divider())
-        items.append(urwid.Button("Accept", on_press=self.on_accepted))
-        items.append(urwid.Button("Disagree", on_press=self.on_disagreed))
-        walker = urwid.SimpleListWalker(items)
+        content = urwid.Text(content)
 
-        return urwid.ListBox(walker)
+        del walker[:]
+        walker.append(urwid.Padding(content, "center", ('relative', 90)))
+        walker.append(urwid.Divider())
+        walker.append(urwid.Button(_("Accept"), on_press=self.on_accepted))
+        walker.append(urwid.Button(_("Refuse"), on_press=self.on_disagreed))
+
+    def _create_widget(self):
+        self._widget = urwid.ListBox(urwid.SimpleListWalker([]))
+        self.redraw()
 
     def on_accepted(self, button):
-        self.logger.info("you accepted the terms of the license")
+        self.logger.info(_("you accepted the terms of the license"))
         self.state = Menu._STATE_DONE
 
     def on_disagreed(self, button):
-        self.logger.critical("you rejected the terms of the license, aborting")
+        self.logger.critical(_("you rejected the terms of the license, aborting"))
         self.state = Menu._STATE_FAILED
         self.ui.quit(3)

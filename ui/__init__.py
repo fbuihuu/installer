@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 
+import gettext
 import logging
 from sets import Set
 from collections import deque
@@ -30,6 +31,7 @@ class UI(object):
 
     def __init__(self, installer):
         self.installer = installer
+        self._language = None
         self._current_menu = None
         self.logs = deque()
 
@@ -44,6 +46,16 @@ class UI(object):
     @property
     def logger(self):
         return self._logger
+
+    @property
+    def language(self):
+        return self._language
+
+    @language.setter
+    def language(self, lang):
+        tr = gettext.translation('installer', localedir='po', languages=[lang])
+        tr.install()
+        self.logger.debug(_("switch to english language"))
 
     def run(self):
         raise NotImplementedError()

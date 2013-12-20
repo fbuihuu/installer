@@ -61,7 +61,7 @@ class UrwidUI(UI):
         self.__menu_navigator = MenuNavigator(self._menus)
 
         def on_focus_changed(menu):
-            self.__menu_frame.body = menu.ui_content
+            self.__menu_frame.body = menu.widget
         urwid.connect_signal(self.__menu_navigator, 'focus_changed', on_focus_changed)
 
     def __create_main_frame(self):
@@ -73,9 +73,12 @@ class UrwidUI(UI):
         self.__echo_area = EchoArea()
 
     def __create_top_bar(self):
-        self.__top_bar = TopBar(["Main", "Summary", "Logs", "About"])
+        self.__top_bar = TopBar()
 
     def redraw(self):
+        for m in self._menus:
+            m.redraw()
+        self.__menu_navigator.refresh()
         self.__loop.draw_screen()
 
     def notify(self, lvl, msg):
@@ -249,13 +252,14 @@ class MenuNavigatorEntry(urwid.WidgetWrap):
 
 class TopBar(urwid.WidgetWrap):
 
-    def __init__(self, menus):
-        items = []
-        for (i, menu) in enumerate(menus, 1):
+    def __init__(self):
+        items = [_("Main"), _("Summary"), _("Logs"), _("About")]
+        markups = []
+        for (i, menu) in enumerate(items, 1):
             if i > 1:
-                items.append("  ")
-            items.append(('top.bar.hotkey', "F"+str(i)+" "))
-            items.append(menu)
+                markups.append("  ")
+            markups.append(('top.bar.hotkey', "F"+str(i)+" "))
+            markups.append(menu)
 
-        bar = urwid.Text(items)
-        urwid.WidgetWrap.__init__(self, bar)
+        topbar = urwid.Text(markups)
+        urwid.WidgetWrap.__init__(self, topbar)

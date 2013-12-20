@@ -25,7 +25,7 @@ class Menu(object):
         self.ui = ui
         self.installer = ui.installer
         self._callback = callback
-        self._ui_content = None
+        self._widget = None
         self._logger = MenuLogAdapter(ui.logger, {'title': self.name})
         self.requires = Set(self.requires)
         self.provides = Set(self.provides)
@@ -54,13 +54,13 @@ class Menu(object):
             self._callback(self)
 
     @property
-    def ui_content(self):
-        if not self._ui_content:
-            self._ui_content = self.build_ui_content()
-        return self._ui_content
+    def widget(self):
+        if not self._widget:
+            self._create_widget()
+        return self._widget
 
-    def build_ui_content(self):
-        raise NotImplementedError()
+    def redraw(self):
+        pass
 
     def enable(self):
         if self.state == Menu._STATE_DISABLED:
@@ -69,6 +69,7 @@ class Menu(object):
     def undo(self):
         if self.state == Menu._STATE_DONE or self.state == Menu._STATE_FAILED:
             self.state = Menu._STATE_INIT
+        self.redraw()
 
     def disable(self):
         if len(self.requires) == 0:
