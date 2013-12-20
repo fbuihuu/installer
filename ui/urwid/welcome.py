@@ -52,10 +52,14 @@ class Menu(menu.Menu):
     provides = ["language"]
 
     def __init__(self, ui, callback_event):
-        menu.Menu.__init__(self, _("Language"), ui, callback_event)
+        menu.Menu.__init__(self, ui, callback_event)
         self._country = None
         if self.installer.data["localization/country"]:
             self.country = self.installer.data["localization/country"]
+
+    @property
+    def name(self):
+        return _("Language")
 
     @property
     def country(self):

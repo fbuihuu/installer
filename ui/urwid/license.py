@@ -11,7 +11,11 @@ class Menu(urwid.WidgetWrap, menu.Menu):
     provides = ["license"]
 
     def __init__(self, ui, menu_event_cb):
-        menu.Menu.__init__(self, _("License"), ui, menu_event_cb)
+        menu.Menu.__init__(self, ui, menu_event_cb)
+
+    @property
+    def name(self):
+        return _("License")
 
     def build_ui_content(self):
         content = []

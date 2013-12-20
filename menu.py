@@ -21,13 +21,12 @@ class Menu(object):
     requires = []
     provides = []
 
-    def __init__(self, title, ui, callback):
+    def __init__(self, ui, callback):
         self.ui = ui
         self.installer = ui.installer
-        self._title = title
         self._callback = callback
         self._ui_content = None
-        self._logger = MenuLogAdapter(ui.logger, {'title': title})
+        self._logger = MenuLogAdapter(ui.logger, {'title': self.name})
         self.requires = Set(self.requires)
         self.provides = Set(self.provides)
 
@@ -37,12 +36,12 @@ class Menu(object):
             self._state = Menu._STATE_DISABLED
 
     @property
-    def logger(self):
-        return self._logger
+    def name(self):
+        raise NotImplementedError()
 
     @property
-    def name(self):
-        return self._title
+    def logger(self):
+        return self._logger
 
     @property
     def state(self):
