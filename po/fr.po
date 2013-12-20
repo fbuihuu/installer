@@ -5,29 +5,30 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2013-12-19 21:51+CET\n"
+"POT-Creation-Date: 2013-12-20 10:35+CET\n"
 "PO-Revision-Date: 2013-12-19 21:37+0100\n"
 "Last-Translator:  <fbui@mandriva.com>\n"
 "Language-Team: French\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: pygettext.py 1.5\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: ui/urwid/licence.py:14
-msgid "licence"
+#: ui/urwid/license.py:14
+#, fuzzy
+msgid "License"
 msgstr "licence"
 
-#: ui/urwid/welcome.py:51
+#: ui/urwid/welcome.py:55
 msgid "Language"
 msgstr "Langue"
 
-#: ui/urwid/welcome.py:67
+#: ui/urwid/welcome.py:71
 msgid "Select your location"
 msgstr "Choisissez une position"
 
-#: ui/urwid/welcome.py:79
+#: ui/urwid/welcome.py:83
 msgid "Set location to %s"
 msgstr "Position choisie: %s"

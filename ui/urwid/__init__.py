@@ -41,18 +41,15 @@ class UrwidUI(UI):
     __menu_navigator = None
     __top_bar = None
 
-    header = ""
-    footer = ""
-
     def __init__(self, installer):
         UI.__init__(self, installer)
         urwid.set_encoding("utf8")
 
     def _load_menus(self):
         # FIXME: modules loading should be in abstract class.
-        import welcome, licence
+        import welcome, license
         self._menus.append(welcome.Menu(self, self.on_menu_event))
-        self._menus.append(licence.Menu(self, self.on_menu_event))
+        self._menus.append(license.Menu(self, self.on_menu_event))
 
     def __create_menu_page(self):
         self.__menu_frame = urwid.Frame(urwid.Filler(urwid.Text("")))

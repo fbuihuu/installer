@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2013-12-19 21:51+CET\n"
+"POT-Creation-Date: 2013-12-20 10:35+CET\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -15,19 +15,19 @@ msgstr ""
 "Generated-By: pygettext.py 1.5\n"
 
 
-#: ui/urwid/licence.py:14
-msgid "licence"
+#: ui/urwid/license.py:14
+msgid "License"
 msgstr ""
 
-#: ui/urwid/welcome.py:51
+#: ui/urwid/welcome.py:55
 msgid "Language"
 msgstr ""
 
-#: ui/urwid/welcome.py:67
+#: ui/urwid/welcome.py:71
 msgid "Select your location"
 msgstr ""
 
-#: ui/urwid/welcome.py:79
+#: ui/urwid/welcome.py:83
 msgid "Set location to %s"
 msgstr ""
 

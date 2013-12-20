@@ -8,10 +8,10 @@ import urwid
 class Menu(urwid.WidgetWrap, menu.Menu):
 
     requires = ["language"]
-    provides = ["licence"]
+    provides = ["license"]
 
     def __init__(self, ui, menu_event_cb):
-        menu.Menu.__init__(self, _("Licence"), ui, menu_event_cb)
+        menu.Menu.__init__(self, _("License"), ui, menu_event_cb)
 
     def build_ui_content(self):
         content = []
@@ -28,10 +28,10 @@ class Menu(urwid.WidgetWrap, menu.Menu):
         return urwid.ListBox(walker)
 
     def on_accepted(self, button):
-        self.logger.info("you accepted the terms of the licence")
+        self.logger.info("you accepted the terms of the license")
         self.state = Menu._STATE_DONE
 
     def on_disagreed(self, button):
-        self.logger.critical("you rejected the terms of the licence, aborting")
+        self.logger.critical("you rejected the terms of the license, aborting")
         self.state = Menu._STATE_FAILED
         self.ui.quit(3)
