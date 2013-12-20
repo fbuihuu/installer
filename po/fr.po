@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2013-12-20 18:04+CET\n"
+"POT-Creation-Date: 2013-12-20 22:57+CET\n"
 "PO-Revision-Date: 2013-12-19 21:37+0100\n"
 "Last-Translator:  <fbui@mandriva.com>\n"
 "Language-Team: French\n"
@@ -16,23 +16,23 @@ msgstr ""
 "Generated-By: pygettext.py 1.5\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: ui/__init__.py:58
+#: ui/__init__.py:64
 msgid "switch to english language"
 msgstr "choix de la langue française"
 
-#: ui/urwid/__init__.py:256
+#: ui/urwid/__init__.py:257
 msgid "About"
 msgstr "A-Propos"
 
-#: ui/urwid/__init__.py:256
+#: ui/urwid/__init__.py:257
 msgid "Logs"
 msgstr ""
 
-#: ui/urwid/__init__.py:256
+#: ui/urwid/__init__.py:257
 msgid "Main"
 msgstr "Général"
 
-#: ui/urwid/__init__.py:256
+#: ui/urwid/__init__.py:257
 msgid "Summary"
 msgstr "Résumé"
 
@@ -64,7 +64,6 @@ msgstr "Langue"
 msgid "Select your location"
 msgstr "Choisissez une région"
 
-#: ui/urwid/welcome.py:101
-#, fuzzy
+#: ui/urwid/welcome.py:102
 msgid "set location to %s"
-msgstr "Vous avez choisi %s comme région"
+msgstr "vous avez choisi %s comme région"

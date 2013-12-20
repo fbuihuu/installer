@@ -41,8 +41,8 @@ class UrwidUI(UI):
     __menu_navigator = None
     __top_bar = None
 
-    def __init__(self, installer):
-        UI.__init__(self, installer)
+    def __init__(self, installer, lang):
+        UI.__init__(self, installer, lang)
         urwid.set_encoding("utf8")
 
     def _load_menus(self):
@@ -108,6 +108,7 @@ class UrwidUI(UI):
         def toggle_menu_page_focus():
             self.__menu_page.focus_position ^= 1
         self.register_hotkey('tab', toggle_menu_page_focus)
+        self.register_hotkey("esc", self.quit)
         self.register_hotkey('f1', self.switch_to_menu)
         self.register_hotkey('f3', self.switch_to_logs)
 

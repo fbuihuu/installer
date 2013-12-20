@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 
+import locale
 import gettext
 import logging
 from sets import Set
@@ -29,9 +30,8 @@ class UI(object):
     _installer = None
     current_provides = Set([])
 
-    def __init__(self, installer):
+    def __init__(self, installer, lang):
         self.installer = installer
-        self._language = None
         self._current_menu = None
         self.logs = deque()
 
@@ -41,6 +41,7 @@ class UI(object):
         handler.setFormatter(formatter)
         self._logger.addHandler(handler)
 
+        self.language = lang
         self._load_menus()
 
     @property
@@ -53,8 +54,13 @@ class UI(object):
 
     @language.setter
     def language(self, lang):
+        self._language = lang
+        locale.setlocale(locale.LC_ALL, lang)
         tr = gettext.translation('installer', localedir='po', languages=[lang])
         tr.install()
+        # FIXME: install use env vars (LANG, LANGUAGES...) to find out
+        # the lang to use. Why doesn't setlocale() have no effect ?
+        # gettext.install('installer', localedir='po', unicode=True)
         self.logger.debug(_("switch to english language"))
 
     def run(self):

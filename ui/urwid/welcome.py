@@ -71,7 +71,7 @@ class Menu(menu.Menu):
         self.installer.data["localization/country"] = place
 
         # Change the language of the whole ui.
-        lang = self.installer.data["localization/locale"].split("_")[0]
+        lang = self.installer.data["localization/locale"]
         self.ui.language = lang
 
         # Switch the keyboard layout accordingly.
@@ -98,5 +98,5 @@ class Menu(menu.Menu):
     def on_click(self, entry):
         place = entry.text
         if self.country != place:
-            self.logger.info(_("set location to %s"), place)
             self.country = place
+            self.logger.info(_("set location to %s"), place)

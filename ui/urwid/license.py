@@ -19,12 +19,12 @@ class Menu(menu.Menu):
         return _("License")
 
     def redraw(self):
-        if self._locale == self.installer.data["localization/locale"]:
+        if self._locale == self.ui.language:
             return
-        self._locale = self.installer.data["localization/locale"]
+        self._locale = self.ui.language
 
         walker  = self._widget.body
-        lang, country = self._locale.split("_")
+        lang = self.ui.language
 
         content = []
         with open("LICENCE-" + lang, "r") as f:

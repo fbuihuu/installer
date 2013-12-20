@@ -3,6 +3,7 @@
 #
 
 import sys
+import locale
 import logging
 import gettext
 from ui.urwid import UrwidUI
@@ -61,17 +62,15 @@ class Installer(object):
     __version = "0.0"
 
     def __init__(self, ui="urwid"):
-        self.data = InstallerData()
+
+        locale.resetlocale()
+        lang, enc = locale.getlocale()
 
         reload(sys)
         sys.setdefaultencoding('utf-8')
-        # For convenience, the _() function is installed by gettext.install()
-        # in Python’s builtins namespace, so it is easily accessible in all
-        # modules of our application.
-        gettext.install('installer', localedir='po', unicode=True)
 
-        self.ui = UrwidUI(self)
-        self.ui.register_hotkey("esc", self.quit)
+        self.data = InstallerData()
+        self.ui = UrwidUI(self, lang)
 
     def run(self):
         logger.info("Starting installer")
