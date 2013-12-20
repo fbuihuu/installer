@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2013-12-20 10:35+CET\n"
+"POT-Creation-Date: 2013-12-20 18:04+CET\n"
 "PO-Revision-Date: 2013-12-19 21:37+0100\n"
 "Last-Translator:  <fbui@mandriva.com>\n"
 "Language-Team: French\n"
@@ -16,19 +16,55 @@ msgstr ""
 "Generated-By: pygettext.py 1.5\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: ui/urwid/license.py:14
-#, fuzzy
-msgid "License"
-msgstr "licence"
+#: ui/__init__.py:58
+msgid "switch to english language"
+msgstr "choix de la langue française"
 
-#: ui/urwid/welcome.py:55
+#: ui/urwid/__init__.py:256
+msgid "About"
+msgstr "A-Propos"
+
+#: ui/urwid/__init__.py:256
+msgid "Logs"
+msgstr ""
+
+#: ui/urwid/__init__.py:256
+msgid "Main"
+msgstr "Général"
+
+#: ui/urwid/__init__.py:256
+msgid "Summary"
+msgstr "Résumé"
+
+#: ui/urwid/license.py:19
+msgid "License"
+msgstr "Licence"
+
+#: ui/urwid/license.py:38
+msgid "Accept"
+msgstr "Accepter"
+
+#: ui/urwid/license.py:39
+msgid "Refuse"
+msgstr "Refuser"
+
+#: ui/urwid/license.py:46
+msgid "you accepted the terms of the license"
+msgstr "vous avez accepté les termes de la licence"
+
+#: ui/urwid/license.py:50
+msgid "you rejected the terms of the license, aborting"
+msgstr "vous avez refusé les termes de la licence, fin de l'installation"
+
+#: ui/urwid/welcome.py:62
 msgid "Language"
 msgstr "Langue"
 
-#: ui/urwid/welcome.py:71
+#: ui/urwid/welcome.py:87
 msgid "Select your location"
-msgstr "Choisissez une position"
+msgstr "Choisissez une région"
 
-#: ui/urwid/welcome.py:83
-msgid "Set location to %s"
-msgstr "Position choisie: %s"
+#: ui/urwid/welcome.py:101
+#, fuzzy
+msgid "set location to %s"
+msgstr "Vous avez choisi %s comme région"

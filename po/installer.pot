@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2013-12-20 10:35+CET\n"
+"POT-Creation-Date: 2013-12-20 18:04+CET\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -15,19 +15,55 @@ msgstr ""
 "Generated-By: pygettext.py 1.5\n"
 
 
-#: ui/urwid/license.py:14
+#: ui/__init__.py:58
+msgid "switch to english language"
+msgstr ""
+
+#: ui/urwid/__init__.py:256
+msgid "About"
+msgstr ""
+
+#: ui/urwid/__init__.py:256
+msgid "Logs"
+msgstr ""
+
+#: ui/urwid/__init__.py:256
+msgid "Main"
+msgstr ""
+
+#: ui/urwid/__init__.py:256
+msgid "Summary"
+msgstr ""
+
+#: ui/urwid/license.py:19
 msgid "License"
 msgstr ""
 
-#: ui/urwid/welcome.py:55
+#: ui/urwid/license.py:38
+msgid "Accept"
+msgstr ""
+
+#: ui/urwid/license.py:39
+msgid "Refuse"
+msgstr ""
+
+#: ui/urwid/license.py:46
+msgid "you accepted the terms of the license"
+msgstr ""
+
+#: ui/urwid/license.py:50
+msgid "you rejected the terms of the license, aborting"
+msgstr ""
+
+#: ui/urwid/welcome.py:62
 msgid "Language"
 msgstr ""
 
-#: ui/urwid/welcome.py:71
+#: ui/urwid/welcome.py:87
 msgid "Select your location"
 msgstr ""
 
-#: ui/urwid/welcome.py:83
-msgid "Set location to %s"
+#: ui/urwid/welcome.py:101
+msgid "set location to %s"
 msgstr ""
 

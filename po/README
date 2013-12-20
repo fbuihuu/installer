@@ -9,3 +9,4 @@ msgmerge -o fr.po fr.po installer.pot
 
 # compile en fr.mo
 msgfmt -o fr/LC_MESSAGES/installer.mo fr.po
+msgfmt -o en/LC_MESSAGES/installer.mo installer.pot
