@@ -91,7 +91,7 @@ class Menu(menu.Menu):
         body = ClickableTextList(country_dict.keys(), self.on_click)
         # Make the list centered inside its container
         body = urwid.Filler(body, 'middle', height=('relative', 40))
-        body = urwid.Padding(body, align='center', width=('relative', 30))
+        body = urwid.Padding(body, align='center', width=('relative', 60))
         self._widget = urwid.Frame(body, header)
         self.redraw()
 
