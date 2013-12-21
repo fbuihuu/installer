@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 
+import os
 import locale
 import gettext
 import logging
@@ -56,11 +57,11 @@ class UI(object):
     def language(self, lang):
         self._language = lang
         locale.setlocale(locale.LC_ALL, lang)
-        tr = gettext.translation('installer', localedir='po', languages=[lang])
-        tr.install()
-        # FIXME: install use env vars (LANG, LANGUAGES...) to find out
-        # the lang to use. Why doesn't setlocale() have no effect ?
-        # gettext.install('installer', localedir='po', unicode=True)
+        # For some reason, python implementation of gettext.install()
+        # ignores the previous call to setlocale(). It only uses
+        # environment variables.
+        os.environ["LANGUAGE"] = lang
+        gettext.install('installer', localedir='po', unicode=True)
         self.logger.debug(_("switch to english language"))
 
     def run(self):
