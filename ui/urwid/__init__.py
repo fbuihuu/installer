@@ -82,7 +82,8 @@ class UrwidUI(UI):
         self.__loop.draw_screen()
 
     def notify(self, lvl, msg):
-        self.__echo_area.notify(lvl, msg)
+        if self.__echo_area:
+            self.__echo_area.notify(lvl, msg)
 
     def quit(self, delay=0):
         if delay:
