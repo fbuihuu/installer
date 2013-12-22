@@ -57,6 +57,7 @@ class Menu(object):
     def widget(self):
         if not self._widget:
             self._create_widget()
+        self.redraw()
         return self._widget
 
     def redraw(self):
@@ -69,7 +70,6 @@ class Menu(object):
     def undo(self):
         if self.state == Menu._STATE_DONE or self.state == Menu._STATE_FAILED:
             self.state = Menu._STATE_INIT
-        self.redraw()
 
     def disable(self):
         if len(self.requires) == 0:
