@@ -93,7 +93,6 @@ class Menu(menu.Menu):
         body = urwid.Filler(body, 'middle', height=('relative', 40))
         body = urwid.Padding(body, align='center', width=('relative', 60))
         self._widget = urwid.Frame(body, header)
-        self.redraw()
 
     def on_click(self, entry):
         place = entry.text
