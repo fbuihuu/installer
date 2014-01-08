@@ -62,6 +62,7 @@ class UI(object):
         # environment variables.
         os.environ["LANGUAGE"] = lang
         gettext.install('installer', localedir='po', unicode=True)
+        self.redraw()
         self.logger.debug(_("switch to english language"))
 
     def run(self):

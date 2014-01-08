@@ -76,8 +76,10 @@ class UrwidUI(UI):
         self.__top_bar = TopBar()
 
     def redraw(self):
-        self.__menu_navigator.refresh()
-        self.__loop.draw_screen()
+        if self.__loop:
+            self.__top_bar.refresh()
+            self.__menu_navigator.refresh()
+            self.__loop.draw_screen()
 
     def notify(self, lvl, msg):
         if self.__echo_area:
@@ -253,13 +255,17 @@ class MenuNavigatorEntry(urwid.WidgetWrap):
 class TopBar(urwid.WidgetWrap):
 
     def __init__(self):
-        items = [_("Main"), _("Summary"), _("Logs"), _("About")]
-        markups = []
-        for (i, menu) in enumerate(items, 1):
-            if i > 1:
-                markups.append("  ")
-            markups.append(('top.bar.hotkey', "F"+str(i)+" "))
-            markups.append(menu)
+        self._text = urwid.Text("")
+        urwid.WidgetWrap.__init__(self, self._text)
+        self.refresh()
 
-        topbar = urwid.Text(markups)
-        urwid.WidgetWrap.__init__(self, topbar)
+    def refresh(self):
+        items = [_("Main"), _("Summary"), _("Logs"), _("About")]
+        txt = []
+        for (i, item) in enumerate(items, 1):
+            if i > 1:
+                txt.append("  ")
+            txt.append(('top.bar.hotkey', "F"+str(i)+" "))
+            txt.append(item)
+        self._text.set_text(txt)
+
