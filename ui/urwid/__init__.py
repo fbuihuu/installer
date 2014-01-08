@@ -76,8 +76,6 @@ class UrwidUI(UI):
         self.__top_bar = TopBar()
 
     def redraw(self):
-        for m in self._menus:
-            m.redraw()
         self.__menu_navigator.refresh()
         self.__loop.draw_screen()
 
