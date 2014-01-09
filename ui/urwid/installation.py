@@ -4,7 +4,7 @@
 import gudev
 import menu
 import urwid
-
+import widgets
 
 mandatory_mountpoints = {
     "/":        None,
@@ -78,50 +78,12 @@ def get_installable_devices():
     return rv
 
 
-# FIXME: create a urwid widget lib and put this class in
-# it. welcome.py is duplicating the same widget.
-from urwid.command_map import ACTIVATE
-class ClickableText(urwid.SelectableIcon):
-
-    signals = ["click"]
-
-    def __init__(self, txt):
-        urwid.SelectableIcon.__init__(self, txt, -1)
-
-    def keypress(self, size, key):
-        if self._command_map[key] != ACTIVATE:
-            return key
-        self._emit('click')
-
-    def get_cursor_coords(self, size):
-        # Disable cursor.
-        return None
-
-
-# FIXME: duplicate widget too. This version is more recent than the
-# other one.
-class ClickableTextList(urwid.WidgetWrap):
-
-    def __init__(self, items, on_click=None):
-        lst = []
-
-        for item in items:
-            txt = ClickableText(item)
-            txt.set_layout('center', 'clip', None)
-            if on_click:
-                urwid.connect_signal(txt, 'click', on_click)
-            lst.append(urwid.AttrMap(txt, None, focus_map='reversed'))
-
-        self._walker = urwid.SimpleListWalker(lst)
-        urwid.WidgetWrap.__init__(self, urwid.ListBox(self._walker))
-
-
 class MountpointListEntryWidget(urwid.WidgetWrap):
 
     def __init__(self, mntpnt, dev=None, on_click=None):
         self._callback = on_click
         self._mntpnt = urwid.Text(mntpnt, align="left")
-        self._device = ClickableText(dev if dev else _("< None >"))
+        self._device = widgets.ClickableText(dev if dev else _("< None >"))
         urwid.connect_signal(self._device, 'click', self.__on_click)
         self._device = urwid.AttrMap(self._device, None, focus_map='reversed')
 
@@ -153,7 +115,7 @@ class MountpointListWidget(urwid.WidgetWrap):
         super(MountpointListWidget, self).__init__(urwid.ListBox(walker))
 
 
-class DeviceListWidget(ClickableTextList):
+class DeviceListWidget(widgets.ClickableTextList):
 
     signals = ['focus_changed', 'click']
 
