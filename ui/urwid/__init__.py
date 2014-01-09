@@ -180,39 +180,34 @@ class MenuNavigator(urwid.WidgetWrap):
 
     signals = ['focus_changed']
 
-    __menus = None
-    __list  = None
-    __linebox = None
-
     def __init__(self, menus):
-        self.__menus = menus
+        self._menus = menus
 
         items = []
-        for menu in self.__menus:
+        for menu in self._menus:
             items.append(MenuNavigatorEntry(menu))
         walker = urwid.SimpleListWalker(items)
-        self.__walker = walker
+        self._walker = walker
 
         urwid.connect_signal(walker, 'modified', self.__on_focus_changed)
-        self.__list = urwid.ListBox(walker)
-        self.__linebox = urwid.LineBox(self.__list)
-        super(MenuNavigator, self).__init__(self.__linebox)
+        self._list = urwid.ListBox(walker)
+        super(MenuNavigator, self).__init__(urwid.LineBox(self._list))
 
     def __on_focus_changed(self):
         widget, index = self.get_focus()
-        urwid.emit_signal(self, "focus_changed", self.__menus[index])
+        urwid.emit_signal(self, "focus_changed", self._menus[index])
 
     def get_focus(self):
-        return self.__list.get_focus()
+        return self._list.get_focus()
 
     def set_focus(self, n):
-        self.__list.set_focus(n)
+        self._list.set_focus(n)
 
     def keypress(self, size, key):
         return super(MenuNavigator, self).keypress(size, key)
 
     def refresh(self):
-        for e in self.__walker:
+        for e in self._walker:
             e.refresh()
 
 
