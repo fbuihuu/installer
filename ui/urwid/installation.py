@@ -126,12 +126,14 @@ class DeviceListWidget(widgets.ClickableTextList):
         urwid.connect_signal(self._walker, 'modified', self.__on_focus_changed)
 
     def __on_focus_changed(self):
-        widget, idx = self._walker.get_focus()
-        urwid.emit_signal(self, "focus_changed", self._devices[idx])
+        urwid.emit_signal(self, "focus_changed", self.get_focus())
 
     def __on_click(self, widget):
+        urwid.emit_signal(self, "click", self.get_focus())
+
+    def get_focus(self):
         widget, idx = self._walker.get_focus()
-        urwid.emit_signal(self, "click", self._devices[idx])
+        return self._devices[idx]
 
 
 class Menu(menu.Menu):
@@ -177,7 +179,7 @@ class Menu(menu.Menu):
     def _create_device_page(self, mntpnt):
         header = urwid.Text(_("Choose device to use for %s\n") % mntpnt)
         body   = DeviceListWidget()
-        footer = urwid.Text("")
+        footer = urwid.Text(str(body.get_focus()))
 
         urwid.connect_signal(body, 'focus_changed',
                              lambda dev: footer.set_text(str(dev)))
