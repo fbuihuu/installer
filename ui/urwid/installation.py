@@ -177,7 +177,7 @@ class Menu(menu.Menu):
         self._widget = urwid.WidgetPlaceholder(self._mountpoint_widget)
 
     def _create_device_page(self, mntpnt):
-        header = urwid.Text(_("Choose device to use for %s\n") % mntpnt)
+        header = urwid.Text(_("Choose device to use for %s\n") % mntpnt, align='center')
         body   = DeviceListWidget()
         footer = urwid.Text(str(body.get_focus()))
 
