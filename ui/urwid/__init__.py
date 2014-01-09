@@ -47,9 +47,10 @@ class UrwidUI(UI):
 
     def _load_menus(self):
         # FIXME: modules loading should be in abstract class.
-        import welcome, license
+        import welcome, license, installation
         self._menus.append(welcome.Menu(self, self.on_menu_event))
         self._menus.append(license.Menu(self, self.on_menu_event))
+        self._menus.append(installation.Menu(self, self.on_menu_event))
 
     def __create_menu_page(self):
         self.__menu_frame = urwid.Frame(urwid.Filler(urwid.Text("")))
