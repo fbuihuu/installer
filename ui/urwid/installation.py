@@ -61,8 +61,8 @@ class PartitionDevice(object):
                  (_("Scheme"),     self.scheme)]
         width = max([len(line[0]) for line in lines])
 
-        return "\n".join(["%s : %s" % (("{0:%d}" % width).format(a), b)
-                         for a, b in lines])
+        return "\n".join(["%s : %s" % (("{0:%d}" % width).format(f), v)
+                         for f, v in lines])
 
 
 def get_installable_devices():
@@ -82,14 +82,18 @@ class MountpointListEntryWidget(urwid.WidgetWrap):
 
     def __init__(self, mntpnt, dev=None, on_click=None):
         self._callback = on_click
-        self._mntpnt = urwid.Text(mntpnt, align="left")
-        self._device = widgets.ClickableText(dev if dev else _("< None >"))
+        self._mntpnt = urwid.Text(mntpnt, align="left",
+                                  layout=widgets.FillRightLayout('.'))
+
+        markup = dev if dev else ('entry.disabled', _("<None>"))
+        self._device = widgets.ClickableText(markup)
         urwid.connect_signal(self._device, 'click', self.__on_click)
         self._device = urwid.AttrMap(self._device, None, focus_map='reversed')
 
-        columns = urwid.Columns([('weight', 0.3, self._mntpnt), self._device])
-        padding = urwid.Padding(columns, align='center', width=('relative', 60))
-        super(MountpointListEntryWidget, self).__init__(padding)
+        columns = urwid.Columns([('weight', 0.9, self._mntpnt),
+                                 ('pack', urwid.Text(" : ")),
+                                 self._device])
+        super(MountpointListEntryWidget, self).__init__(columns)
 
     def __on_click(self, button):
         if self._callback:
@@ -112,7 +116,11 @@ class MountpointListWidget(urwid.WidgetWrap):
             items.append(entry)
 
         walker = urwid.SimpleListWalker(items)
-        super(MountpointListWidget, self).__init__(urwid.ListBox(walker))
+        listbox = urwid.ListBox(walker)
+        linebox = urwid.LineBox(listbox)
+        attrmap = urwid.Padding(linebox, align='center', width=('relative', 70))
+        attrmap = urwid.Filler(attrmap, 'middle', height=('relative', 90))
+        super(MountpointListWidget, self).__init__(attrmap)
 
 
 class DeviceListWidget(widgets.ClickableTextList):

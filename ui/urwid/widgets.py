@@ -35,3 +35,27 @@ class ClickableTextList(urwid.WidgetWrap):
 
         self._walker = urwid.SimpleListWalker(lst)
         urwid.WidgetWrap.__init__(self, urwid.ListBox(self._walker))
+
+
+class FillRightLayout(urwid.StandardTextLayout):
+
+    def __init__(self, filler='_'):
+        self._filler = filler
+        urwid.StandardTextLayout.__init__(self)
+
+    def layout(self, text, width, align, wrap):
+        s = urwid.StandardTextLayout.layout(self, text, width, align, wrap)
+        out = []
+        last_offset = 0
+        for row in s:
+            used = 0
+            for seg in row:
+                used += seg[0]
+                if len(seg) == 3:
+                    last_offset = seg[2]
+            if used == width:
+                out.append(row)
+                continue
+            fill = width - used
+            out.append(row + [(fill, last_offset, self._filler * fill)])
+        return out
