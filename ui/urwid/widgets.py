@@ -4,6 +4,16 @@ import urwid
 from urwid.command_map import ACTIVATE
 
 
+class Title1(urwid.WidgetWrap):
+
+    def __init__(self, title="", align='center'):
+        self._text = urwid.Text(title, align=align)
+        urwid.WidgetWrap.__init__(self, urwid.AttrMap(self._text, 'title1'))
+
+    def set_text(self, txt):
+        self._text.set_text(txt)
+
+
 class ClickableText(urwid.SelectableIcon):
 
     signals = ["click"]

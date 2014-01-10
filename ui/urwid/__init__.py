@@ -10,6 +10,7 @@ from ui import UI
 palette = [
 #    (None,                    'light gray',        'black'),
     ('line',                  'black',             'light gray'),
+    ('title1',                'bold',              ''),
     ('options',               'light red',         'black'),
     ('focus heading',         'white',             'dark red'),
     ('focus line',            'black',             'dark red'),

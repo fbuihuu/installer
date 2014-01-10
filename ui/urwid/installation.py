@@ -170,7 +170,7 @@ class Menu(menu.Menu):
         self._footer.original_widget = w
 
     def _create_widget(self):
-        self._header = urwid.Text("", align='center')
+        self._header = widgets.Title1()
         self._body   = urwid.WidgetPlaceholder(urwid.SelectableIcon(""))
         self._footer = urwid.WidgetPlaceholder(urwid.Text(""))
         # use a Pile since the footer must be selectable.
@@ -185,7 +185,7 @@ class Menu(menu.Menu):
         self._widget = urwid.WidgetPlaceholder(self._mountpoint_widget)
 
     def _create_device_page(self, mntpnt):
-        header = urwid.Text(_("Choose device to use for %s\n") % mntpnt, align='center')
+        header = widgets.Title1(_("Choose device to use for %s\n") % mntpnt)
         body   = DeviceListWidget()
         footer = urwid.Text(str(body.get_focus()))
 

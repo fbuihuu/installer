@@ -56,7 +56,7 @@ class Menu(menu.Menu):
         self._widget.header.set_text(_("Select your location"))
 
     def _create_widget(self):
-        header = urwid.Text("", align='center')
+        header = widgets.Title1()
         body = widgets.ClickableTextList(country_dict.keys(), self.on_click)
         # Make the list centered inside its container
         body = urwid.Filler(body, 'middle', height=('relative', 40))
