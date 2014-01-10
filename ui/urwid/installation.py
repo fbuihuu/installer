@@ -14,7 +14,7 @@ optional_mountpoints = {
     "/boot":    None,
     "/home":    None,
     "/var":     None,
-    "swap":     None,
+    "<swap>":   None,
 }
 
 class PartitionDevice(object):
@@ -85,8 +85,7 @@ class MountpointListEntryWidget(urwid.WidgetWrap):
         self._mntpnt = urwid.Text(mntpnt, align="left",
                                   layout=widgets.FillRightLayout('.'))
 
-        markup = dev if dev else ('entry.disabled', _("<None>"))
-        self._device = widgets.ClickableText(markup)
+        self._device = widgets.ClickableText(dev if dev else "")
         urwid.connect_signal(self._device, 'click', self.__on_click)
         self._device = urwid.AttrMap(self._device, None, focus_map='reversed')
 

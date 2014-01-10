@@ -8,17 +8,16 @@ from ui import UI
 
 
 palette = [
-    (None,                    'light gray',        'black'),
-    ('heading',               'black',             'light gray'),
+#    (None,                    'light gray',        'black'),
     ('line',                  'black',             'light gray'),
     ('options',               'light red',         'black'),
     ('focus heading',         'white',             'dark red'),
     ('focus line',            'black',             'dark red'),
     ('focus options',         'black',             'light gray'),
-    ('selected',              'white',             'dark blue'),
-    ('mark_ko',               'light red',         ''),
-    ('mark_ok',               'dark green',        ''),
-    ('entry.disabled',        'dark blue',         ''),
+    ('list.entry.disabled',   'dark blue',         ''),
+    ('side.bar.mark.cross',   'light red',         ''),
+    ('side.bar.mark.check',   'dark green',        ''),
+    ('top.bar.label',         'black',             'light gray'),
     ('top.bar.hotkey',        'dark blue',         'light gray'),
     ('log.warn',              'light red',         ''),
     ('log.info',              'light green',       ''),
@@ -66,9 +65,9 @@ class UrwidUI(UI):
         urwid.connect_signal(self.__menu_navigator, 'focus_changed', on_focus_changed)
 
     def __create_main_frame(self):
-        header = urwid.AttrMap(self.__top_bar, 'heading')
-        footer = self.__echo_area
-        self.__main_frame = urwid.Frame(self.__menu_page, header, footer)
+        self.__main_frame = urwid.Frame(self.__menu_page,
+                                        self.__top_bar,
+                                        self.__echo_area)
 
     def __create_echo_area(self):
         self.__echo_area = EchoArea()
@@ -214,8 +213,8 @@ class MenuNavigator(urwid.WidgetWrap):
 
 class MenuNavigatorEntry(urwid.WidgetWrap):
 
-    check_mark_markup = ('mark_ok', u'\u2714')
-    cross_mark_markup = ('mark_ko', u'\u2718')
+    check_mark_markup = ('side.bar.mark.check', u'\u2714')
+    cross_mark_markup = ('side.bar.mark.cross', u'\u2718')
 
     def __init__(self, menu):
         self._menu  = menu
@@ -242,7 +241,7 @@ class MenuNavigatorEntry(urwid.WidgetWrap):
             elif self._menu.is_failed():
                 mark = self.cross_mark_markup
         else:
-            title = ('entry.disabled', title)
+            title = ('list.entry.disabled', title)
 
         self._title.set_text(title)
         self._mark.set_text(mark)
@@ -252,7 +251,8 @@ class TopBar(urwid.WidgetWrap):
 
     def __init__(self):
         self._text = urwid.Text("")
-        urwid.WidgetWrap.__init__(self, self._text)
+        attrmap = urwid.AttrMap(self._text, 'top.bar.label')
+        urwid.WidgetWrap.__init__(self, attrmap)
         self.refresh()
 
     def refresh(self):
