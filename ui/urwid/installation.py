@@ -5,6 +5,7 @@ import gudev
 import menu
 import urwid
 import widgets
+import utils
 
 mandatory_mountpoints = {
     "/":        None,
@@ -35,7 +36,7 @@ class PartitionDevice(object):
     def size(self):
         with open(self._syspath + "/size", 'r') as f:
             size = f.read()
-        return int(size)
+        return int(size) * 512
 
     @property
     def devpath(self):
@@ -57,7 +58,7 @@ class PartitionDevice(object):
         lines = [(_("Model"),      self.model),
                  (_("Bus"),        self.bus),
                  (_("Filesystem"), self.filesystem),
-                 (_("Size"),       self.size),
+                 (_("Size"),       utils.pretty_size(self.size)),
                  (_("Scheme"),     self.scheme)]
         width = max([len(line[0]) for line in lines])
 
