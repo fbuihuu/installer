@@ -110,12 +110,13 @@ class UrwidUI(UI):
         def toggle_menu_page_focus():
             self.__menu_page.focus_position ^= 1
         self.register_hotkey('tab', toggle_menu_page_focus)
-        self.register_hotkey("esc", self.quit)
         self.register_hotkey('f1', self.switch_to_menu)
         self.register_hotkey('f3', self.switch_to_logs)
+        self.register_key('esc', self.quit)
 
         self.__loop = urwid.MainLoop(self.__main_frame, palette,
-                                     input_filter=self.filter_input)
+                                     input_filter=self._handle_hotkeys,
+                                     unhandled_input=self.handle_key)
         self.__loop.run()
 
     def on_menu_event(self, menu):
@@ -129,15 +130,11 @@ class UrwidUI(UI):
     def switch_to_logs(self):
         self.__menu_frame.body = LogFrame(self.logs)
 
-    def __handle_hotkeys(self, keys, raws):
+    def _handle_hotkeys(self, keys, raws):
+        self.__echo_area.clear()
         for key in keys:
             if self.handle_hotkey(key):
                 keys.remove(key)
-        return keys
-
-    def filter_input(self, keys, raws):
-        self.__echo_area.clear()
-        self.__handle_hotkeys(keys, raws)
         return keys
 
 

@@ -27,6 +27,7 @@ class UILogHandler(logging.Handler):
 class UI(object):
 
     _menus = []
+    _keys = {}
     _hotkeys = {}
     _installer = None
     current_provides = Set([])
@@ -83,9 +84,18 @@ class UI(object):
     def register_hotkey(self, hotkey, cb):
         self._hotkeys[hotkey] = cb
 
+    def register_key(self, key, cb):
+        self._keys[key] = cb
+
     def handle_hotkey(self, key):
         if self._hotkeys.get(key) is not None:
             self._hotkeys[key]()
+            return True
+        return False
+
+    def handle_key(self, key):
+        if self._keys.get(key) is not None:
+            self._keys[key]()
             return True
         return False
 
