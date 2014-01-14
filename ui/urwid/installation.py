@@ -81,13 +81,12 @@ def get_installable_devices():
 
 class MountpointListEntryWidget(urwid.WidgetWrap):
 
-    def __init__(self, mntpnt, dev=None, on_click=None):
-        self._callback = on_click
+    def __init__(self, mntpnt, dev=None, on_click=None, on_clear=None):
+        self._on_click = on_click
+        self._on_clear = on_clear
         self._mntpnt = urwid.Text(mntpnt, align="left",
                                   layout=widgets.FillRightLayout('.'))
-
         self._device = widgets.ClickableText(dev if dev else "")
-        urwid.connect_signal(self._device, 'click', self.__on_click)
         self._device = urwid.AttrMap(self._device, None, focus_map='reversed')
 
         columns = urwid.Columns([('weight', 0.9, self._mntpnt),
@@ -95,24 +94,32 @@ class MountpointListEntryWidget(urwid.WidgetWrap):
                                  self._device])
         super(MountpointListEntryWidget, self).__init__(columns)
 
-    def __on_click(self, button):
-        if self._callback:
-            self._callback(self._mntpnt.text)
+    def selectable(self):
+        return True
+
+    def keypress(self, size, key):
+        if key == "backspace" or key == "delete":
+            self._on_clear(self._mntpnt.text)
+            return None
+        if key == "enter":
+            self._on_click(self._mntpnt.text)
+            return None
+        return key
 
 
 class MountpointListWidget(urwid.WidgetWrap):
 
-    def __init__(self, on_selected=None):
+    def __init__(self, on_selected=None, on_cleared=None):
         items = list()
 
         for mntpnt, dev in mandatory_mountpoints.items():
-            entry = MountpointListEntryWidget(mntpnt, dev, on_selected)
+            entry = MountpointListEntryWidget(mntpnt, dev, on_selected, on_cleared)
             items.append(entry)
 
         items.append(urwid.Divider(" "))
 
         for mntpnt, dev in optional_mountpoints.items():
-            entry = MountpointListEntryWidget(mntpnt, dev, on_selected)
+            entry = MountpointListEntryWidget(mntpnt, dev, on_selected, on_cleared)
             items.append(entry)
 
         walker = urwid.SimpleListWalker(items)
@@ -139,6 +146,12 @@ class DeviceListWidget(widgets.ClickableTextList):
     def __on_click(self, widget):
         urwid.emit_signal(self, "click", self.get_focus())
 
+    def keypress(self, size, key):
+        if key == "esc":
+            urwid.emit_signal(self, "click", None)
+            return None
+        return super(DeviceListWidget, self).keypress(size, key)
+
     def get_focus(self):
         widget, idx = self._walker.get_focus()
         return self._devices[idx]
@@ -162,7 +175,8 @@ class Menu(menu.Menu):
             return
 
         self._header.set_text(_("Map partitions to block devices"))
-        self._body.original_widget = MountpointListWidget(self._on_selected_mntpoint)
+        self._body.original_widget = MountpointListWidget(self._on_selected_mntpoint,
+                                                          self._on_cleared_mntpoint)
 
         w = urwid.Text("")
         if None not in mandatory_mountpoints.values():
@@ -199,14 +213,24 @@ class Menu(menu.Menu):
         self._current_mntpnt = mntpnt
         self._widget.original_widget = self._create_device_page(mntpnt)
 
+    def _on_cleared_mntpoint(self, mntpnt):
+        if mandatory_mountpoints.has_key(mntpnt):
+            mandatory_mountpoints[mntpnt] = None
+        else:
+            optional_mountpoints[mntpnt] = None
+        self.redraw()
+
     def _on_selected_device(self, dev):
         mntpnt = self._current_mntpnt
-        if mandatory_mountpoints.has_key(mntpnt):
-            mandatory_mountpoints[mntpnt] = dev.devpath
-        else:
-            optional_mountpoints[mntpnt] = dev.devpath
-        self._widget.original_widget = self._mountpoint_widget
         self._current_mntpnt = None
+
+        if dev:
+            if mandatory_mountpoints.has_key(mntpnt):
+                mandatory_mountpoints[mntpnt] = dev.devpath
+            else:
+                optional_mountpoints[mntpnt] = dev.devpath
+
+        self._widget.original_widget = self._mountpoint_widget
         self.redraw()
 
     def do_install(self, widget):
