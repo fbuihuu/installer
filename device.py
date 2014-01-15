@@ -12,10 +12,10 @@ class BlockDevice(object):
         self._gudev = gudev
 
     def __eq__(self, other):
-        return self._syspath == other._syspath
+        return other and other._syspath == self._syspath
 
     def __ne__(self, other):
-        return self._syspath != other._syspath
+        return not self.__eq__(other)
 
     @property
     def _syspath(self):
