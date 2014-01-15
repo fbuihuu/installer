@@ -71,8 +71,8 @@ class DeviceListWidget(widgets.ClickableTextList):
 
     signals = ['focus_changed', 'click']
 
-    def __init__(self, part):
-        self._devices = partition.get_candidates(part)
+    def __init__(self, part, devices):
+        self._devices = devices
         items = [ dev.devpath for dev in self._devices ]
         super(DeviceListWidget, self).__init__(items, self.__on_click)
         urwid.connect_signal(self._walker, 'modified', self.__on_focus_changed)
@@ -139,9 +139,9 @@ class Menu(menu.Menu):
         self._install_button = urwid.Button("Install", on_press=self.do_install)
         self._widget = urwid.WidgetPlaceholder(self._partition_page)
 
-    def _create_device_page(self, partition):
-        header = widgets.Title1(_("Choose device to use for %s\n") % partition.name)
-        body   = DeviceListWidget(partition)
+    def _create_device_page(self, part, devices):
+        header = widgets.Title1(_("Choose device to use for %s\n") % part.name)
+        body   = DeviceListWidget(part, devices)
         footer = urwid.Text(str(body.get_focus()))
 
         urwid.connect_signal(body, 'focus_changed',
@@ -150,8 +150,14 @@ class Menu(menu.Menu):
 
         return urwid.Frame(body, header, urwid.LineBox(footer))
 
-    def _on_selected_partition(self, partition):
-        self._widget.original_widget = self._create_device_page(partition)
+    def _on_selected_partition(self, part):
+        devices = partition.get_candidates(part)
+        if devices:
+            device_page = self._create_device_page(part, devices)
+            self._widget.original_widget = device_page
+        else:
+            name = part.name
+            self.logger.critical(_("No valid device found for %s") % name)
 
     def _on_selected_device(self, dev):
         if dev:
