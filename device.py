@@ -26,6 +26,10 @@ class BlockDevice(object):
         return self._gudev.get_device_file()
 
     @property
+    def devtype(self):
+        return self._gudev.get_devtype()
+
+    @property
     def model(self):
         return self._gudev.get_property("ID_MODEL")
 
@@ -77,21 +81,19 @@ class PartitionDevice(BlockDevice):
 
 
 def on_uevent(client, action, bdev):
+    return
     if action == "add":
         block_devices.append(bdev)
     if action == "remove":
         block_devices.remove(bdev)
 
 block_devices = []
-partition_devices = []
 _client = gudev.Client(["block"])
 _client.connect("uevent", on_uevent)
 
 for bdev in _client.query_by_subsystem("block"):
-    block_devices.append(BlockDevice(bdev))
-
+    if bdev.get_devtype() == "disk":
+        dev = BlockDevice(bdev)
     if bdev.get_devtype() == "partition":
-        partition_devices.append(PartitionDevice(bdev))
-
-    #if bdev.get_property("ID_FS_TYPE") is None:
-    #    continue
+        dev = PartitionDevice(bdev)
+    block_devices.append(dev)

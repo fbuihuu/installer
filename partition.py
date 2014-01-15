@@ -70,8 +70,10 @@ def find_partition(name):
 def get_candidates(part):
     candidates = []
     in_use_devices = [p.device for p in partitions if p != part and p.device]
-    for dev in device.partition_devices:
+    for dev in device.block_devices:
         if dev in in_use_devices:
+            continue
+        if dev.devtype != "partition":
             continue
         if not part._is_valid_fs(dev.filesystem):
             continue
