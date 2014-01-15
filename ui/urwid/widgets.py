@@ -18,7 +18,9 @@ class ClickableText(urwid.SelectableIcon):
 
     signals = ["click"]
 
-    def __init__(self, txt):
+    def __init__(self, txt=None):
+        if not txt:
+            txt = ""
         urwid.SelectableIcon.__init__(self, txt, -1)
 
     def keypress(self, size, key):
