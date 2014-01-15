@@ -1,144 +1,82 @@
 # -*- coding: utf-8 -*-
 #
 
-import gudev
 import menu
 import urwid
 import widgets
 import utils
-
-mandatory_mountpoints = {
-    "/":        None,
-}
-
-optional_mountpoints = {
-    "/boot":    None,
-    "/home":    None,
-    "/var":     None,
-    "<swap>":   None,
-}
-
-class PartitionDevice(object):
-
-    def __init__(self, gudev):
-        self._gudev = gudev
-        self._mntpoint = None
-
-    @property
-    def _syspath(self):
-        return self._gudev.get_sysfs_path()
-
-    @property
-    def filesystem(self):
-        return self._gudev.get_property("ID_FS_TYPE")
-
-    @property
-    def size(self):
-        with open(self._syspath + "/size", 'r') as f:
-            size = f.read()
-        return int(size) * 512
-
-    @property
-    def devpath(self):
-        return self._gudev.get_device_file()
-
-    @property
-    def model(self):
-        return self._gudev.get_property("ID_MODEL")
-
-    @property
-    def bus(self):
-        return self._gudev.get_property("ID_BUS")
-
-    @property
-    def scheme(self):
-        return self._gudev.get_property("ID_PART_ENTRY_SCHEME")
-
-    def __str__(self):
-        lines = [(_("Model"),      self.model),
-                 (_("Bus"),        self.bus),
-                 (_("Filesystem"), self.filesystem),
-                 (_("Size"),       utils.pretty_size(self.size)),
-                 (_("Scheme"),     self.scheme)]
-        width = max([len(line[0]) for line in lines])
-
-        return "\n".join(["%s : %s" % (("{0:%d}" % width).format(f), v)
-                         for f, v in lines])
+import partition
 
 
-def get_installable_devices():
-    rv = []
-    client = gudev.Client(None)
-    for bdev in client.query_by_subsystem("block"):
-        if bdev.get_devtype() != "partition":
-            continue
-        if bdev.get_property("ID_FS_TYPE") is None:
-            continue
-        part = PartitionDevice(bdev)
-        rv.append(part)
-    return rv
+class PartitionEntryWidget(urwid.WidgetWrap):
 
-
-class MountpointListEntryWidget(urwid.WidgetWrap):
-
-    def __init__(self, mntpnt, dev=None, on_click=None, on_clear=None):
+    def __init__(self, part, on_click=None):
         self._on_click = on_click
-        self._on_clear = on_clear
-        self._mntpnt = urwid.Text(mntpnt, align="left",
-                                  layout=widgets.FillRightLayout('.'))
-        self._device = widgets.ClickableText(dev if dev else "")
-        self._device = urwid.AttrMap(self._device, None, focus_map='reversed')
+        self._partition = part
+        widget1 = urwid.Text(part.name, layout=widgets.FillRightLayout('.'))
+        self._devpath = widgets.ClickableText()
+        widget2 = urwid.AttrMap(self._devpath, None, focus_map='reversed')
 
-        columns = urwid.Columns([('weight', 0.9, self._mntpnt),
+        columns = urwid.Columns([('weight', 0.9, widget1),
                                  ('pack', urwid.Text(" : ")),
-                                 self._device])
-        super(MountpointListEntryWidget, self).__init__(columns)
+                                 widget2])
+        super(PartitionEntryWidget, self).__init__(columns)
+        self.set_device(part.device)
 
     def selectable(self):
         return True
 
     def keypress(self, size, key):
         if key == "backspace" or key == "delete":
-            self._on_clear(self._mntpnt.text)
+            self.set_device(None)
             return None
         if key == "enter":
-            self._on_click(self._mntpnt.text)
+            self._on_click(self._partition)
             return None
         return key
 
+    def set_device(self, dev):
+        self._partition.device = dev
+        txt = dev.devpath if dev else ""
+        self._devpath.set_text(txt)
 
-class MountpointListWidget(urwid.WidgetWrap):
+
+class PartitionListWidget(urwid.WidgetWrap):
 
     def __init__(self, on_selected=None, on_cleared=None):
-        items = list()
-
-        for mntpnt, dev in mandatory_mountpoints.items():
-            entry = MountpointListEntryWidget(mntpnt, dev, on_selected, on_cleared)
-            items.append(entry)
-
+        items = []
+        for part in partition.optional_partitions:
+            items.append(PartitionEntryWidget(part, on_selected))
         items.append(urwid.Divider(" "))
+        for part in partition.mandatory_partitions:
+            items.append(PartitionEntryWidget(part, on_selected))
 
-        for mntpnt, dev in optional_mountpoints.items():
-            entry = MountpointListEntryWidget(mntpnt, dev, on_selected, on_cleared)
-            items.append(entry)
-
-        walker = urwid.SimpleListWalker(items)
-        listbox = urwid.ListBox(walker)
+        self._walker = urwid.SimpleListWalker(items)
+        listbox = urwid.ListBox(self._walker)
         linebox = urwid.LineBox(listbox)
         attrmap = urwid.Padding(linebox, align='center', width=('relative', 70))
         attrmap = urwid.Filler(attrmap, 'middle', height=('relative', 90))
-        super(MountpointListWidget, self).__init__(attrmap)
+        super(PartitionListWidget, self).__init__(attrmap)
+
+    def get_focus(self):
+        return self._walker.get_focus()[0]
+
+    def set_device(self, dev):
+        self.get_focus().set_device(dev)
 
 
 class DeviceListWidget(widgets.ClickableTextList):
 
     signals = ['focus_changed', 'click']
 
-    def __init__(self):
-        self._devices = get_installable_devices()
+    def __init__(self, part):
+        self._devices = partition.get_candidates(part)
         items = [ dev.devpath for dev in self._devices ]
         super(DeviceListWidget, self).__init__(items, self.__on_click)
         urwid.connect_signal(self._walker, 'modified', self.__on_focus_changed)
+
+        if part.device:
+            self._walker.set_focus(self._devices.index(part.device))
 
     def __on_focus_changed(self):
         urwid.emit_signal(self, "focus_changed", self.get_focus())
@@ -164,43 +102,44 @@ class Menu(menu.Menu):
 
     def __init__(self, ui, menu_event_cb):
         menu.Menu.__init__(self, ui, menu_event_cb)
-        self._current_mntpnt = None
+        self._current_partition = None
 
     @property
     def name(self):
         return _("Installation")
 
     def redraw(self):
-        if self._widget.original_widget != self._mountpoint_widget:
+        if self._widget.original_widget != self._partition_widget:
             return
 
         self._header.set_text(_("Map partitions to block devices"))
-        self._body.original_widget = MountpointListWidget(self._on_selected_mntpoint,
-                                                          self._on_cleared_mntpoint)
 
-        w = urwid.Text("")
-        if None not in mandatory_mountpoints.values():
-            w = self._install_button
+        w = self._install_button
+        for part in partition.mandatory_partitions:
+            if part.device is None:
+                w = urwid.Text("")
+                break
         self._footer.original_widget = w
 
     def _create_widget(self):
+        self._partition_list_widget = PartitionListWidget(self._on_selected_partition)
+
         self._header = widgets.Title1()
-        self._body   = urwid.WidgetPlaceholder(urwid.SelectableIcon(""))
         self._footer = urwid.WidgetPlaceholder(urwid.Text(""))
         # use a Pile since the footer must be selectable.
-        self._mountpoint_widget = urwid.Pile([
+        self._partition_widget = urwid.Pile([
             ('pack', self._header),
             ('pack', urwid.Divider(" ")),
-            ('weight', 1, self._body),
+            ('weight', 1, self._partition_list_widget),
             ('pack', self._footer)
             ])
 
         self._install_button = urwid.Button("Install", on_press=self.do_install)
-        self._widget = urwid.WidgetPlaceholder(self._mountpoint_widget)
+        self._widget = urwid.WidgetPlaceholder(self._partition_widget)
 
-    def _create_device_page(self, mntpnt):
-        header = widgets.Title1(_("Choose device to use for %s\n") % mntpnt)
-        body   = DeviceListWidget()
+    def _create_device_page(self, partition):
+        header = widgets.Title1(_("Choose device to use for %s\n") % partition.name)
+        body   = DeviceListWidget(partition)
         footer = urwid.Text(str(body.get_focus()))
 
         urwid.connect_signal(body, 'focus_changed',
@@ -209,29 +148,13 @@ class Menu(menu.Menu):
 
         return urwid.Frame(body, header, urwid.LineBox(footer))
 
-    def _on_selected_mntpoint(self, mntpnt):
-        self._current_mntpnt = mntpnt
-        self._widget.original_widget = self._create_device_page(mntpnt)
-
-    def _on_cleared_mntpoint(self, mntpnt):
-        if mandatory_mountpoints.has_key(mntpnt):
-            mandatory_mountpoints[mntpnt] = None
-        else:
-            optional_mountpoints[mntpnt] = None
-        self.redraw()
+    def _on_selected_partition(self, partition):
+        self._widget.original_widget = self._create_device_page(partition)
 
     def _on_selected_device(self, dev):
-        mntpnt = self._current_mntpnt
-        self._current_mntpnt = None
-
         if dev:
-            if mandatory_mountpoints.has_key(mntpnt):
-                mandatory_mountpoints[mntpnt] = dev.devpath
-            else:
-                optional_mountpoints[mntpnt] = dev.devpath
-
-        self._widget.original_widget = self._mountpoint_widget
-        self.redraw()
+            self._partition_list_widget.set_device(dev)
+        self._widget.original_widget = self._partition_widget
 
     def do_install(self, widget):
         self.logger.info(_("starting installation"))

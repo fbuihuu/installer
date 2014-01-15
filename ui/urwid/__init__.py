@@ -115,6 +115,7 @@ class UrwidUI(UI):
         self.register_key('esc', self.quit)
 
         self.__loop = urwid.MainLoop(self.__main_frame, palette,
+                                     event_loop=urwid.GLibEventLoop(),
                                      input_filter=self._handle_hotkeys,
                                      unhandled_input=self.handle_key)
         self.__loop.run()
