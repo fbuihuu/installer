@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 
+from subprocess import check_output, CalledProcessError
 import gudev
 import utils
 
@@ -52,6 +53,16 @@ class PartitionDevice(BlockDevice):
     @property
     def scheme(self):
         return self._gudev.get_property("ID_PART_ENTRY_SCHEME")
+
+    @property
+    def mountpoints(self):
+        if self.filesystem:
+            try:
+                cmd = "findmnt -n -o TARGET --source " + self.devpath
+                return check_output(cmd, shell=True).split()
+            except CalledProcessError:
+                pass
+        return []
 
     def __str__(self):
         lines = [(_("Model"),      self.model),

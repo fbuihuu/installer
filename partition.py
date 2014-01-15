@@ -84,7 +84,8 @@ def get_candidates(part):
             continue
         if not part._is_valid_fs(dev.filesystem):
             continue
-        # FIXME: test if the dev is currently mounted, ignore it in
-        # that case.
+        # skip any devices with mounted filesystem.
+        if dev.mountpoints:
+            continue
         candidates.append(dev)
     return candidates
