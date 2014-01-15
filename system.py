@@ -26,7 +26,7 @@ class Distribution(object):
         return distribution._linux_distribution[0]
 
     @staticmethod
-    def id():
+    def version():
         return distribution._linux_distribution[1]
 
     @staticmethod
