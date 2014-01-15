@@ -45,11 +45,13 @@ class PartitionListWidget(urwid.WidgetWrap):
 
     def __init__(self, on_selected=None, on_cleared=None):
         items = []
-        for part in partition.optional_partitions:
-            items.append(PartitionEntryWidget(part, on_selected))
+        for part in partition.partitions:
+            if not part.is_optional:
+                items.append(PartitionEntryWidget(part, on_selected))
         items.append(urwid.Divider(" "))
-        for part in partition.mandatory_partitions:
-            items.append(PartitionEntryWidget(part, on_selected))
+        for part in partition.partitions:
+            if part.is_optional:
+                items.append(PartitionEntryWidget(part, on_selected))
 
         self._walker = urwid.SimpleListWalker(items)
         listbox = urwid.ListBox(self._walker)
@@ -115,8 +117,8 @@ class Menu(menu.Menu):
         self._header.set_text(_("Map partitions to block devices"))
 
         w = self._install_button
-        for part in partition.mandatory_partitions:
-            if part.device is None:
+        for part in partition.partitions:
+            if not part.is_optional and part.device is None:
                 w = urwid.Text("")
                 break
         self._footer.original_widget = w

@@ -60,15 +60,6 @@ partitions = [
     BootPartition(),
 ]
 
-optional_partitions = []
-mandatory_partitions = []
-
-for part in partitions:
-    if part.is_optional:
-        optional_partitions.append(part)
-    else:
-        mandatory_partitions.append(part)
-
 
 def find_partition(name):
     for part in partitions:
