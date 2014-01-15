@@ -111,7 +111,7 @@ class Menu(menu.Menu):
         return _("Installation")
 
     def redraw(self):
-        if self._widget.original_widget != self._partition_widget:
+        if self._widget.original_widget != self._partition_page:
             return
 
         self._header.set_text(_("Map partitions to block devices"))
@@ -129,7 +129,7 @@ class Menu(menu.Menu):
         self._header = widgets.Title1()
         self._footer = urwid.WidgetPlaceholder(urwid.Text(""))
         # use a Pile since the footer must be selectable.
-        self._partition_widget = urwid.Pile([
+        self._partition_page = urwid.Pile([
             ('pack', self._header),
             ('pack', urwid.Divider(" ")),
             ('weight', 1, self._partition_list_widget),
@@ -137,7 +137,7 @@ class Menu(menu.Menu):
             ])
 
         self._install_button = urwid.Button("Install", on_press=self.do_install)
-        self._widget = urwid.WidgetPlaceholder(self._partition_widget)
+        self._widget = urwid.WidgetPlaceholder(self._partition_page)
 
     def _create_device_page(self, partition):
         header = widgets.Title1(_("Choose device to use for %s\n") % partition.name)
@@ -156,7 +156,7 @@ class Menu(menu.Menu):
     def _on_selected_device(self, dev):
         if dev:
             self._partition_list_widget.set_device(dev)
-        self._widget.original_widget = self._partition_widget
+        self._widget.original_widget = self._partition_page
 
     def do_install(self, widget):
         self.logger.info(_("starting installation"))
