@@ -11,8 +11,9 @@ import device
 
 class PartitionEntryWidget(urwid.WidgetWrap):
 
-    def __init__(self, part, on_click=None):
+    def __init__(self, part, on_click, on_clear):
         self._on_click = on_click
+        self._on_clear = on_clear
         self.partition = part
         widget1 = urwid.Text(part.name, layout=widgets.FillRightLayout('.'))
         self._devpath = widgets.ClickableText()
@@ -29,8 +30,7 @@ class PartitionEntryWidget(urwid.WidgetWrap):
 
     def keypress(self, size, key):
         if key == "backspace" or key == "delete":
-            self.partition.device = None
-            self.refresh()
+            self._on_clear(self.partition)
             return None
         if key == "enter":
             self._on_click(self.partition)
@@ -44,15 +44,15 @@ class PartitionEntryWidget(urwid.WidgetWrap):
 
 class PartitionListWidget(urwid.WidgetWrap):
 
-    def __init__(self, on_selected=None, on_cleared=None):
+    def __init__(self, on_select, on_clear):
         items = []
         for part in partition.partitions:
             if not part.is_optional:
-                items.append(PartitionEntryWidget(part, on_selected))
+                items.append(PartitionEntryWidget(part, on_select, on_clear))
         items.append(urwid.Divider(" "))
         for part in partition.partitions:
             if part.is_optional:
-                items.append(PartitionEntryWidget(part, on_selected))
+                items.append(PartitionEntryWidget(part, on_select, on_clear))
 
         self._walker = urwid.SimpleListWalker(items)
         listbox = urwid.ListBox(self._walker)
@@ -117,7 +117,8 @@ class Menu(menu.Menu):
         self._header.set_text(_("Map partitions to block devices"))
 
     def _create_widget(self):
-        self._partition_list_widget = PartitionListWidget(self._on_selected_partition)
+        self._partition_list_widget = PartitionListWidget(self._on_select_partition,
+                                                          self._on_clear_partition)
 
         self._header = widgets.Title1()
         self._footer = urwid.WidgetPlaceholder(urwid.Text(""))
@@ -140,7 +141,7 @@ class Menu(menu.Menu):
 
         urwid.connect_signal(body, 'focus_changed',
                              lambda dev: footer.set_text(str(dev)))
-        urwid.connect_signal(body, 'click', self._on_selected_device)
+        urwid.connect_signal(body, 'click', self._on_select_device)
 
         return urwid.Frame(body, header, urwid.LineBox(footer))
 
@@ -152,7 +153,12 @@ class Menu(menu.Menu):
                 break
         self._footer.original_widget = w
 
-    def _on_selected_partition(self, part):
+    def _on_clear_partition(self, part):
+        part.device = None
+        self._partition_list_widget.refresh()
+        self._update_install_button()
+
+    def _on_select_partition(self, part):
         devices = partition.get_candidates(part)
         if devices:
             device_page = self._create_device_page(part, devices)
@@ -161,7 +167,7 @@ class Menu(menu.Menu):
             name = part.name
             self.logger.critical(_("No valid device found for %s") % name)
 
-    def _on_selected_device(self, dev):
+    def _on_select_device(self, dev):
         if dev:
             self._partition_list_widget.get_focus().device = dev
         #
@@ -189,12 +195,12 @@ class Menu(menu.Menu):
             # recreate and display the new device list.
             #
             part = self._partition_list_widget.get_focus()
-            self._on_selected_partition(part)
+            self._on_select_partition(part)
         else:
             #
             # Refresh the partition list page only if it's currently
             # displayed. For the other case, it will be refreshed by
-            # _on_selected_device().
+            # _on_select_device().
             #
             if action == "remove":
                 self._partition_list_widget.refresh()
