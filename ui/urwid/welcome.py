@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 
-import menu
+from menus import BaseMenu
 import widgets
 import urwid
 from urwid.command_map import ACTIVATE
@@ -16,12 +16,12 @@ from l10n import country_dict
 # later (root password setup for example).
 #
 
-class Menu(menu.Menu):
+class Menu(BaseMenu):
 
     provides = ["language"]
 
     def __init__(self, ui, callback_event):
-        menu.Menu.__init__(self, ui, callback_event)
+        BaseMenu.__init__(self, ui, callback_event)
         self._country = None
         if self.installer.data["localization/country"]:
             self.country = self.installer.data["localization/country"]

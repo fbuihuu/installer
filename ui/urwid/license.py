@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 #
 
-import menu
+from menus import BaseMenu
 import urwid
 
 
-class Menu(menu.Menu):
+class Menu(BaseMenu):
 
     requires = ["language"]
     provides = ["license"]
 
     def __init__(self, ui, menu_event_cb):
-        menu.Menu.__init__(self, ui, menu_event_cb)
+        BaseMenu.__init__(self, ui, menu_event_cb)
         self._locale = None
 
     @property

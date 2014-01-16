@@ -1,4 +1,3 @@
-#! /usr/bin/python
 # -*- coding: utf-8 -*-
 #
 
@@ -11,7 +10,7 @@ class MenuLogAdapter(logging.LoggerAdapter):
         return '%s: %s' % (self.extra['title'], msg), kwargs
 
 
-class Menu(object):
+class BaseMenu(object):
 
     _STATE_DISABLED = -2
     _STATE_FAILED = -1
@@ -31,9 +30,9 @@ class Menu(object):
         self.provides = Set(self.provides)
 
         if len(self.requires) == 0:
-            self._state = Menu._STATE_INIT
+            self._state = self._STATE_INIT
         else:
-            self._state = Menu._STATE_DISABLED
+            self._state = self._STATE_DISABLED
 
     @property
     def name(self):
@@ -64,29 +63,25 @@ class Menu(object):
         pass
 
     def enable(self):
-        if self.state == Menu._STATE_DISABLED:
-            self.state = Menu._STATE_INIT
+        if self.state == self._STATE_DISABLED:
+            self.state = self._STATE_INIT
 
     def undo(self):
-        if self.state == Menu._STATE_DONE or self.state == Menu._STATE_FAILED:
-            self.state = Menu._STATE_INIT
+        if self.state == self._STATE_DONE or self.state == self._STATE_FAILED:
+            self.state = self._STATE_INIT
 
     def disable(self):
         if len(self.requires) == 0:
             return
-        if self.state != Menu._STATE_DISABLED:
-            self.state = Menu._STATE_DISABLED
+        if self.state != self._STATE_DISABLED:
+            self.state = self._STATE_DISABLED
 
     def is_enabled(self):
-        return self.state != Menu._STATE_DISABLED
+        return self.state != self._STATE_DISABLED
 
     def is_done(self):
-        return self.state == Menu._STATE_DONE
+        return self.state == self._STATE_DONE
 
     def is_failed(self):
-        return self.state == Menu._STATE_FAILED
+        return self.state == self._STATE_FAILED
 
-
-def create_menus():
-    for menu in loader.get_modules_in_package(__package__):
-        menu.Menu()

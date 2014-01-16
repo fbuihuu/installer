@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 
-import menu
+from menus import BaseMenu
 import urwid
 import widgets
 import utils
@@ -100,13 +100,13 @@ class DeviceListWidget(widgets.ClickableTextList):
         return self._devices[idx]
 
 
-class Menu(menu.Menu):
+class Menu(BaseMenu):
 
     #requires = ["license"]
     provides = ["rootfs"]
 
     def __init__(self, ui, menu_event_cb):
-        menu.Menu.__init__(self, ui, menu_event_cb)
+        BaseMenu.__init__(self, ui, menu_event_cb)
         self._current_partition = None
 
     @property
