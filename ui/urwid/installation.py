@@ -114,17 +114,7 @@ class Menu(menu.Menu):
         return _("Installation")
 
     def redraw(self):
-        if self._widget.original_widget != self._partition_page:
-            return
-
         self._header.set_text(_("Map partitions to block devices"))
-
-        w = self._install_button
-        for part in partition.partitions:
-            if not part.is_optional and part.device is None:
-                w = urwid.Text("")
-                break
-        self._footer.original_widget = w
 
     def _create_widget(self):
         self._partition_list_widget = PartitionListWidget(self._on_selected_partition)
@@ -154,6 +144,14 @@ class Menu(menu.Menu):
 
         return urwid.Frame(body, header, urwid.LineBox(footer))
 
+    def _update_install_button(self):
+        w = self._install_button
+        for part in partition.partitions:
+            if not part.is_optional and part.device is None:
+                w = urwid.Text("")
+                break
+        self._footer.original_widget = w
+
     def _on_selected_partition(self, part):
         devices = partition.get_candidates(part)
         if devices:
@@ -173,6 +171,7 @@ class Menu(menu.Menu):
         #
         self._partition_list_widget.refresh()
         self._widget.original_widget = self._partition_page
+        self._update_install_button()
 
     def _on_uevent(self, action, bdev):
         #
@@ -199,6 +198,7 @@ class Menu(menu.Menu):
             #
             if action == "remove":
                 self._partition_list_widget.refresh()
+                self._update_install_button()
         #
         # Triggering widget changes from a gudev event has no visual
         # effects. For some reason we have to force a redraw of the
