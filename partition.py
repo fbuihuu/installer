@@ -66,7 +66,6 @@ def find_partition(name):
         if part.name == name:
             return part
 
-
 def get_candidates(part):
     candidates = []
     in_use_devices = [p.device for p in partitions if p != part and p.device]
@@ -82,3 +81,11 @@ def get_candidates(part):
             continue
         candidates.append(dev)
     return candidates
+
+def __uevent_callback(action, bdev):
+    if action == "remove":
+        for part in partitions:
+            if part.device == bdev:
+                part.device = None
+
+device.listen_uevent(__uevent_callback)

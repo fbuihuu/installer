@@ -80,27 +80,37 @@ class PartitionDevice(BlockDevice):
                          for f, v in lines])
 
 
-def on_add_uevent(gudev):
+block_devices = []
+__uevent_handlers = []
+
+def listen_uevent(cb):
+    __uevent_handlers.append(cb)
+
+def __notify_uevent_handlers(action, bdev):
+    for cb in __uevent_handlers:
+        cb(action, bdev)
+
+def __on_add_uevent(gudev):
     if gudev.get_devtype() == "partition":
         bdev = PartitionDevice(gudev)
     else:
         bdev = BlockDevice(gudev)
     block_devices.append(bdev)
+    __notify_uevent_handlers("add", bdev)
 
-def on_remove_uevent(gudev):
+def __on_remove_uevent(gudev):
     for bdev in block_devices:
         if bdev._syspath == gudev.get_sysfs_path():
             block_devices.remove(bdev)
+            __notify_uevent_handlers("remove", bdev)
 
-def on_uevent(client, action, gudev):
+def __on_uevent(client, action, gudev):
     if action == "add":
-        on_add_uevent(gudev)
+        __on_add_uevent(gudev)
     if action == "remove":
-        on_remove_uevent(gudev)
+        __on_remove_uevent(gudev)
 
-block_devices = []
-_client = gudev.Client(["block"])
-_client.connect("uevent", on_uevent)
-
-for gudev in _client.query_by_subsystem("block"):
-    on_add_uevent(gudev)
+__client = gudev.Client(["block"])
+__client.connect("uevent", __on_uevent)
+for gudev in __client.query_by_subsystem("block"):
+    __on_add_uevent(gudev)

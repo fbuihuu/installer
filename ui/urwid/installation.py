@@ -6,13 +6,14 @@ import urwid
 import widgets
 import utils
 import partition
+import device
 
 
 class PartitionEntryWidget(urwid.WidgetWrap):
 
     def __init__(self, part, on_click=None):
         self._on_click = on_click
-        self._partition = part
+        self.partition = part
         widget1 = urwid.Text(part.name, layout=widgets.FillRightLayout('.'))
         self._devpath = widgets.ClickableText()
         widget2 = urwid.AttrMap(self._devpath, None, focus_map='reversed')
@@ -21,24 +22,24 @@ class PartitionEntryWidget(urwid.WidgetWrap):
                                  ('pack', urwid.Text(" : ")),
                                  widget2])
         super(PartitionEntryWidget, self).__init__(columns)
-        self.set_device(part.device)
+        self.refresh()
 
     def selectable(self):
         return True
 
     def keypress(self, size, key):
         if key == "backspace" or key == "delete":
-            self.set_device(None)
+            self.partition.device = None
+            self.refresh()
             return None
         if key == "enter":
-            self._on_click(self._partition)
+            self._on_click(self.partition)
             return None
         return key
 
-    def set_device(self, dev):
-        self._partition.device = dev
-        txt = dev.devpath if dev else ""
-        self._devpath.set_text(txt)
+    def refresh(self):
+        dev = self.partition.device
+        self._devpath.set_text(dev.devpath if dev else "")
 
 
 class PartitionListWidget(urwid.WidgetWrap):
@@ -61,10 +62,12 @@ class PartitionListWidget(urwid.WidgetWrap):
         super(PartitionListWidget, self).__init__(attrmap)
 
     def get_focus(self):
-        return self._walker.get_focus()[0]
+        return self._walker.get_focus()[0].partition
 
-    def set_device(self, dev):
-        self.get_focus().set_device(dev)
+    def refresh(self):
+        for entry in self._walker:
+            if isinstance(entry, PartitionEntryWidget):
+                entry.refresh()
 
 
 class DeviceListWidget(widgets.ClickableTextList):
@@ -138,6 +141,7 @@ class Menu(menu.Menu):
 
         self._install_button = urwid.Button("Install", on_press=self.do_install)
         self._widget = urwid.WidgetPlaceholder(self._partition_page)
+        device.listen_uevent(self._on_uevent)
 
     def _create_device_page(self, part, devices):
         header = widgets.Title1(_("Choose device to use for %s\n") % part.name)
@@ -161,8 +165,46 @@ class Menu(menu.Menu):
 
     def _on_selected_device(self, dev):
         if dev:
-            self._partition_list_widget.set_device(dev)
+            self._partition_list_widget.get_focus().device = dev
+        #
+        # Always refresh the partition list page so any removed
+        # devices (while showing the device list) will be handled
+        # correctly.
+        #
+        self._partition_list_widget.refresh()
         self._widget.original_widget = self._partition_page
+
+    def _on_uevent(self, action, bdev):
+        #
+        # If we're currently showing the device list then we
+        # recreate the whole page so that any added/removed devices
+        # will be showed/hidden accordingly.
+        #
+        if self._widget.original_widget != self._partition_page:
+            #
+            # switch back to the partition list, so it won't fail if
+            # the new list is empty.
+            #
+            self._widget.original_widget = self._partition_page
+            #
+            # recreate and display the new device list.
+            #
+            part = self._partition_list_widget.get_focus()
+            self._on_selected_partition(part)
+        else:
+            #
+            # Refresh the partition list page only if it's currently
+            # displayed. For the other case, it will be refreshed by
+            # _on_selected_device().
+            #
+            if action == "remove":
+                self._partition_list_widget.refresh()
+        #
+        # Triggering widget changes from a gudev event has no visual
+        # effects. For some reason we have to force a redraw of the
+        # whole screen.
+        #
+        self.ui.redraw()
 
     def do_install(self, widget):
         self.logger.info(_("starting installation"))
