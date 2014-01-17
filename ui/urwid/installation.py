@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 
-from menus import BaseMenu
+from menus.installation import InstallMenu
 import urwid
 import widgets
 import utils
@@ -100,13 +100,13 @@ class DeviceListWidget(widgets.ClickableTextList):
         return self._devices[idx]
 
 
-class Menu(BaseMenu):
+class Menu(InstallMenu):
 
     #requires = ["license"]
     provides = ["rootfs"]
 
     def __init__(self, ui, menu_event_cb):
-        BaseMenu.__init__(self, ui, menu_event_cb)
+        InstallMenu.__init__(self, ui, menu_event_cb)
         self._current_partition = None
 
     @property
@@ -165,7 +165,7 @@ class Menu(BaseMenu):
             self._widget.original_widget = device_page
         else:
             name = part.name
-            self.logger.critical(_("No valid device found for %s") % name)
+            self.logger.warn(_("No valid device found for %s") % name)
 
     def _on_select_device(self, dev):
         if dev:
@@ -213,13 +213,4 @@ class Menu(BaseMenu):
         self.ui.redraw()
 
     def do_install(self, widget):
-        self.logger.info(_("starting installation"))
-
-        for mntpnt, dev in mandatory_mountpoints.items():
-            if mntpnt == "/":
-                mntpnt = "/root"
-            self.installer.data["partition" + mntpnt] = dev
-
-        for mntpnt, dev in mandatory_mountpoints.items():
-            if dev:
-                self.installer.data["partition" + mntpnt] = dev
+        InstallMenu.process(self)
