@@ -79,7 +79,6 @@ class ProgressBar(urwid.WidgetWrap):
         self._progressbar = urwid.ProgressBar(None, "progress.bar",
                                               current, done)
         linebox = urwid.LineBox(self._progressbar)
-        #attrmap = urwid.AttrMap(linebox, "progressbar.box")
         urwid.WidgetWrap.__init__(self, linebox)
 
     def set_completion(self, current):
@@ -91,7 +90,6 @@ class Page(urwid.WidgetWrap):
     empty_text_widget = urwid.Text("")
 
     def __init__(self):
-        self._progressbar = ProgressBar(0, 100)
         self._title  = Title1()
         self._body   = urwid.WidgetPlaceholder(self.empty_text_widget)
         self._footer = urwid.WidgetPlaceholder(self.empty_text_widget)
@@ -137,22 +135,46 @@ class Page(urwid.WidgetWrap):
             widget = self.empty_text_widget
         self._footer.original_widget = widget
 
+
+class MenuWidget(urwid.WidgetWrap):
+
+    def __init__(self, ui):
+        self.ui = ui
+        self._page = urwid.WidgetPlaceholder(urwid.Text(""))
+        self._progressbar = ProgressBar(0, 100)
+
+        self._overlay = urwid.Overlay(self._progressbar, self._page,
+                                      'center', ('relative', 55),
+                                      'middle', 'pack')
+
+        urwid.WidgetWrap.__init__(self, urwid.WidgetPlaceholder(self._page))
+
+    @property
+    def page(self):
+        return self._page.original_widget
+
+    @page.setter
+    def page(self, page):
+        self._page.original_widget = page
+
+    def redraw(self):
+        return
+
     def set_completion(self, percent):
         #
-        # Hide the progress bar when the job is not yet started or
-        # finished.
+        # Hide the progress bar when the menu's job is not yet started or
+        # is finished.
         #
         if percent < 1 or percent > 99:
-            self._w.original_widget = self._pile
+            self._w.original_widget = self._page
             return
         #
         # Create an overlay to show a progress bar on top if it
         # doesn't exist yet.
         #
-        if self._w.original_widget == self._pile:
-            overlay = urwid.Overlay(self._progressbar, self._pile,
-                                    'center', ('relative', 55),
-                                    'middle', 'pack')
-            self._w.original_widget = overlay
+        if self._w.original_widget == self._page:
+            self._w.original_widget = self._overlay
 
         self._progressbar.set_completion(percent)
+        self.ui.redraw()
+

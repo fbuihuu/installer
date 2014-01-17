@@ -16,19 +16,33 @@ from l10n import country_dict
 # later (root password setup for example).
 #
 
-class Menu(BaseMenu):
+class Menu(BaseMenu, widgets.MenuWidget):
 
     provides = ["language"]
 
     def __init__(self, ui, callback_event):
         BaseMenu.__init__(self, ui, callback_event)
+        widgets.MenuWidget.__init__(self, ui)
+
+        self.page = widgets.Page()
+        # Make the list centered inside its container
+        body = widgets.ClickableTextList(country_dict.keys(), self.on_click)
+        body = urwid.Filler(body, 'middle', height=('relative', 40))
+        body = urwid.Padding(body, align='center', width=('relative', 60))
+        self.page.body = body
+
         self._country = None
         if self.installer.data["localization/country"]:
             self.country = self.installer.data["localization/country"]
 
+        self.redraw()
+
     @property
     def name(self):
         return _("Language")
+
+    def redraw(self):
+        self.page.title = _("Select your location")
 
     @property
     def country(self):
@@ -51,18 +65,6 @@ class Menu(BaseMenu):
 
         self.state = Menu._STATE_DONE
         self.redraw()
-
-    def redraw(self):
-        self._widget.title = _("Select your location")
-
-    def _create_widget(self):
-        page = widgets.Page()
-        # Make the list centered inside its container
-        body = widgets.ClickableTextList(country_dict.keys(), self.on_click)
-        body = urwid.Filler(body, 'middle', height=('relative', 40))
-        page.body = urwid.Padding(body, align='center', width=('relative', 60))
-
-        self._widget = page
 
     def on_click(self, entry):
         place = entry.text

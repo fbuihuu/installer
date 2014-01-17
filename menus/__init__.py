@@ -24,7 +24,6 @@ class BaseMenu(object):
         self.ui = ui
         self.installer = ui.installer
         self._callback = callback
-        self._widget = None
         self._logger = MenuLogAdapter(ui.logger, {'title': self.name})
         self.requires = Set(self.requires)
         self.provides = Set(self.provides)
@@ -52,13 +51,6 @@ class BaseMenu(object):
         if self._callback:
             self._callback(self)
 
-    @property
-    def widget(self):
-        if not self._widget:
-            self._create_widget()
-        self.redraw()
-        return self._widget
-
     def redraw(self):
         pass
 
@@ -85,5 +77,5 @@ class BaseMenu(object):
     def is_failed(self):
         return self.state == self._STATE_FAILED
 
-    def process(self, set_completion):
+    def process(self):
         raise NotImplementedError()

@@ -6,14 +6,19 @@ import urwid
 import widgets
 
 
-class Menu(BaseMenu):
+class Menu(BaseMenu, widgets.MenuWidget):
 
     requires = ["language"]
     provides = ["license"]
 
     def __init__(self, ui, menu_event_cb):
         BaseMenu.__init__(self, ui, menu_event_cb)
+        widgets.MenuWidget.__init__(self, ui)
         self._locale = None
+
+        self.page = widgets.Page()
+        self.page.body = urwid.ListBox(urwid.SimpleListWalker([]))
+        self.redraw()
 
     @property
     def name(self):
@@ -24,9 +29,9 @@ class Menu(BaseMenu):
             return
         self._locale = self.ui.language
 
-        self._widget.title = _("License Agreement")
+        self.page.title = _("License Agreement")
 
-        walker  = self._widget.body.body
+        walker  = self.page.body.body
         content = []
         with open("LICENCE-" + self.ui.language, "r") as f:
             for line in f:
@@ -38,12 +43,6 @@ class Menu(BaseMenu):
         walker.append(urwid.Divider())
         walker.append(urwid.Button(_("Accept"), on_press=self.on_accepted))
         walker.append(urwid.Button(_("Refuse"), on_press=self.on_disagreed))
-
-    def _create_widget(self):
-        page = widgets.Page()
-        page.body = urwid.ListBox(urwid.SimpleListWalker([]))
-        self._widget = page
-        self.redraw()
 
     def on_accepted(self, button):
         self.logger.info(_("you accepted the terms of the license"))

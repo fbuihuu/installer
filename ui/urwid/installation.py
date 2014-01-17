@@ -100,17 +100,24 @@ class DeviceListWidget(widgets.ClickableTextList):
         return self._devices[idx]
 
 
-class Menu(InstallMenu):
+class Menu(InstallMenu, widgets.MenuWidget):
 
     #requires = ["license"]
     provides = ["rootfs"]
 
     def __init__(self, ui, menu_event_cb):
         InstallMenu.__init__(self, ui, menu_event_cb)
-        self._current_partition = None
+        widgets.MenuWidget.__init__(self, ui)
 
-        self._progressbar = widgets.ProgressBar(0, 100)
+        self._install_button = urwid.Button("Install", on_press=self.do_install)
+        self._partition_list_widget = PartitionListWidget(self._on_select_partition,
+                                                          self._on_clear_partition)
+        self._partition_page = widgets.Page()
+        self._partition_page.body = self._partition_list_widget
+        self.page = self._partition_page
+        self.redraw()
 
+        device.listen_uevent(self._on_uevent)
 
     @property
     def name(self):
@@ -118,16 +125,6 @@ class Menu(InstallMenu):
 
     def redraw(self):
         self._partition_page.title = _("Map partitions to block devices")
-
-    def _create_widget(self):
-        self._install_button = urwid.Button("Install", on_press=self.do_install)
-        self._partition_list_widget = PartitionListWidget(self._on_select_partition,
-                                                          self._on_clear_partition)
-        self._partition_page = widgets.Page()
-        self._partition_page.body = self._partition_list_widget
-
-        self._widget = urwid.WidgetPlaceholder(self._partition_page)
-        device.listen_uevent(self._on_uevent)
 
     def _create_device_page(self, part, devices):
         page = widgets.Page()
@@ -156,8 +153,7 @@ class Menu(InstallMenu):
     def _on_select_partition(self, part):
         devices = partition.get_candidates(part)
         if devices:
-            device_page = self._create_device_page(part, devices)
-            self._widget.original_widget = device_page
+            self.page = self._create_device_page(part, devices)
         else:
             name = part.name
             self.logger.warning(_("No valid device found for %s") % name)
@@ -171,7 +167,7 @@ class Menu(InstallMenu):
         # correctly.
         #
         self._partition_list_widget.refresh()
-        self._widget.original_widget = self._partition_page
+        self.page = self._partition_page
         self._update_install_button()
 
     def _on_uevent(self, action, bdev):
@@ -180,12 +176,12 @@ class Menu(InstallMenu):
         # recreate the whole page so that any added/removed devices
         # will be showed/hidden accordingly.
         #
-        if self._widget.original_widget != self._partition_page:
+        if self.page != self._partition_page:
             #
             # switch back to the partition list, so it won't fail if
             # the new list is empty.
             #
-            self._widget.original_widget = self._partition_page
+            self.page = self._partition_page
             #
             # recreate and display the new device list.
             #
@@ -209,6 +205,3 @@ class Menu(InstallMenu):
 
     def do_install(self, widget):
         self.process()
-
-    def set_completion(self, percent):
-        self._partition_page.set_completion(percent)
