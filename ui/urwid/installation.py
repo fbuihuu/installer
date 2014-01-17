@@ -114,44 +114,36 @@ class Menu(InstallMenu):
         return _("Installation")
 
     def redraw(self):
-        self._header.set_text(_("Map partitions to block devices"))
+        self._partition_page.title = _("Map partitions to block devices")
 
     def _create_widget(self):
+        self._install_button = urwid.Button("Install", on_press=self.do_install)
         self._partition_list_widget = PartitionListWidget(self._on_select_partition,
                                                           self._on_clear_partition)
+        self._partition_page = widgets.Page()
+        self._partition_page.body = self._partition_list_widget
 
-        self._header = widgets.Title1()
-        self._footer = urwid.WidgetPlaceholder(urwid.Text(""))
-        # use a Pile since the footer must be selectable.
-        self._partition_page = urwid.Pile([
-            ('pack', self._header),
-            ('pack', urwid.Divider(" ")),
-            ('weight', 1, self._partition_list_widget),
-            ('pack', self._footer)
-            ])
-
-        self._install_button = urwid.Button("Install", on_press=self.do_install)
         self._widget = urwid.WidgetPlaceholder(self._partition_page)
         device.listen_uevent(self._on_uevent)
 
     def _create_device_page(self, part, devices):
-        header = widgets.Title1(_("Choose device to use for %s\n") % part.name)
-        body   = DeviceListWidget(part, devices)
-        footer = urwid.Text(str(body.get_focus()))
+        page = widgets.Page()
+        page.title  = _("Choose device to use for %s\n") % part.name
+        page.body   = DeviceListWidget(part, devices)
+        footer      = urwid.Text(str(page.body.get_focus()))
+        page.footer = urwid.LineBox(footer)
 
-        urwid.connect_signal(body, 'focus_changed',
+        urwid.connect_signal(page.body, 'click', self._on_select_device)
+        urwid.connect_signal(page.body, 'focus_changed',
                              lambda dev: footer.set_text(str(dev)))
-        urwid.connect_signal(body, 'click', self._on_select_device)
-
-        return urwid.Frame(body, header, urwid.LineBox(footer))
+        return page
 
     def _update_install_button(self):
-        w = self._install_button
         for part in partition.partitions:
             if not part.is_optional and part.device is None:
-                w = urwid.Text("")
-                break
-        self._footer.original_widget = w
+                self._partition_page.footer = None
+                return
+        self._partition_page.footer = self._install_button
 
     def _on_clear_partition(self, part):
         part.device = None
@@ -165,7 +157,7 @@ class Menu(InstallMenu):
             self._widget.original_widget = device_page
         else:
             name = part.name
-            self.logger.warn(_("No valid device found for %s") % name)
+            self.logger.warning(_("No valid device found for %s") % name)
 
     def _on_select_device(self, dev):
         if dev:

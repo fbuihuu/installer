@@ -3,6 +3,7 @@
 
 from menus import BaseMenu
 import urwid
+import widgets
 
 
 class Menu(BaseMenu):
@@ -23,11 +24,11 @@ class Menu(BaseMenu):
             return
         self._locale = self.ui.language
 
-        walker  = self._widget.body
-        lang = self.ui.language
+        self._widget.title = _("License Agreement")
 
+        walker  = self._widget.body.body
         content = []
-        with open("LICENCE-" + lang, "r") as f:
+        with open("LICENCE-" + self.ui.language, "r") as f:
             for line in f:
                 content.append(line)
         content = urwid.Text(content)
@@ -39,7 +40,9 @@ class Menu(BaseMenu):
         walker.append(urwid.Button(_("Refuse"), on_press=self.on_disagreed))
 
     def _create_widget(self):
-        self._widget = urwid.ListBox(urwid.SimpleListWalker([]))
+        page = widgets.Page()
+        page.body = urwid.ListBox(urwid.SimpleListWalker([]))
+        self._widget = page
         self.redraw()
 
     def on_accepted(self, button):

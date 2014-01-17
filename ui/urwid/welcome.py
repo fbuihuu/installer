@@ -53,15 +53,16 @@ class Menu(BaseMenu):
         self.redraw()
 
     def redraw(self):
-        self._widget.header.set_text(_("Select your location"))
+        self._widget.title = _("Select your location")
 
     def _create_widget(self):
-        header = widgets.Title1()
-        body = widgets.ClickableTextList(country_dict.keys(), self.on_click)
+        page = widgets.Page()
         # Make the list centered inside its container
+        body = widgets.ClickableTextList(country_dict.keys(), self.on_click)
         body = urwid.Filler(body, 'middle', height=('relative', 40))
-        body = urwid.Padding(body, align='center', width=('relative', 60))
-        self._widget = urwid.Frame(body, header)
+        page.body = urwid.Padding(body, align='center', width=('relative', 60))
+
+        self._widget = page
 
     def on_click(self, entry):
         place = entry.text

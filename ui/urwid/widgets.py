@@ -71,3 +71,60 @@ class FillRightLayout(urwid.StandardTextLayout):
             fill = width - used
             out.append(row + [(fill, last_offset, self._filler * fill)])
         return out
+
+
+class Page(urwid.WidgetWrap):
+
+    empty_text_widget = urwid.Text("")
+
+    def __init__(self):
+        self._title  = Title1()
+        self._body   = urwid.WidgetPlaceholder(self.empty_text_widget)
+        self._footer = urwid.WidgetPlaceholder(self.empty_text_widget)
+
+        items = [
+            ('pack', self._title),
+            ('pack', urwid.Divider(" ")),
+            ('weight', 1, self._body),
+            ('pack', self._footer)
+        ]
+        w = urwid.WidgetPlaceholder(urwid.Pile(items, focus_item=2))
+        urwid.WidgetWrap.__init__(self, w)
+
+    @property
+    def title(self):
+        return title.text
+
+    @title.setter
+    def title(self, txt):
+        self._title.set_text(txt)
+
+    @property
+    def body(self):
+        if self._body.original_widget == self.empty_text_widget:
+            return None
+        return self._body.original_widget
+
+    @body.setter
+    def body(self, widget=None):
+        if not widget:
+            widget = self.empty_text_widget
+        self._body.original_widget = widget
+
+    @property
+    def footer(self):
+        if self._footer.original_widget == self.empty_text_widget:
+            return None
+        return self._footer.original_widget
+
+    @footer.setter
+    def footer(self, widget=None):
+        if not widget:
+            widget = self.empty_text_widget
+        self._footer.original_widget = widget
+
+    def set_completion(self, percent):
+        # overlay = urwid.Overlay(self._top, self._bottom, 'center',
+        #                        'pack', 'bottom', 'pack')
+        raise NotImplementedError()
+
