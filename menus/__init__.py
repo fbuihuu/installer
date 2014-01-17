@@ -85,3 +85,5 @@ class BaseMenu(object):
     def is_failed(self):
         return self.state == self._STATE_FAILED
 
+    def process(self, set_completion):
+        raise NotImplementedError()

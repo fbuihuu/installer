@@ -73,11 +73,25 @@ class FillRightLayout(urwid.StandardTextLayout):
         return out
 
 
+class ProgressBar(urwid.WidgetWrap):
+
+    def __init__(self, current, done):
+        self._progressbar = urwid.ProgressBar(None, "progress.bar",
+                                              current, done)
+        linebox = urwid.LineBox(self._progressbar)
+        #attrmap = urwid.AttrMap(linebox, "progressbar.box")
+        urwid.WidgetWrap.__init__(self, linebox)
+
+    def set_completion(self, current):
+        self._progressbar.set_completion(current)
+
+
 class Page(urwid.WidgetWrap):
 
     empty_text_widget = urwid.Text("")
 
     def __init__(self):
+        self._progressbar = ProgressBar(0, 100)
         self._title  = Title1()
         self._body   = urwid.WidgetPlaceholder(self.empty_text_widget)
         self._footer = urwid.WidgetPlaceholder(self.empty_text_widget)
@@ -88,8 +102,8 @@ class Page(urwid.WidgetWrap):
             ('weight', 1, self._body),
             ('pack', self._footer)
         ]
-        w = urwid.WidgetPlaceholder(urwid.Pile(items, focus_item=2))
-        urwid.WidgetWrap.__init__(self, w)
+        self._pile = urwid.Pile(items, focus_item=2)
+        urwid.WidgetWrap.__init__(self, urwid.WidgetPlaceholder(self._pile))
 
     @property
     def title(self):
@@ -124,7 +138,21 @@ class Page(urwid.WidgetWrap):
         self._footer.original_widget = widget
 
     def set_completion(self, percent):
-        # overlay = urwid.Overlay(self._top, self._bottom, 'center',
-        #                        'pack', 'bottom', 'pack')
-        raise NotImplementedError()
+        #
+        # Hide the progress bar when the job is not yet started or
+        # finished.
+        #
+        if percent < 1 or percent > 99:
+            self._w.original_widget = self._pile
+            return
+        #
+        # Create an overlay to show a progress bar on top if it
+        # doesn't exist yet.
+        #
+        if self._w.original_widget == self._pile:
+            overlay = urwid.Overlay(self._progressbar, self._pile,
+                                    'center', ('relative', 55),
+                                    'middle', 'pack')
+            self._w.original_widget = overlay
 
+        self._progressbar.set_completion(percent)

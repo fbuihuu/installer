@@ -20,6 +20,7 @@ palette = [
     ('side.bar.mark.check',   'dark green',        ''),
     ('top.bar.label',         'black',             'light gray'),
     ('top.bar.hotkey',        'dark blue',         'light gray'),
+    ('progress.bar',          'black',             'dark green'),
     ('log.warn',              'light red',         ''),
     ('log.info',              'light green',       ''),
     ('reversed',              'standout',          '')]

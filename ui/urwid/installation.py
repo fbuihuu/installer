@@ -109,6 +109,9 @@ class Menu(InstallMenu):
         InstallMenu.__init__(self, ui, menu_event_cb)
         self._current_partition = None
 
+        self._progressbar = widgets.ProgressBar(0, 100)
+
+
     @property
     def name(self):
         return _("Installation")
@@ -205,4 +208,7 @@ class Menu(InstallMenu):
         self.ui.redraw()
 
     def do_install(self, widget):
-        InstallMenu.process(self)
+        self.process()
+
+    def set_completion(self, percent):
+        self._partition_page.set_completion(percent)

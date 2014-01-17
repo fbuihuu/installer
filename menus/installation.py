@@ -29,6 +29,13 @@ class InstallMenu(BaseMenu):
     def process(self):
         self.logger.info(_("starting installation"))
 
+        import time
+        for i in range(101):
+            self.set_completion(i)
+            self.ui.redraw()
+            time.sleep(0.1)
+        return
+
         tmpdir = mkdtemp()
         self.logger.debug(_("creating temp dir at %s") % tmpdir)
         self._do_mount_partitions(tmpdir)
