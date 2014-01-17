@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 
-from subprocess import check_output, CalledProcessError
+from subprocess import check_output, check_call, CalledProcessError
 import gudev
 import utils
 
@@ -67,6 +67,18 @@ class PartitionDevice(BlockDevice):
             except CalledProcessError:
                 pass
         return []
+
+    def mount(self, mountpoint):
+        if self._mntpoint:
+            raise Exception()
+        cmd = "mount %s %s" % (self.devpath, mountpoint)
+        check_call(cmd, shell=True)
+        self._mntpoint = mountpoint
+
+    def umount(self):
+        if self._mntpoint:
+            check_call("umount %s" % self._mntpoint, shell=True)
+            self._mntpoint = None
 
     def __str__(self):
         lines = [(_("Model"),      self.model),
