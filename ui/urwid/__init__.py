@@ -37,7 +37,6 @@ class UrwidUI(UI):
 
     __loop = None
     __main_frame = None
-    __menu_frame = None
     __menu_page  = None
     __menu_navigator = None
     __top_bar = None
@@ -54,20 +53,20 @@ class UrwidUI(UI):
         self._menus.append(installation.Menu(self, self.on_menu_event))
 
     def __create_menu_page(self):
-        self.__menu_frame = urwid.Frame(urwid.Filler(urwid.Text("")))
-        columns  = [("weight", 0.2, self.__menu_navigator)]
-        columns += [urwid.LineBox(self.__menu_frame)]
-        self.__menu_page = urwid.Columns(columns, dividechars=1)
+        self.__menu_page = urwid.WidgetPlaceholder(urwid.Text(""))
 
     def __create_menu_navigator(self):
         self.__menu_navigator = MenuNavigator(self._menus)
 
         def on_focus_changed(menu):
-            self.__menu_frame.body = menu.widget
+            self.__menu_page.original_widget = menu.widget
         urwid.connect_signal(self.__menu_navigator, 'focus_changed', on_focus_changed)
 
     def __create_main_frame(self):
-        self.__main_frame = urwid.Frame(self.__menu_page,
+        cols  = [("weight", 0.2, self.__menu_navigator)]
+        cols += [urwid.LineBox(self.__menu_page)]
+
+        self.__main_frame = urwid.Frame(urwid.Columns(cols, dividechars=1),
                                         self.__top_bar,
                                         self.__echo_area)
 
@@ -109,7 +108,7 @@ class UrwidUI(UI):
         self.switch_to_first_menu()
 
         def toggle_menu_page_focus():
-            self.__menu_page.focus_position ^= 1
+            self.__main_frame.body.focus_position ^= 1
         self.register_hotkey('tab', toggle_menu_page_focus)
         self.register_hotkey('f1', self.switch_to_menu)
         self.register_hotkey('f3', self.switch_to_logs)
@@ -130,7 +129,7 @@ class UrwidUI(UI):
         self.__menu_navigator.set_focus(self._menus.index(menu))
 
     def switch_to_logs(self):
-        self.__menu_frame.body = LogFrame(self.logs)
+        self.__menu_page.original_widget = LogFrame(self.logs)
 
     def _handle_hotkeys(self, keys, raws):
         self.__echo_area.clear()
