@@ -115,7 +115,6 @@ class Menu(InstallMenu, widgets.MenuWidget):
         self._partition_page = widgets.Page()
         self._partition_page.body = self._partition_list_widget
         self.page = self._partition_page
-        self.redraw()
 
         device.listen_uevent(self._on_uevent)
 

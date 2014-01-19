@@ -18,7 +18,6 @@ class Menu(BaseMenu, widgets.MenuWidget):
 
         self.page = widgets.Page()
         self.page.body = urwid.ListBox(urwid.SimpleListWalker([]))
-        self.redraw()
 
     @property
     def name(self):

@@ -106,6 +106,7 @@ class UI(object):
         if not menu:
             menu = self._current_menu
         self._current_menu = menu
+        self._current_menu.redraw()
         self._switch_to_menu(menu)
 
     def switch_to_first_menu(self):

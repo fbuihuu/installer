@@ -35,8 +35,6 @@ class Menu(BaseMenu, widgets.MenuWidget):
         if self.installer.data["localization/country"]:
             self.country = self.installer.data["localization/country"]
 
-        self.redraw()
-
     @property
     def name(self):
         return _("Language")
@@ -64,7 +62,6 @@ class Menu(BaseMenu, widgets.MenuWidget):
         #   system.keyboard.set_layout(layout)
 
         self.state = Menu._STATE_DONE
-        self.redraw()
 
     def on_click(self, entry):
         place = entry.text
