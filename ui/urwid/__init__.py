@@ -40,6 +40,7 @@ class UrwidUI(UI):
     __menu_page  = None
     __menu_navigator = None
     __top_bar = None
+    __echo_area = None
 
     def __init__(self, installer, lang):
         UI.__init__(self, installer, lang)
