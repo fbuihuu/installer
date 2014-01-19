@@ -78,7 +78,9 @@ class PartitionDevice(BlockDevice):
     def umount(self):
         if self._mntpoint:
             check_call("umount %s" % self._mntpoint, shell=True)
+            mntpnt = self._mntpoint
             self._mntpoint = None
+            return mntpnt
 
     def __str__(self):
         lines = [(_("Model"),      self.model),
