@@ -204,4 +204,10 @@ class Menu(InstallMenu, widgets.MenuWidget):
         self.ui.redraw()
 
     def do_install(self, widget):
-        self.process()
+        rv = self.process()
+        if rv == 0:
+            self.logger.info("done.")
+            self.state = Menu._STATE_DONE
+        else:
+            self.logger.critical("failed")
+            self.state = Menu._STATE_FAILED
