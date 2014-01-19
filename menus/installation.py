@@ -12,6 +12,9 @@ import partition
 
 class InstallMenu(BaseMenu):
 
+    requires = ["license"]
+    provides = ["rootfs"]
+
     def __init__(self, ui, callback):
         BaseMenu.__init__(self, ui, callback)
         self._mounted_partitions = []

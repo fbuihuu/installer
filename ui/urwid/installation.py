@@ -102,9 +102,6 @@ class DeviceListWidget(widgets.ClickableTextList):
 
 class Menu(InstallMenu, widgets.MenuWidget):
 
-    #requires = ["license"]
-    provides = ["rootfs"]
-
     def __init__(self, ui, menu_event_cb):
         InstallMenu.__init__(self, ui, menu_event_cb)
         widgets.MenuWidget.__init__(self, ui)
