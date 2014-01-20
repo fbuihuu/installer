@@ -21,13 +21,12 @@ class InstallMenu(BaseMenu):
         self._pacstrap = None
 
     def _do_mount_partitions(self, tmpdir):
-        # Mount partitions starting with /
         lst = [ (p.name, p) for p in partition.partitions if p.device ]
         lst.sort(key=itemgetter(0))
 
         for name, part in lst:
             mountpoint = tmpdir + name
-            if name != "/":
+            if name != "/" and not os.path.exists(mountpoint):
                 os.mkdir(mountpoint)
             self.logger.debug(_("mounting %s") % name)
             part.device.mount(mountpoint)
@@ -36,11 +35,10 @@ class InstallMenu(BaseMenu):
     def _do_umount_partitions(self, tmpdir):
         for part in reversed(self._mounted_partitions):
             mntpnt = part.device.umount()
-            os.rmdir(mntpnt)
 
     def _do_pacstrap(self, tmpdir):
         self.logger.info("collecting information...")
-        pacstrap = Popen("pacstrap -c %s base" % tmpdir, shell=True, stdout=PIPE)
+        pacstrap = Popen("pacstrap %s base" % tmpdir, shell=True, stdout=PIPE)
 
         # Note: don't use an iterate over file object construct since
         # it uses a hidden read-ahead buffer which won't play well
@@ -74,7 +72,7 @@ class InstallMenu(BaseMenu):
             if not line.startswith('downloading '):
                 count = max(count, total/2)
             count += 1
-            self.set_completion(count * 99 / total)
+            self.set_completion(2 + count * 97 / total)
 
         # wait for pacstrap to exit
         return pacstrap.wait()
@@ -95,6 +93,7 @@ class InstallMenu(BaseMenu):
         else:
             self._do_fstab()
         self._do_umount_partitions(tmpdir)
+        os.rmdir(tmpdir)
 
         self.set_completion(100)
         return rv
