@@ -47,8 +47,9 @@ class InstallMenu(BaseMenu):
         # with long running process with few outputs such as pacstrap.
         # See:
         # http://stackoverflow.com/questions/1183643/unbuffered-read-from-process-using-subprocess-in-python
+        total = 0
         pattern = re.compile(r'Packages \(([0-9]+)\)')
-        while True:
+        while pacstrap.poll() is None:
             line = pacstrap.stdout.readline()
             if not line:
                 break
@@ -61,7 +62,7 @@ class InstallMenu(BaseMenu):
         count = 0
         total = total * 2
         pattern = re.compile(r'downloading |(re)?installing ')
-        while True:
+        while pacstrap.poll() is None:
             line = pacstrap.stdout.readline()
             if not line:
                 break
@@ -76,8 +77,7 @@ class InstallMenu(BaseMenu):
             self.set_completion(count * 99 / total)
 
         # wait for pacstrap to exit
-        pacstrap.wait()
-        return pacstrap.returncode
+        return pacstrap.wait()
 
     def _do_fstab(self):
         pass
