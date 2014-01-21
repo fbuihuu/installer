@@ -40,11 +40,13 @@ class InstallMenu(BaseMenu):
         self.logger.info("collecting information...")
         pacstrap = Popen("pacstrap %s base" % tmpdir, shell=True, stdout=PIPE)
 
+        #
         # Note: don't use an iterate over file object construct since
         # it uses a hidden read-ahead buffer which won't play well
-        # with long running process with few outputs such as pacstrap.
-        # See:
+        # with long running process with limited outputs such as
+        # pacstrap.  See:
         # http://stackoverflow.com/questions/1183643/unbuffered-read-from-process-using-subprocess-in-python
+        #
         total = 0
         pattern = re.compile(r'Packages \(([0-9]+)\)')
         while pacstrap.poll() is None:
