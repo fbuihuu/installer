@@ -12,13 +12,13 @@ class BlockDevice(object):
         self._gudev = gudev
 
     def __eq__(self, other):
-        return other and other._syspath == self._syspath
+        return other and other.syspath == self.syspath
 
     def __ne__(self, other):
         return not self.__eq__(other)
 
     @property
-    def _syspath(self):
+    def syspath(self):
         return self._gudev.get_sysfs_path()
 
     @property
@@ -50,7 +50,7 @@ class PartitionDevice(BlockDevice):
 
     @property
     def size(self):
-        with open(self._syspath + "/size", 'r') as f:
+        with open(self.syspath + "/size", 'r') as f:
             size = f.read()
         return int(size) * 512
 
@@ -114,7 +114,7 @@ def __on_add_uevent(gudev):
 
 def __on_remove_uevent(gudev):
     for bdev in block_devices:
-        if bdev._syspath == gudev.get_sysfs_path():
+        if bdev.syspath == gudev.get_sysfs_path():
             block_devices.remove(bdev)
             __notify_uevent_handlers("remove", bdev)
 
