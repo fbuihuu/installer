@@ -87,5 +87,15 @@ def __uevent_callback(action, bdev):
         for part in partitions:
             if part.device == bdev:
                 part.device = None
+    #
+    # On 'change' event, a device that was previously assigned to a
+    # partition may become invalid. If the fs changes for example.
+    #
+    if action == "change":
+        for part in partitions:
+            if part.device == bdev:
+                part.device = None
+                if bdev in get_candidates(part):
+                    part.device = bdev
 
 device.listen_uevent(__uevent_callback)

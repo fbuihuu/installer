@@ -189,7 +189,7 @@ class Menu(InstallMenu, widgets.MenuWidget):
             # displayed. For the other case, it will be refreshed by
             # _on_select_device().
             #
-            if action == "remove":
+            if action == "remove" or action == "change":
                 self._partition_list_widget.refresh()
                 self._update_install_button()
         #
