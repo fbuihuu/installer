@@ -93,10 +93,12 @@ class InstallMenu(BaseMenu):
                 source = "LABEL=" + part.device.fslabel
             else:
                 source = part.device.devpath
-            target = part.name
-            fstype = part.device.filesystem
+
             options = check_output("findmnt -cvuno OPTIONS " + part.device.devpath, shell=True)
             options = options.split()[0]
+
+            target = part.name
+            fstype = part.device.filesystem
             dump   = 0
             passno = 1 if target == "/" else 2
 
