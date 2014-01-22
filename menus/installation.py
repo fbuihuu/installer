@@ -19,26 +19,27 @@ class InstallMenu(BaseMenu):
         BaseMenu.__init__(self, ui, callback)
         self._mounted_partitions = []
         self._pacstrap = None
+        self._root = None
 
-    def _do_mount_partitions(self, tmpdir):
+    def _do_mount_partitions(self):
         lst = [ (p.name, p) for p in partition.partitions if p.device ]
         lst.sort(key=itemgetter(0))
 
         for name, part in lst:
-            mountpoint = tmpdir + name
+            mountpoint = self._root + name
             if name != "/" and not os.path.exists(mountpoint):
                 os.mkdir(mountpoint)
             self.logger.debug(_("mounting %s") % name)
             part.device.mount(mountpoint)
             self._mounted_partitions.append(part)
 
-    def _do_umount_partitions(self, tmpdir):
+    def _do_umount_partitions(self):
         for part in reversed(self._mounted_partitions):
             mntpnt = part.device.umount()
 
-    def _do_pacstrap(self, tmpdir):
+    def _do_pacstrap(self):
         self.logger.info("collecting information...")
-        pacstrap = Popen("pacstrap %s base" % tmpdir, shell=True, stdout=PIPE)
+        pacstrap = Popen("pacstrap %s base" % self._root, shell=True, stdout=PIPE)
 
         #
         # Note: don't use an iterate over file object construct since
@@ -104,25 +105,27 @@ class InstallMenu(BaseMenu):
                                                               dump, passno))
         return fstab
 
-    def _do_fstab(self, tmpdir):
-        with open(os.path.join(tmpdir, 'etc/fstab'), 'w') as f:
+    def _do_fstab(self):
+        with open(os.path.join(self._root, 'etc/fstab'), 'w') as f:
             for entry in self.__genfstab(self._mounted_partitions):
                 print >>f, entry, '\n'
 
     def process(self):
         self.set_completion(1)
 
-        tmpdir = mkdtemp()
-        self.logger.debug(_("creating temp dir at %s") % tmpdir)
+        self._root = mkdtemp()
+        self.logger.debug(_("creating temp dir at %s") % self._root)
 
-        self._do_mount_partitions(tmpdir)
-        rv = self._do_pacstrap(tmpdir)
+        self._do_mount_partitions()
+        rv = self._do_pacstrap()
         if rv:
             self.logger.critical("pacstrap failed with status %d" % rv)
         else:
-            self._do_fstab(tmpdir)
-        self._do_umount_partitions(tmpdir)
-        os.rmdir(tmpdir)
+            self._do_fstab()
+        self._do_umount_partitions()
+
+        os.rmdir(self._root)
+        self._root = None
 
         self.set_completion(100)
         return rv
