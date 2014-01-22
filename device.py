@@ -59,6 +59,22 @@ class PartitionDevice(BlockDevice):
         return self._gudev.get_property("ID_PART_ENTRY_SCHEME")
 
     @property
+    def partuuid(self):
+        return self._gudev.get_property("ID_PART_ENTRY_UUID")
+
+    @property
+    def partlabel(self):
+        return self._gudev.get_property("ID_PART_ENTRY_NAME")
+
+    @property
+    def fsuuid(self):
+        return self._gudev.get_property("ID_FS_UUID")
+
+    @property
+    def fslabel(self):
+        return self._gudev.get_property("ID_FS_LABEL")
+
+    @property
     def mountpoints(self):
         if self.filesystem:
             try:

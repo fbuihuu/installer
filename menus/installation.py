@@ -79,8 +79,35 @@ class InstallMenu(BaseMenu):
         # wait for pacstrap to exit
         return pacstrap.wait()
 
-    def _do_fstab(self):
-        pass
+    def __genfstab(self, partitions):
+        fstab = []
+        for part in partitions:
+            if part.device.partuuid:
+                source = "PARTUUID=" + part.device.partuuid
+            elif part.device.partlabel:
+                source = "PARTLABEL=" + part.device.partlabel
+            elif part.device.uuid:
+                source = "UUID=" + part.device.fsuuid
+            elif part.device.label:
+                source = "LABEL=" + part.device.fslabel
+            else:
+                source = part.device.devpath
+            target = part.name
+            fstype = part.device.filesystem
+            options = check_output("findmnt -cvuno OPTIONS " + part.device.devpath, shell=True)
+            options = options.split()[0]
+            dump   = 0
+            passno = 1 if target == "/" else 2
+
+            fstab.append("%-20s\t%-10s %-10s %-10s\t%d %d" % (source, target,
+                                                              fstype, options,
+                                                              dump, passno))
+        return fstab
+
+    def _do_fstab(self, tmpdir):
+        with open(os.path.join(tmpdir, 'etc/fstab'), 'w') as f:
+            for entry in self.__genfstab(self._mounted_partitions):
+                print >>f, entry, '\n'
 
     def process(self):
         self.set_completion(1)
@@ -93,7 +120,7 @@ class InstallMenu(BaseMenu):
         if rv:
             self.logger.critical("pacstrap failed with status %d" % rv)
         else:
-            self._do_fstab()
+            self._do_fstab(tmpdir)
         self._do_umount_partitions(tmpdir)
         os.rmdir(tmpdir)
 
