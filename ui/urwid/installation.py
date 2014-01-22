@@ -115,10 +115,6 @@ class Menu(InstallMenu, widgets.MenuWidget):
 
         device.listen_uevent(self._on_uevent)
 
-    @property
-    def name(self):
-        return _("Installation")
-
     def redraw(self):
         self._partition_page.title = _("Map partitions to block devices")
 

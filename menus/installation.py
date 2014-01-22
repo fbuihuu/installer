@@ -21,6 +21,10 @@ class InstallMenu(BaseMenu):
         self._pacstrap = None
         self._root = None
 
+    @property
+    def name(self):
+        return _("Installation")
+
     def _do_mount_partitions(self):
         lst = [ (p.name, p) for p in partition.partitions if p.device ]
         lst.sort(key=itemgetter(0))
