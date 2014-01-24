@@ -21,7 +21,7 @@ class UILogHandler(logging.Handler):
 
         self.ui.logs.appendleft((lvl, msg))
         if lvl > logging.DEBUG:
-            self.ui.notify(lvl, msg)
+            self.ui.notify(lvl, msg.split('\n')[0])
 
 
 class UI(object):
