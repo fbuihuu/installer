@@ -1,38 +1,29 @@
 # -*- coding: utf-8 -*-
 #
 
-from menus import BaseMenu
+from ui.urwid import UrwidMenu
 import urwid
 import widgets
 
 
-class Menu(BaseMenu, widgets.MenuWidget):
+class Menu(UrwidMenu):
 
-    requires = ["language"]
-    provides = ["license"]
-
-    def __init__(self, ui, menu_event_cb):
-        BaseMenu.__init__(self, ui, menu_event_cb)
-        widgets.MenuWidget.__init__(self, ui)
+    def __init__(self, ui):
+        UrwidMenu.__init__(self, ui)
         self._locale = None
-
         self.page = widgets.Page()
         self.page.body = urwid.ListBox(urwid.SimpleListWalker([]))
 
-    @property
-    def name(self):
-        return _("License")
-
     def redraw(self):
-        if self._locale == self.ui.language:
+        if self._locale == self._ui.language:
             return
-        self._locale = self.ui.language
+        self._locale = self._ui.language
 
         self.page.title = _("License Agreement")
 
         walker  = self.page.body.body
         content = []
-        with open("LICENCE-" + self.ui.language, "r") as f:
+        with open("LICENCE-" + self._ui.language, "r") as f:
             for line in f:
                 content.append(line)
         content = urwid.Text(content)
@@ -45,9 +36,10 @@ class Menu(BaseMenu, widgets.MenuWidget):
 
     def on_accepted(self, button):
         self.logger.info(_("you accepted the terms of the license"))
-        self.state = Menu._STATE_DONE
+        self._ui.installer.data["license"] = "accepted"
+        self.ready()
 
     def on_disagreed(self, button):
         self.logger.critical(_("you rejected the terms of the license, aborting"))
-        self.state = Menu._STATE_FAILED
-        self.ui.quit(3)
+        self._ui.installer.data["license"] = "refused"
+        self.ready()

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 
-from menus.installation import InstallMenu
+from ui.urwid import UrwidMenu
 import urwid
 import widgets
 import utils
@@ -100,11 +100,10 @@ class DeviceListWidget(widgets.ClickableTextList):
         return self._devices[idx]
 
 
-class Menu(InstallMenu, widgets.MenuWidget):
+class Menu(UrwidMenu):
 
-    def __init__(self, ui, menu_event_cb):
-        InstallMenu.__init__(self, ui, menu_event_cb)
-        widgets.MenuWidget.__init__(self, ui)
+    def __init__(self, ui):
+        UrwidMenu.__init__(self, ui)
 
         self._install_button = urwid.Button("Install", on_press=self.do_install)
         self._partition_list_widget = PartitionListWidget(self._on_select_partition,
@@ -193,13 +192,7 @@ class Menu(InstallMenu, widgets.MenuWidget):
         # effects. For some reason we have to force a redraw of the
         # whole screen.
         #
-        self.ui.redraw()
+        self._ui.redraw()
 
     def do_install(self, widget):
-        rv = self.process()
-        if rv == 0:
-            self.logger.info("done.")
-            self.state = Menu._STATE_DONE
-        else:
-            self.logger.critical("failed")
-            self.state = Menu._STATE_FAILED
+        self.ready()

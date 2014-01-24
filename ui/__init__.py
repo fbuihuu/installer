@@ -99,23 +99,19 @@ class UI(object):
             return True
         return False
 
-    def _switch_to_menu(self, menu):
-        raise NotImplementedError()
-
-    def switch_to_menu(self, menu=None):
+    def _switch_to_menu(self, menu=None):
         if not menu:
             menu = self._current_menu
         self._current_menu = menu
-        self._current_menu.redraw()
-        self._switch_to_menu(menu)
+        self._current_menu.view.redraw()
 
-    def switch_to_first_menu(self):
-        self.switch_to_menu(self._menus[0])
+    def _switch_to_first_menu(self):
+        self._switch_to_menu(self._menus[0])
 
-    def switch_to_next_menu(self):
+    def _switch_to_next_menu(self):
         for m in self._menus:
             if m.is_enabled() and not m.is_done():
-                self.switch_to_menu(m)
+                self._switch_to_menu(m)
                 return
 
     def on_menu_event(self, menu):
@@ -134,8 +130,16 @@ class UI(object):
                     # 'menu' was already in done state but has been
                     # revalidated. In that case menu that depends on
                     # it should be revalidated as well.
-                    m.undo()
+                    m.reset()
                 else:
                     m.enable()
             else:
                 m.disable()
+
+    def on_view_event(self, view):
+        for menu in self._menus:
+            if menu.view == view:
+                menu.process()
+
+    def set_completion(self, percent, view):
+        raise NotImplementedError()

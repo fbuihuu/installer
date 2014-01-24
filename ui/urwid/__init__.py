@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
 #
 
+import os
+import threading
+import collections
 import logging
 import urwid
 from ui import UI
-#from installer import installer
+from menus import BaseMenu
+import widgets
 
 
 palette = [
@@ -45,13 +49,28 @@ class UrwidUI(UI):
     def __init__(self, installer, lang):
         UI.__init__(self, installer, lang)
         urwid.set_encoding("utf8")
+        self._ui_thread = threading.current_thread()
+        self._watch_pipe_fd = None
+        self._watch_pipe_queue = collections.deque()
 
     def _load_menus(self):
         # FIXME: modules loading should be in abstract class.
         import welcome, license, installation
-        self._menus.append(welcome.Menu(self, self.on_menu_event))
-        self._menus.append(license.Menu(self, self.on_menu_event))
-        self._menus.append(installation.Menu(self, self.on_menu_event))
+        from menus.welcome import WelcomeMenu
+        from menus.license import LicenseMenu
+        from menus.installation import InstallMenu
+
+        view = welcome.Menu(self)
+        menu = WelcomeMenu(self, view)
+        self._menus.append(menu)
+
+        view = license.Menu(self)
+        menu = LicenseMenu(self, view)
+        self._menus.append(menu)
+
+        view = installation.Menu(self)
+        menu = InstallMenu(self, view)
+        self._menus.append(menu)
 
     def __create_menu_page(self):
         self.__menu_page = urwid.WidgetPlaceholder(urwid.Text(""))
@@ -60,7 +79,7 @@ class UrwidUI(UI):
         self.__menu_navigator = MenuNavigator(self._menus)
 
         def on_focus_changed(menu):
-            self.__menu_page.original_widget = menu
+            self.__menu_page.original_widget = menu.view
         urwid.connect_signal(self.__menu_navigator, 'focus_changed', on_focus_changed)
 
     def __create_main_frame(self):
@@ -77,15 +96,26 @@ class UrwidUI(UI):
     def __create_top_bar(self):
         self.__top_bar = TopBar()
 
+    def __init_watch_pipe(self):
+
+        def cb_from_q(unused):
+            while self._watch_pipe_queue:
+                func = self._watch_pipe_queue.pop()
+                func()
+            # make sure the pipe read side won't be closed.
+            return True
+
+        self._watch_pipe_fd = self.__loop.watch_pipe(cb_from_q)
+
+    def __call(self, func):
+        self._watch_pipe_queue.appendleft(func)
+        os.write(self._watch_pipe_fd, "ping")
+
     def redraw(self):
         if self.__loop:
             self.__top_bar.refresh()
             self.__menu_navigator.refresh()
             self.__loop.draw_screen()
-
-    def notify(self, lvl, msg):
-        if self.__echo_area:
-            self.__echo_area.notify(lvl, msg)
 
     def quit(self, delay=0):
         if delay:
@@ -106,30 +136,29 @@ class UrwidUI(UI):
         self.__create_echo_area()
         self.__create_main_frame()
 
-        self.switch_to_first_menu()
+        self._switch_to_first_menu()
 
         def toggle_menu_page_focus():
             self.__main_frame.body.focus_position ^= 1
         self.register_hotkey('tab', toggle_menu_page_focus)
-        self.register_hotkey('f1', self.switch_to_menu)
-        self.register_hotkey('f3', self.switch_to_logs)
+        self.register_hotkey('f1', self._switch_to_menu)
+        self.register_hotkey('f3', self._switch_to_logs)
         self.register_key('esc', self.quit)
 
         self.__loop = urwid.MainLoop(self.__main_frame, palette,
-                                     event_loop=urwid.GLibEventLoop(),
+#                                     event_loop=urwid.GLibEventLoop(),
                                      input_filter=self._handle_hotkeys,
                                      unhandled_input=self.handle_key)
+        self.__init_watch_pipe()
         self.__loop.run()
 
-    def on_menu_event(self, menu):
-        UI.on_menu_event(self, menu)
-        self.__menu_navigator.refresh()
-        self.switch_to_next_menu()
-
-    def _switch_to_menu(self, menu):
+    def _switch_to_menu(self, menu=None):
+        if not menu:
+            menu = self._current_menu
+        UI._switch_to_menu(self, menu)
         self.__menu_navigator.set_focus(self._menus.index(menu))
 
-    def switch_to_logs(self):
+    def _switch_to_logs(self):
         self.__menu_page.original_widget = LogFrame(self.logs)
 
     def _handle_hotkeys(self, keys, raws):
@@ -138,6 +167,80 @@ class UrwidUI(UI):
             if self.handle_hotkey(key):
                 keys.remove(key)
         return keys
+
+    def __is_ui_thread(self):
+        return threading.current_thread().ident == self._ui_thread.ident
+
+    def ui_thread(func):
+        def wrapper(self, *args):
+            if not self.__is_ui_thread():
+                self.__call(lambda: func(self, *args))
+                return
+            return func
+        return wrapper
+
+    @ui_thread
+    def on_menu_event(self, menu):
+        UI.on_menu_event(self, menu)
+        self.__menu_navigator.refresh()
+        self._switch_to_next_menu()
+
+    @ui_thread
+    def set_completion(self, percent, view):
+        view.set_completion(percent)
+
+    @ui_thread
+    def notify(self, lvl, msg):
+        if self.__echo_area:
+            self.__echo_area.notify(lvl, msg)
+
+
+class UrwidMenu(urwid.WidgetWrap):
+
+    def __init__(self, ui):
+        self._ui = ui
+        self._page = urwid.WidgetPlaceholder(urwid.Text(""))
+        self._progressbar = widgets.ProgressBar(0, 100)
+        self._overlay = urwid.Overlay(self._progressbar, self._page,
+                                      'center', ('relative', 55),
+                                      'middle', 'pack')
+
+        urwid.WidgetWrap.__init__(self, urwid.WidgetPlaceholder(self._page))
+
+    @property
+    def logger(self):
+        return self._ui.logger
+
+    @property
+    def page(self):
+        return self._page.original_widget
+
+    @page.setter
+    def page(self, page):
+        self._page.original_widget = page
+
+    def redraw(self):
+        return
+
+    def ready(self):
+        self._ui.on_view_event(self)
+
+    def set_completion(self, percent):
+        #
+        # Hide the progress bar when the menu's job is not yet started or
+        # is finished.
+        #
+        if percent < 1 or percent > 99:
+            self._w.original_widget = self._page
+            return
+        #
+        # Create an overlay to show a progress bar on top if it
+        # doesn't exist yet.
+        #
+        if self._w.original_widget == self._page:
+            self._w.original_widget = self._overlay
+
+        self._progressbar.set_completion(percent)
 
 
 class LogFrame(urwid.WidgetWrap):

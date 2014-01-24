@@ -12,11 +12,11 @@ import partition
 
 class InstallMenu(BaseMenu):
 
-    #requires = ["license"]
+    requires = ["license"]
     provides = ["rootfs"]
 
-    def __init__(self, ui, callback):
-        BaseMenu.__init__(self, ui, callback)
+    def __init__(self, ui, view):
+        BaseMenu.__init__(self, ui, view)
         self._mounted_partitions = []
         self._pacstrap = None
         self._root = None
@@ -44,6 +44,7 @@ class InstallMenu(BaseMenu):
     def _do_pacstrap(self):
         self.logger.info("collecting information...")
         pacstrap = Popen("pacstrap %s base" % self._root, shell=True, stdout=PIPE)
+        self._pacstrap = pacstrap
 
         #
         # Note: don't use an iterate over file object construct since
@@ -82,6 +83,7 @@ class InstallMenu(BaseMenu):
             self.set_completion(2 + count * 97 / total)
 
         # wait for pacstrap to exit
+        self._pacstrap = None
         return pacstrap.wait()
 
     def __genfstab(self, partitions):
@@ -116,7 +118,28 @@ class InstallMenu(BaseMenu):
             for entry in self.__genfstab(self._mounted_partitions):
                 print >>f, entry, '\n'
 
-    def process(self):
+    def _cancel_debug(self):
+        self._should_stop = True
+
+    def _process_debug(self):
+        import time
+
+        self._should_stop = False
+        for i in range(2, 101):
+            self.set_completion(i)
+            time.sleep(0.2)
+            if self._should_stop:
+                self.set_completion(0)
+                self._failed()
+                return
+        self._done()
+        return
+
+    def _cancel(self):
+        if self._pacstrap:
+            self._pacstrap.terminate()
+
+    def _process(self):
         self.set_completion(1)
 
         self._root = mkdtemp()
@@ -125,7 +148,9 @@ class InstallMenu(BaseMenu):
         self._do_mount_partitions()
         rv = self._do_pacstrap()
         if rv:
-            self.logger.critical("pacstrap failed with status %d" % rv)
+            self.logger.debug("pacstrap failed with status %d" % rv)
+            self.logger.critical("failed")
+            self.state = self._STATE_FAILED
         else:
             self._do_fstab()
         self._do_umount_partitions()
@@ -134,7 +159,8 @@ class InstallMenu(BaseMenu):
         self._root = None
 
         self.set_completion(100)
-        return rv
+        #self.logger.info("done.")
+        self.state = self._STATE_DONE
 
         # complete installation
         #    1/ root password
