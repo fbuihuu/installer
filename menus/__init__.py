@@ -61,8 +61,17 @@ class BaseMenu(object):
         if self.__is_in_progress():
             self._cancel()
             self._thread.join()
+            self.set_completion(0)
             # Don't trigger an event for that, the caller will.
             self._state = self.__STATE_FAILED
+
+    def __process(self):
+        try:
+            self._process()
+        except:
+            self.logger.exception("failed, see logs for details.")
+            self.set_completion(0)
+            self.state = self.__STATE_FAILED
 
     def enable(self):
         if self.state == self.__STATE_DISABLED:
@@ -83,7 +92,7 @@ class BaseMenu(object):
 
     def process(self):
         assert(not self.__is_in_progress())
-        self._thread = Thread(target=self._process)
+        self._thread = Thread(target=self.__process)
         self._state = self.__STATE_IN_PROGRESS
         self._thread.start()
 
