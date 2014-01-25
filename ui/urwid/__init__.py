@@ -98,14 +98,14 @@ class UrwidUI(UI):
 
     def __init_watch_pipe(self):
 
-        def cb_from_q(unused):
+        def watch_pipe_cb(unused):
             while self._watch_pipe_queue:
                 func = self._watch_pipe_queue.pop()
                 func()
             # make sure the pipe read side won't be closed.
             return True
 
-        self._watch_pipe_fd = self.__loop.watch_pipe(cb_from_q)
+        self._watch_pipe_fd = self.__loop.watch_pipe(watch_pipe_cb)
 
     def __call(self, func):
         self._watch_pipe_queue.appendleft(func)
