@@ -180,8 +180,7 @@ class UrwidUI(UI):
         return wrapper
 
     @ui_thread
-    def on_menu_event(self, menu):
-        UI.on_menu_event(self, menu)
+    def __on_menu_event(self):
         self.__menu_navigator.refresh()
         self._switch_to_next_menu()
 
@@ -193,6 +192,10 @@ class UrwidUI(UI):
     def notify(self, lvl, msg):
         if self.__echo_area:
             self.__echo_area.notify(lvl, msg)
+
+    def on_menu_event(self, menu):
+        UI.on_menu_event(self, menu)
+        self.__on_menu_event()
 
 
 class UrwidMenu(urwid.WidgetWrap):
