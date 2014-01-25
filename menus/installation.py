@@ -84,7 +84,8 @@ class InstallMenu(BaseMenu):
 
         # wait for pacstrap to exit
         self._pacstrap = None
-        return pacstrap.wait()
+        if pacstrap.wait():
+            raise NotImplementedError()
 
     def __genfstab(self, partitions):
         fstab = []
@@ -133,7 +134,6 @@ class InstallMenu(BaseMenu):
                 self._failed()
                 return
         self._done()
-        return
 
     def _cancel(self):
         if self._pacstrap:
@@ -141,26 +141,18 @@ class InstallMenu(BaseMenu):
 
     def _process(self):
         self.set_completion(1)
-
         self._root = mkdtemp()
         self.logger.debug(_("creating temp dir at %s") % self._root)
 
-        self._do_mount_partitions()
-        rv = self._do_pacstrap()
-        if rv:
-            self.logger.debug("pacstrap failed with status %d" % rv)
-            self.logger.critical("failed")
-            self.state = self._STATE_FAILED
-        else:
+        try:
+            self._do_mount_partitions()
+            self._do_pacstrap()
             self._do_fstab()
-        self._do_umount_partitions()
-
-        os.rmdir(self._root)
-        self._root = None
-
-        self.set_completion(100)
-        #self.logger.info("done.")
-        self.state = self._STATE_DONE
+            self._done()
+        finally:
+            self._do_umount_partitions()
+            os.rmdir(self._root)
+            self._root = None
 
         # complete installation
         #    1/ root password

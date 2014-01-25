@@ -18,6 +18,7 @@ class BaseMenu(object):
     __STATE_IN_PROGRESS = 1 # FIXME: maybe useless, try "thread.is_alive()"
     __STATE_DONE        = 2
     __STATE_FAILED      = 3
+    __STATE_CANCELLED   = 4
 
     requires = []
     provides = []
@@ -59,6 +60,7 @@ class BaseMenu(object):
     def __cancel(self):
         assert(current_thread() != self._thread)
         if self.__is_in_progress():
+            self._state = self.__STATE_CANCELLED
             self._cancel()
             self._thread.join()
             self.set_completion(0)
@@ -69,9 +71,12 @@ class BaseMenu(object):
         try:
             self._process()
         except:
-            self.logger.exception("failed, see logs for details.")
-            self.set_completion(0)
-            self.state = self.__STATE_FAILED
+            if self.__is_cancelled():
+                self.logger.info("aborted.")
+            else:
+                self.logger.exception("failed, see logs for details.")
+                self.set_completion(0)
+                self.state = self.__STATE_FAILED
 
     def enable(self):
         if self.state == self.__STATE_DISABLED:
@@ -79,7 +84,7 @@ class BaseMenu(object):
 
     def disable(self):
         if len(self.requires):
-            if self.state == self.__STATE_IN_PROGRESS:
+            if self.__is_in_progress():
                 self.__cancel()
             if self.state != self.__STATE_DISABLED:
                 self.state = self.__STATE_DISABLED
@@ -97,17 +102,23 @@ class BaseMenu(object):
         self._thread.start()
 
     def _done(self):
+        """Used by menu thread to indicate it has finished successfully"""
         self.logger.info("done.")
+        self.set_completion(100)
         self.state = self.__STATE_DONE
 
     def _failed(self):
+        """Used by menu thread to indicate it has failed"""
         self.logger.error("failed.")
+        self.set_completion(0)
         self.state = self.__STATE_FAILED
 
     def _process(self):
+        """Implement the actual work executed asynchronously"""
         raise NotImplementedError()
 
     def _cancel(self):
+        """Notify the thread it should terminate as soon as possible"""
         raise NotImplementedError()
 
     def _cancel(self):
@@ -124,6 +135,9 @@ class BaseMenu(object):
 
     def __is_in_progress(self):
         return self.state == self.__STATE_IN_PROGRESS
+
+    def __is_cancelled(self):
+        return self.state == self.__STATE_CANCELLED
 
     def set_completion(self, percent):
         self._ui.set_completion(percent, self.view)
