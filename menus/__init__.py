@@ -60,6 +60,7 @@ class BaseMenu(object):
         self._logger = MenuLogAdapter(ui.logger, {'title': self.name})
         self.requires = Set(self.requires)
         self.provides = Set(self.provides)
+        self._completion = 0
 
         if len(self.requires) == 0:
             self.__state = self._STATE_INIT
@@ -188,4 +189,6 @@ class BaseMenu(object):
         return self._state == self._STATE_CANCELLED
 
     def set_completion(self, percent):
-        self._ui.set_completion(percent, self.view)
+        if percent != self._completion:
+            self._completion = percent
+            self._ui.set_completion(percent, self.view)
