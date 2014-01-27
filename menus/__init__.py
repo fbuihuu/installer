@@ -13,12 +13,12 @@ class MenuLogAdapter(logging.LoggerAdapter):
 
 class BaseMenu(object):
 
-    __STATE_DISABLED    = -1
-    __STATE_INIT        = 0
-    __STATE_IN_PROGRESS = 1 # FIXME: maybe useless, try "thread.is_alive()"
-    __STATE_DONE        = 2
-    __STATE_FAILED      = 3
-    __STATE_CANCELLED   = 4
+    _STATE_DISABLED    = -1
+    _STATE_INIT        = 0
+    _STATE_IN_PROGRESS = 1
+    _STATE_DONE        = 2
+    _STATE_FAILED      = 3
+    _STATE_CANCELLED   = 4
 
     requires = []
     provides = []
@@ -32,9 +32,9 @@ class BaseMenu(object):
         self.provides = Set(self.provides)
 
         if len(self.requires) == 0:
-            self._state = self.__STATE_INIT
+            self.__state = self._STATE_INIT
         else:
-            self._state = self.__STATE_DISABLED
+            self.__state = self._STATE_DISABLED
 
     @property
     def view(self):
@@ -49,69 +49,68 @@ class BaseMenu(object):
         return self._logger
 
     @property
-    def state(self):
-        return self._state
+    def _state(self):
+        return self.__state
 
-    @state.setter
-    def state(self, state):
-        self._state = state
+    @_state.setter
+    def _state(self, state):
+        self.__state = state
         self._ui.on_menu_event(self)
 
     def __cancel(self):
         assert(current_thread() != self._thread)
         if self.__is_in_progress():
-            self._state = self.__STATE_CANCELLED
+            self._state = self._STATE_CANCELLED
             self._cancel()
             self._thread.join()
             self.set_completion(0)
+            self.logger.info("aborted.")
             # Don't trigger an event for that, the caller will.
-            self._state = self.__STATE_FAILED
+            self._state = self._STATE_FAILED
 
     def __process(self):
         try:
             self._process()
         except:
-            if self.__is_cancelled():
-                self.logger.info("aborted.")
-            else:
+            if not self.__is_cancelled():
                 self.logger.exception("failed, see logs for details.")
                 self.set_completion(0)
-                self.state = self.__STATE_FAILED
+                self._state = self._STATE_FAILED
 
     def enable(self):
-        if self.state == self.__STATE_DISABLED:
-            self.state = self.__STATE_INIT
+        if self.is_disabled():
+            self._state = self._STATE_INIT
 
     def disable(self):
         if len(self.requires):
-            if self.__is_in_progress():
-                self.__cancel()
-            if self.state != self.__STATE_DISABLED:
-                self.state = self.__STATE_DISABLED
+            if self.is_enabled():
+                if self.__is_in_progress():
+                    self.__cancel()
+                self._state = self._STATE_DISABLED
 
     def reset(self):
         if self.__is_in_progress():
             self.__cancel()
-        if self.state == self.__STATE_DONE or self.state == self.__STATE_FAILED:
-            self.state = self.__STATE_INIT
+        if self.is_done() or self.is_failed():
+            self._state = self._STATE_INIT
 
     def process(self):
         assert(not self.__is_in_progress())
         self._thread = Thread(target=self.__process)
-        self._state = self.__STATE_IN_PROGRESS
+        self._state = self._STATE_IN_PROGRESS
         self._thread.start()
 
     def _done(self):
         """Used by menu thread to indicate it has finished successfully"""
         self.logger.info("done.")
         self.set_completion(100)
-        self.state = self.__STATE_DONE
+        self._state = self._STATE_DONE
 
     def _failed(self):
         """Used by menu thread to indicate it has failed"""
         self.logger.error("failed.")
         self.set_completion(0)
-        self.state = self.__STATE_FAILED
+        self._state = self._STATE_FAILED
 
     def _process(self):
         """Implement the actual work executed asynchronously"""
@@ -125,19 +124,22 @@ class BaseMenu(object):
         raise NotImplementedError()
 
     def is_enabled(self):
-        return self.state != self.__STATE_DISABLED
+        return self._state != self._STATE_DISABLED
+
+    def is_disabled(self):
+        return self._state == self._STATE_DISABLED
 
     def is_done(self):
-        return self.state == self.__STATE_DONE
+        return self._state == self._STATE_DONE
 
     def is_failed(self):
-        return self.state == self.__STATE_FAILED
+        return self._state == self._STATE_FAILED
 
     def __is_in_progress(self):
-        return self.state == self.__STATE_IN_PROGRESS
+        return self._state == self._STATE_IN_PROGRESS
 
     def __is_cancelled(self):
-        return self.state == self.__STATE_CANCELLED
+        return self._state == self._STATE_CANCELLED
 
     def set_completion(self, percent):
         self._ui.set_completion(percent, self.view)
