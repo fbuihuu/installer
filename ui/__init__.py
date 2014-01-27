@@ -5,7 +5,6 @@ import os
 import locale
 import gettext
 import logging
-from sets import Set
 from collections import deque
 
 
@@ -30,7 +29,6 @@ class UI(object):
     _keys = {}
     _hotkeys = {}
     _installer = None
-    current_provides = Set([])
 
     def __init__(self, installer, lang):
         self.installer = installer
@@ -113,28 +111,6 @@ class UI(object):
             if m.is_enabled() and not m.is_done():
                 self._switch_to_menu(m)
                 return
-
-    def on_menu_event(self, menu):
-        if menu.is_done():
-            self.current_provides |= menu.provides
-        else:
-            self.current_provides -= menu.provides
-
-        for m in self._menus:
-            if m is menu:
-                continue
-            if not menu.provides.issubset(m.requires):
-                continue
-            if m.requires.issubset(self.current_provides):
-                if m.is_enabled():
-                    # 'menu' was already in done state but has been
-                    # revalidated. In that case menu that depends on
-                    # it should be revalidated as well.
-                    m.reset()
-                else:
-                    m.enable()
-            else:
-                m.disable()
 
     def on_view_event(self, view):
         for menu in self._menus:

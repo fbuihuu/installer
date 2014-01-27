@@ -47,9 +47,9 @@ class UrwidUI(UI):
     __echo_area = None
 
     def __init__(self, installer, lang):
+        self._ui_thread = threading.current_thread()
         UI.__init__(self, installer, lang)
         urwid.set_encoding("utf8")
-        self._ui_thread = threading.current_thread()
         self._watch_pipe_fd = None
         self._watch_pipe_queue = collections.deque()
 
@@ -71,6 +71,9 @@ class UrwidUI(UI):
         view = installation.Menu(self)
         menu = InstallMenu(self, view)
         self._menus.append(menu)
+
+    def __is_ui_thread(self):
+        return threading.current_thread().ident == self._ui_thread.ident
 
     def __create_menu_page(self):
         self.__menu_page = urwid.WidgetPlaceholder(urwid.Text(""))
@@ -110,12 +113,6 @@ class UrwidUI(UI):
     def __call(self, func):
         self._watch_pipe_queue.appendleft(func)
         os.write(self._watch_pipe_fd, "ping")
-
-    def redraw(self):
-        if self.__loop:
-            self.__top_bar.refresh()
-            self.__menu_navigator.refresh()
-            self.__loop.draw_screen()
 
     def quit(self, delay=0):
         if delay:
@@ -168,9 +165,6 @@ class UrwidUI(UI):
                 keys.remove(key)
         return keys
 
-    def __is_ui_thread(self):
-        return threading.current_thread().ident == self._ui_thread.ident
-
     def ui_thread(func):
         def wrapper(self, *args):
             if not self.__is_ui_thread():
@@ -180,9 +174,12 @@ class UrwidUI(UI):
         return wrapper
 
     @ui_thread
-    def __on_menu_event(self):
-        self.__menu_navigator.refresh()
-        self._switch_to_next_menu()
+    def redraw(self):
+        if self.__loop:
+            self.__top_bar.refresh()
+            self.__menu_navigator.refresh()
+            self.__loop.draw_screen()
+            self._switch_to_next_menu()
 
     @ui_thread
     def set_completion(self, percent, view):
@@ -192,10 +189,6 @@ class UrwidUI(UI):
     def notify(self, lvl, msg):
         if self.__echo_area:
             self.__echo_area.notify(lvl, msg)
-
-    def on_menu_event(self, menu):
-        UI.on_menu_event(self, menu)
-        self.__on_menu_event()
 
 
 class UrwidMenu(urwid.WidgetWrap):

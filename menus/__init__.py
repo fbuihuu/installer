@@ -3,7 +3,37 @@
 
 from sets import Set
 import logging
-from threading import current_thread, Thread
+from threading import current_thread, Thread, RLock
+
+
+_all_menus = []
+_current_provides = Set([])
+_rlock = RLock()
+
+def _recalculate_menu_dependencies(menu):
+    global _all_menus, _current_provides, _rlock
+
+    with _rlock:
+        if menu.is_done():
+            _current_provides |= menu.provides
+        else:
+            _current_provides -= menu.provides
+
+        for m in _all_menus:
+            if m is menu:
+                continue
+            if not menu.provides.issubset(m.requires):
+                continue
+            if m.requires.issubset(_current_provides):
+                if m.is_enabled():
+                    # 'menu' was already in done state but has been
+                    # revalidated. In that case menu that depends on
+                    # it should be revalidated as well.
+                    m.reset()
+                else:
+                    m.enable()
+            else:
+                m.disable()
 
 
 class MenuLogAdapter(logging.LoggerAdapter):
@@ -13,15 +43,15 @@ class MenuLogAdapter(logging.LoggerAdapter):
 
 class BaseMenu(object):
 
+    requires = []
+    provides = []
+
     _STATE_DISABLED    = -1
     _STATE_INIT        = 0
     _STATE_IN_PROGRESS = 1
     _STATE_DONE        = 2
     _STATE_FAILED      = 3
     _STATE_CANCELLED   = 4
-
-    requires = []
-    provides = []
 
     def __init__(self, ui, view):
         self._ui = ui
@@ -35,6 +65,8 @@ class BaseMenu(object):
             self.__state = self._STATE_INIT
         else:
             self.__state = self._STATE_DISABLED
+
+        _all_menus.append(self)
 
     @property
     def view(self):
@@ -55,7 +87,7 @@ class BaseMenu(object):
     @_state.setter
     def _state(self, state):
         self.__state = state
-        self._ui.on_menu_event(self)
+        _recalculate_menu_dependencies(self)
 
     def __cancel(self):
         assert(current_thread() != self._thread)
@@ -105,12 +137,14 @@ class BaseMenu(object):
         self.logger.info("done.")
         self.set_completion(100)
         self._state = self._STATE_DONE
+        self._ui.redraw()
 
     def _failed(self):
         """Used by menu thread to indicate it has failed"""
         self.logger.error("failed.")
         self.set_completion(0)
         self._state = self._STATE_FAILED
+        self._ui.redraw()
 
     def _process(self):
         """Implement the actual work executed asynchronously"""
