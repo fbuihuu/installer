@@ -85,6 +85,7 @@ class InstallMenu(BaseMenu):
         # wait for pacstrap to exit
         self._pacstrap = None
         if pacstrap.wait():
+            # FIXME: create an exception for that
             raise NotImplementedError()
 
     def __genfstab(self, partitions):
@@ -118,22 +119,6 @@ class InstallMenu(BaseMenu):
         with open(os.path.join(self._root, 'etc/fstab'), 'w') as f:
             for entry in self.__genfstab(self._mounted_partitions):
                 print >>f, entry, '\n'
-
-    def _cancel_debug(self):
-        self._should_stop = True
-
-    def _process_debug(self):
-        import time
-
-        self._should_stop = False
-        for i in range(2, 101):
-            self.set_completion(i)
-            time.sleep(0.2)
-            if self._should_stop:
-                self.set_completion(0)
-                self._failed()
-                return
-        self._done()
 
     def _cancel(self):
         if self._pacstrap:
