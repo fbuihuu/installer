@@ -90,13 +90,21 @@ class BaseMenu(object):
         _recalculate_menu_dependencies(self)
 
     def __cancel(self):
+        #
+        # This can be called by the UI thread, when a menu is
+        # restarted (through the process() method) and all it's
+        # running deps are disabled (hence cancelled).
+        #
+        # But a menu is never cancelled by its worker thread.
+        #
         assert(current_thread() != self._thread)
+
         if self.__is_in_progress():
             self._state = self._STATE_CANCELLED
             self._cancel()
             self._thread.join()
-            self.set_completion(0)
             self.logger.info("aborted.")
+            self.set_completion(0)
             # Don't trigger an event for that, the caller will.
             self._state = self._STATE_FAILED
 
@@ -108,6 +116,12 @@ class BaseMenu(object):
                 self.logger.exception("failed, see logs for details.")
                 self.set_completion(0)
                 self._state = self._STATE_FAILED
+
+    def process(self):
+        assert(not self.__is_in_progress())
+        self._thread = Thread(target=self.__process)
+        self._state = self._STATE_IN_PROGRESS
+        self._thread.start()
 
     def enable(self):
         if self.is_disabled():
@@ -125,12 +139,6 @@ class BaseMenu(object):
             self.__cancel()
         if self.is_done() or self.is_failed():
             self._state = self._STATE_INIT
-
-    def process(self):
-        assert(not self.__is_in_progress())
-        self._thread = Thread(target=self.__process)
-        self._state = self._STATE_IN_PROGRESS
-        self._thread.start()
 
     def _done(self):
         """Used by menu thread to indicate it has finished successfully"""
