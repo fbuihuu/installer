@@ -114,9 +114,7 @@ class BaseMenu(object):
             self._process()
         except:
             if not self.__is_cancelled():
-                self.logger.exception("failed, see logs for details.")
-                self.set_completion(0)
-                self._state = self._STATE_FAILED
+                self._failed(_("failed, see logs for details."), True)
 
     def process(self):
         assert(not self.__is_in_progress())
@@ -150,11 +148,14 @@ class BaseMenu(object):
         self._state = self._STATE_DONE
         self._ui.redraw()
 
-    def _failed(self, msg=None):
+    def _failed(self, msg=None, backtrace=False):
         """Used by menu thread to indicate it has failed"""
         if not msg:
             msg = _("failed.")
-        self.logger.error(msg)
+        if backtrace:
+            self.logger.exception(msg)
+        else:
+            self.logger.error(msg)
         self.set_completion(0)
         self._state = self._STATE_FAILED
         self._ui.redraw()
