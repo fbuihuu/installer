@@ -140,16 +140,20 @@ class BaseMenu(object):
         if self.is_done() or self.is_failed():
             self._state = self._STATE_INIT
 
-    def _done(self):
+    def _done(self, msg=None):
         """Used by menu thread to indicate it has finished successfully"""
-        self.logger.info("done.")
+        if not msg:
+            msg = _("done.")
+        self.logger.info(msg)
         self.set_completion(100)
         self._state = self._STATE_DONE
         self._ui.redraw()
 
-    def _failed(self):
+    def _failed(self, msg=None):
         """Used by menu thread to indicate it has failed"""
-        self.logger.error("failed.")
+        if not msg:
+            msg = _("failed.")
+        self.logger.error(msg)
         self.set_completion(0)
         self._state = self._STATE_FAILED
         self._ui.redraw()
