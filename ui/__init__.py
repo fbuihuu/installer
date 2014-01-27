@@ -68,6 +68,8 @@ class UI(object):
         raise NotImplementedError()
 
     def quit(self, delay=0):
+        for m in self._menus:
+            m.reset()
         self.logger.info("exiting...")
         self._quit(delay)
 
