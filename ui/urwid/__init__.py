@@ -2,7 +2,6 @@
 #
 
 import os
-import threading
 import collections
 import logging
 import urwid
@@ -47,11 +46,10 @@ class UrwidUI(UI):
     __echo_area = None
 
     def __init__(self, installer, lang):
-        self._ui_thread = threading.current_thread()
-        UI.__init__(self, installer, lang)
-        urwid.set_encoding("utf8")
         self._watch_pipe_fd = None
         self._watch_pipe_queue = collections.deque()
+        UI.__init__(self, installer, lang)
+        urwid.set_encoding("utf8")
 
     def _load_menus(self):
         # FIXME: modules loading should be in abstract class.
@@ -71,9 +69,6 @@ class UrwidUI(UI):
         view = installation.Menu(self)
         menu = InstallMenu(self, view)
         self._menus.append(menu)
-
-    def __is_ui_thread(self):
-        return threading.current_thread().ident == self._ui_thread.ident
 
     def __create_menu_page(self):
         self.__menu_page = urwid.WidgetPlaceholder(urwid.Text(""))
@@ -111,8 +106,12 @@ class UrwidUI(UI):
         self._watch_pipe_fd = self.__loop.watch_pipe(watch_pipe_cb)
 
     def __call(self, func):
-        self._watch_pipe_queue.appendleft(func)
-        os.write(self._watch_pipe_fd, "ping")
+        if self._watch_pipe_fd:
+            self._watch_pipe_queue.appendleft(func)
+            os.write(self._watch_pipe_fd, "ping")
+        else:
+            # Used only during initialisation.
+            func()
 
     def quit(self, delay=0):
         if delay:
@@ -166,11 +165,13 @@ class UrwidUI(UI):
         return keys
 
     def ui_thread(func):
+        """This decorator is used to make sure that decorated
+        functions will be executed by the UI thread. Even if the
+        current thread is the UI one, we still serialize the func call
+        so they're executed in order.
+        """
         def wrapper(self, *args):
-            if not self.__is_ui_thread():
-                self.__call(lambda: func(self, *args))
-                return
-            return func
+            self.__call(lambda: func(self, *args))
         return wrapper
 
     @ui_thread
