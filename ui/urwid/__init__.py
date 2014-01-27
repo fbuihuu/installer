@@ -2,6 +2,7 @@
 #
 
 import os
+import time
 import collections
 import logging
 import urwid
@@ -113,16 +114,7 @@ class UrwidUI(UI):
             # Used only during initialisation.
             func()
 
-    def quit(self, delay=0):
-        if delay:
-            import time
-            # flush any pending screen changes before sleeping.
-            self.redraw()
-            time.sleep(delay)
-        raise urwid.ExitMainLoop()
-
     def suspend(self):
-        # see ovirt, ui/urwid_builder.py, suspended() method.
         raise NotImplementedError()
 
     def run(self):
@@ -139,7 +131,7 @@ class UrwidUI(UI):
         self.register_hotkey('tab', toggle_menu_page_focus)
         self.register_hotkey('f1', self._switch_to_menu)
         self.register_hotkey('f3', self._switch_to_logs)
-        self.register_key('esc', self.quit)
+        self.register_hotkey('f5', self.quit)
 
         self.__loop = urwid.MainLoop(self.__main_frame, palette,
 #                                     event_loop=urwid.GLibEventLoop(),
@@ -173,6 +165,11 @@ class UrwidUI(UI):
         def wrapper(self, *args):
             self.__call(lambda: func(self, *args))
         return wrapper
+
+    @ui_thread
+    def _quit(self, delay):
+        time.sleep(delay)
+        raise urwid.ExitMainLoop()
 
     @ui_thread
     def redraw(self):
@@ -356,7 +353,7 @@ class TopBar(urwid.WidgetWrap):
         self.refresh()
 
     def refresh(self):
-        items = [_("Main"), _("Summary"), _("Logs"), _("About")]
+        items = [_("Main"), _("Summary"), _("Logs"), _("About"), _("Exit")]
         txt = []
         for (i, item) in enumerate(items, 1):
             if i > 1:

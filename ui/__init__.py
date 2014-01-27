@@ -68,7 +68,8 @@ class UI(object):
         raise NotImplementedError()
 
     def quit(self, delay=0):
-        raise NotImplementedError()
+        self.logger.info("exiting...")
+        self._quit(delay)
 
     def suspend(self):
         raise NotImplementedError()
