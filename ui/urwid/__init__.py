@@ -24,6 +24,7 @@ palette = [
     ('side.bar.mark.check',   'dark green',        ''),
     ('top.bar.label',         'black',             'light gray'),
     ('top.bar.hotkey',        'dark blue',         'light gray'),
+    ('sum.section',           'underline',         ''),
     ('progress.bar',          'black',             'dark green'),
     ('log.warn',              'light red',         ''),
     ('log.info',              'light green',       ''),
@@ -130,6 +131,7 @@ class UrwidUI(UI):
             self.__main_frame.body.focus_position ^= 1
         self.register_hotkey('tab', toggle_menu_page_focus)
         self.register_hotkey('f1', self._switch_to_menu)
+        self.register_hotkey('f2', self._switch_to_summary)
         self.register_hotkey('f3', self._switch_to_logs)
         self.register_hotkey('f5', self.quit)
 
@@ -146,8 +148,11 @@ class UrwidUI(UI):
         UI._switch_to_menu(self, menu)
         self.__menu_navigator.set_focus(self._menus.index(menu))
 
+    def _switch_to_summary(self):
+        self.__menu_page.original_widget = SummaryPage(self.installer.data)
+
     def _switch_to_logs(self):
-        self.__menu_page.original_widget = LogFrame(self.logs)
+        self.__menu_page.original_widget = LogPage(self.logs)
 
     def _handle_hotkeys(self, keys, raws):
         self.__echo_area.clear()
@@ -237,7 +242,7 @@ class UrwidMenu(urwid.WidgetWrap):
         self._progressbar.set_completion(percent)
 
 
-class LogFrame(urwid.WidgetWrap):
+class LogPage(urwid.WidgetWrap):
 
     def __init__(self, logs):
         items = []
@@ -253,6 +258,31 @@ class LogFrame(urwid.WidgetWrap):
             w = urwid.ListBox(items)
 
         urwid.WidgetWrap.__init__(self, w)
+
+
+class SummaryPage(urwid.WidgetWrap):
+
+    def __init__(self, data):
+        items = []
+
+        parent = ""
+        keys = data.keys()
+        keys.sort()
+
+        for k in keys:
+            if parent != k.split('/', 1)[0]:
+                parent = k.split('/', 1)[0]
+                items.append(urwid.Divider(" "))
+                items.append(urwid.Text(('sum.section', parent)))
+
+            child = "    " + k.split('/', 1)[1]
+            child = urwid.Text(child, layout=widgets.FillRightLayout('.'))
+            col = urwid.Columns([('weight', 0.6, child),
+                                 ('weight', 1, urwid.Text(data[k]))])
+            items.append(col)
+
+        walker = urwid.SimpleListWalker(items)
+        super(SummaryPage, self).__init__(urwid.ListBox(walker))
 
 
 class EchoArea(urwid.Text):
