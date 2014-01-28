@@ -149,13 +149,3 @@ class InstallMenu(BaseMenu):
         #    3/ setup timezone
         #    4/ regenerer initramfs (archlinux)
         #    5/ bootloader :(
-
-        #for mntpnt, dev in mandatory_mountpoints.items():
-        #    if mntpnt == "/":
-        #        mntpnt = "/root"
-        #    self.installer.data["partition" + mntpnt] = dev
-        #
-        #for mntpnt, dev in mandatory_mountpoints.items():
-        #    if dev:
-        #        self.installer.data["partition" + mntpnt] = dev
-
