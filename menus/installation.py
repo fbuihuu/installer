@@ -44,7 +44,7 @@ class InstallMenu(BaseMenu):
     def _do_pacstrap(self):
         self.logger.info("collecting information...")
 
-        cmd = "pacstrap %s foo" % self._root
+        cmd = "pacstrap %s base" % self._root
         self._pacstrap = Popen(cmd, shell=True, stdout=PIPE, stderr=STDOUT)
         pacstrap = self._pacstrap
 
