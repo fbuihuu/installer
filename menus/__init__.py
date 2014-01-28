@@ -115,6 +115,9 @@ class BaseMenu(object):
         except:
             if not self.__is_cancelled():
                 self._failed(_("failed, see logs for details."), True)
+        else:
+            if self.__is_in_progress():
+                self._done()
 
     def process(self):
         assert(not self.__is_in_progress())
