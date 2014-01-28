@@ -173,7 +173,8 @@ class UrwidUI(UI):
         return wrapper
 
     @ui_thread
-    def _quit(self, delay):
+    def quit(self, delay=0):
+        UI._quit(self)
         time.sleep(delay)
         raise urwid.ExitMainLoop()
 
