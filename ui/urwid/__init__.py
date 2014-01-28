@@ -79,7 +79,7 @@ class UrwidUI(UI):
         self.__menu_navigator = MenuNavigator(self._menus)
 
         def on_focus_changed(menu):
-            self.__menu_page.original_widget = menu.view
+            self._switch_to_menu(menu)
         urwid.connect_signal(self.__menu_navigator, 'focus_changed', on_focus_changed)
 
     def __create_main_frame(self):
@@ -143,10 +143,8 @@ class UrwidUI(UI):
         self.__loop.run()
 
     def _switch_to_menu(self, menu=None):
-        if not menu:
-            menu = self._current_menu
         UI._switch_to_menu(self, menu)
-        self.__menu_navigator.set_focus(self._menus.index(menu))
+        self.__menu_page.original_widget = self._current_menu.view
 
     def _switch_to_summary(self):
         self.__menu_page.original_widget = SummaryPage(self.installer.data)
