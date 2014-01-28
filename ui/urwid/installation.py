@@ -144,7 +144,16 @@ class Menu(UrwidMenu):
                 return
         self._partition_page.footer = self._install_button
 
+
+    def _update_install_data(self, part, dev):
+        name = part.name if part.name != "/" else "/root"
+        if dev:
+            self._ui.installer.data["partition" + name] = dev.devpath
+        else:
+            del self._ui.installer.data["partition" + name]
+
     def _on_clear_partition(self, part):
+        self._update_install_data(part, None)
         part.device = None
         self._partition_list_widget.refresh()
         self._update_install_button()
@@ -159,7 +168,10 @@ class Menu(UrwidMenu):
 
     def _on_select_device(self, dev):
         if dev:
-            self._partition_list_widget.get_focus().device = dev
+            part = self._partition_list_widget.get_focus()
+            part.device = dev
+            self._update_install_data(part, dev)
+
         #
         # Always refresh the partition list page so any removed
         # devices (while showing the device list) will be handled
