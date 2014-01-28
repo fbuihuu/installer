@@ -78,15 +78,12 @@ class Installer(object):
 
     def quit(self):
         logger.info("Quitting installer")
-        # FIXME
-        rootfs.umount()
         self.ui.quit()
 
 
 if __name__ == "__main__":
     installer = Installer()
     installer.run()
-    rootfs = None
 
     # import os, pdb
     # os.system('reset')
