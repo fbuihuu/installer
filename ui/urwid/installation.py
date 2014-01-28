@@ -64,6 +64,14 @@ class PartitionListWidget(urwid.WidgetWrap):
     def get_focus(self):
         return self._walker.get_focus()[0].partition
 
+    def update_focus(self):
+        """Move the focus on the first unconfigured entry"""
+        for idx, entry in enumerate(self._walker):
+            if isinstance(entry, PartitionEntryWidget):
+                if not entry.partition.device:
+                    self._walker.set_focus(idx)
+                    return
+
     def refresh(self):
         for entry in self._walker:
             if isinstance(entry, PartitionEntryWidget):
@@ -158,6 +166,7 @@ class Menu(UrwidMenu):
         # correctly.
         #
         self._partition_list_widget.refresh()
+        self._partition_list_widget.update_focus()
         self.page = self._partition_page
         self._update_install_button()
 
