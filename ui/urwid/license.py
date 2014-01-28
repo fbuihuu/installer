@@ -35,9 +35,9 @@ class Menu(UrwidMenu):
         walker.append(urwid.Button(_("Refuse"), on_press=self.on_disagreed))
 
     def on_accepted(self, button):
-        self._ui.installer.data["license"] = "accepted"
+        self._ui.installer.data["license/status"] = "accepted"
         self.ready()
 
     def on_disagreed(self, button):
-        self._ui.installer.data["license"] = "refused"
+        self._ui.installer.data["license/status"] = "refused"
         self.ready()

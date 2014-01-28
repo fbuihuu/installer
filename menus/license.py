@@ -20,7 +20,7 @@ class LicenseMenu(BaseMenu):
         return
 
     def _process(self):
-        if self._ui.installer.data["license"] == "accepted":
+        if self._ui.installer.data["license/status"] == "accepted":
             self._done(_("you accepted the terms of the license"))
         else:
             self._failed(_("you rejected the terms of the license, aborting"))
