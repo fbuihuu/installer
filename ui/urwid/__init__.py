@@ -85,10 +85,9 @@ class UrwidUI(UI):
     def __create_main_frame(self):
         cols  = [("weight", 0.2, self.__menu_navigator)]
         cols += [urwid.LineBox(self.__menu_page)]
+        cols  = urwid.Columns(cols, dividechars=1, focus_column=1)
 
-        self.__main_frame = urwid.Frame(urwid.Columns(cols, dividechars=1),
-                                        self.__top_bar,
-                                        self.__echo_area)
+        self.__main_frame = urwid.Frame(cols, self.__top_bar, self.__echo_area)
 
     def __create_echo_area(self):
         self.__echo_area = EchoArea()
