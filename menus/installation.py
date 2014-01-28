@@ -43,8 +43,10 @@ class InstallMenu(BaseMenu):
 
     def _do_pacstrap(self):
         self.logger.info("collecting information...")
-        pacstrap = Popen("pacstrap %s base" % self._root, shell=True, stdout=PIPE)
-        self._pacstrap = pacstrap
+
+        cmd = "pacstrap %s foo" % self._root
+        self._pacstrap = Popen(cmd, shell=True, stdout=PIPE, stderr=STDOUT)
+        pacstrap = self._pacstrap
 
         #
         # Note: don't use an iterate over file object construct since
@@ -59,6 +61,8 @@ class InstallMenu(BaseMenu):
             line = pacstrap.stdout.readline()
             if not line:
                 break
+            self.logger.info(line.rstrip())
+
             match = pattern.search(line)
             if match:
                 total = int(match.group(1))
@@ -72,11 +76,11 @@ class InstallMenu(BaseMenu):
             line = pacstrap.stdout.readline()
             if not line:
                 break
+            self.logger.info(line.rstrip())
+
             match = pattern.match(line)
             if not match:
                 continue
-
-            self.logger.info(line.rstrip())
             if not line.startswith('downloading '):
                 count = max(count, total/2)
             count += 1
@@ -84,9 +88,9 @@ class InstallMenu(BaseMenu):
 
         # wait for pacstrap to exit
         self._pacstrap = None
-        if pacstrap.wait():
-            # FIXME: create an exception for that
-            raise NotImplementedError()
+        retcode = pacstrap.wait()
+        if retcode:
+            raise CalledProcessError(retcode, cmd)
 
     def __genfstab(self, partitions):
         fstab = []
