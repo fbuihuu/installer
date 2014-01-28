@@ -133,6 +133,7 @@ class UrwidUI(UI):
         self.register_hotkey('f1', self._switch_to_menu)
         self.register_hotkey('f2', self._switch_to_summary)
         self.register_hotkey('f3', self._switch_to_logs)
+        self.register_hotkey('f4', self._switch_to_help)
         self.register_hotkey('f5', self.quit)
 
         self.__loop = urwid.MainLoop(self.__main_frame, palette,
@@ -150,6 +151,9 @@ class UrwidUI(UI):
 
     def _switch_to_summary(self):
         self.__menu_page.original_widget = SummaryPage(self.installer.data)
+
+    def _switch_to_help(self):
+        self.__menu_page.original_widget = HelpPage()
 
     def _switch_to_logs(self):
         self.__menu_page.original_widget = LogPage(self.logs)
@@ -285,6 +289,14 @@ class SummaryPage(urwid.WidgetWrap):
         super(SummaryPage, self).__init__(urwid.ListBox(walker))
 
 
+class HelpPage(urwid.WidgetWrap):
+
+    def __init__(self):
+        txt = urwid.Text("Not Yet Implemented", align='center')
+        txt = urwid.Filler(txt)
+        super(HelpPage, self).__init__(txt)
+
+
 class EchoArea(urwid.Text):
 
     def __init__(self):
@@ -383,7 +395,7 @@ class TopBar(urwid.WidgetWrap):
         self.refresh()
 
     def refresh(self):
-        items = [_("Main"), _("Summary"), _("Logs"), _("About"), _("Exit")]
+        items = [_("Main"), _("Summary"), _("Logs"), _("Help"), _("Exit")]
         txt = []
         for (i, item) in enumerate(items, 1):
             if i > 1:
