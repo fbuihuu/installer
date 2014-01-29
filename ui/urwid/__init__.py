@@ -336,14 +336,13 @@ class MenuNavigator(urwid.WidgetWrap):
         super(MenuNavigator, self).__init__(urwid.LineBox(self._list))
 
     def __on_focus_changed(self):
-        widget, index = self.get_focus()
-        urwid.emit_signal(self, "focus_changed", self._menus[index])
+        urwid.emit_signal(self, "focus_changed", self.get_focus())
 
     def get_focus(self):
-        return self._list.get_focus()
+        return self._menus[self._list.get_focus()[1]]
 
-    def set_focus(self, n):
-        self._list.set_focus(n)
+    def set_focus(self, menu):
+        self._list.set_focus(self._menus.index(menu))
 
     def keypress(self, size, key):
         return super(MenuNavigator, self).keypress(size, key)
