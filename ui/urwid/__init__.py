@@ -42,7 +42,7 @@ class UrwidUI(UI):
 
     __loop = None
     __main_frame = None
-    __menu_page  = None
+    _view  = None
     __menu_navigator = None
     __top_bar = None
     __echo_area = None
@@ -77,8 +77,8 @@ class UrwidUI(UI):
         menu = ExitMenu(self, view)
         self._menus.append(menu)
 
-    def __create_menu_page(self):
-        self.__menu_page = urwid.WidgetPlaceholder(urwid.Text(""))
+    def __create_main_view(self):
+        self._view = urwid.WidgetPlaceholder(urwid.Text(""))
 
     def __create_menu_navigator(self):
         self.__menu_navigator = MenuNavigator(self._menus)
@@ -89,7 +89,7 @@ class UrwidUI(UI):
 
     def __create_main_frame(self):
         cols  = [("weight", 0.2, self.__menu_navigator)]
-        cols += [urwid.LineBox(self.__menu_page)]
+        cols += [urwid.LineBox(self._view)]
         cols  = urwid.Columns(cols, dividechars=1, focus_column=1)
 
         self.__main_frame = urwid.Frame(cols, self.__top_bar, self.__echo_area)
@@ -124,7 +124,7 @@ class UrwidUI(UI):
 
     def run(self):
         self.__create_menu_navigator()
-        self.__create_menu_page()
+        self.__create_main_view()
         self.__create_top_bar()
         self.__create_echo_area()
         self.__create_main_frame()
@@ -148,17 +148,21 @@ class UrwidUI(UI):
         self.__loop.run()
 
     def _switch_to_menu(self, menu=None):
+        """Switch the current view to the current menu view"""
         UI._switch_to_menu(self, menu)
-        self.__menu_page.original_widget = self._current_menu.view
+        self._view.original_widget = self._current_menu.view
 
     def _switch_to_summary(self):
-        self.__menu_page.original_widget = SummaryPage(self.installer.data)
+        """Switch the current view to the summary view"""
+        self._view.original_widget = SummaryPage(self.installer.data)
 
     def _switch_to_help(self):
-        self.__menu_page.original_widget = HelpPage()
+        """Switch the current view to the help view"""
+        self._view.original_widget = HelpPage()
 
     def _switch_to_logs(self):
-        self.__menu_page.original_widget = LogPage(self.logs)
+        """Switch the current view to the log view"""
+        self._view.original_widget = LogPage(self.logs)
 
     def _handle_hotkeys(self, keys, raws):
         self.__echo_area.clear()
