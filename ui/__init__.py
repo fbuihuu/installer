@@ -25,14 +25,14 @@ class UILogHandler(logging.Handler):
 
 class UI(object):
 
-    _menus = []
+    _steps = []
     _keys = {}
     _hotkeys = {}
     _installer = None
 
     def __init__(self, installer, lang):
         self.installer = installer
-        self._current_menu = None
+        self._current_step = None
         self.logs = deque()
 
         self._logger = logging.getLogger(self.__module__)
@@ -68,7 +68,7 @@ class UI(object):
         raise NotImplementedError()
 
     def _quit(self):
-        for m in self._menus:
+        for m in self._steps:
             m.reset()
         self.logger.info("exiting...")
 
@@ -99,25 +99,25 @@ class UI(object):
             return True
         return False
 
-    def _switch_to_menu(self, menu=None):
-        if not menu:
-            menu = self._current_menu
-        self._current_menu = menu
-        self._current_menu.view.redraw()
+    def _switch_to_step(self, step=None):
+        if not step:
+            step = self._current_step
+        self._current_step = step
+        self._current_step.view.redraw()
 
-    def _switch_to_first_menu(self):
-        self._switch_to_menu(self._menus[0])
+    def _switch_to_first_step(self):
+        self._switch_to_step(self._steps[0])
 
-    def _switch_to_next_menu(self):
-        for m in self._menus:
-            if m.is_enabled() and not m.is_done():
-                self._switch_to_menu(m)
+    def _switch_to_next_step(self):
+        for step in self._steps:
+            if step.is_enabled() and not step.is_done():
+                self._switch_to_step(step)
                 return
 
     def on_view_event(self, view):
-        for menu in self._menus:
-            if menu.view == view:
-                menu.process()
+        for step in self._steps:
+            if step.view == view:
+                step.process()
 
     def set_completion(self, percent, view):
         raise NotImplementedError()

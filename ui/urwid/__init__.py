@@ -42,7 +42,7 @@ class UrwidUI(UI):
     __loop = None
     __main_frame = None
     _view  = None
-    __menu_navigator = None
+    _navigator = None
     __top_bar = None
     __echo_area = None
 
@@ -65,33 +65,33 @@ class UrwidUI(UI):
         from steps.exit import ExitStep
 
         view = WelcomeView(self)
-        menu = WelcomeStep(self, view)
-        self._menus.append(menu)
+        step = WelcomeStep(self, view)
+        self._steps.append(step)
 
         view = LicenseView(self)
-        menu = LicenseStep(self, view)
-        self._menus.append(menu)
+        step = LicenseStep(self, view)
+        self._steps.append(step)
 
         view = InstallView(self)
-        menu = InstallStep(self, view)
-        self._menus.append(menu)
+        step = InstallStep(self, view)
+        self._steps.append(step)
 
         view = ExitView(self)
-        menu = ExitStep(self, view)
-        self._menus.append(menu)
+        step = ExitStep(self, view)
+        self._steps.append(step)
 
     def __create_main_view(self):
         self._view = urwid.WidgetPlaceholder(urwid.Text(""))
 
-    def __create_menu_navigator(self):
-        self.__menu_navigator = MenuNavigator(self._menus)
+    def __create_navigator(self):
+        self._navigator = Navigator(self._steps)
 
-        def on_focus_changed(menu):
-            self._switch_to_menu(menu)
-        urwid.connect_signal(self.__menu_navigator, 'focus_changed', on_focus_changed)
+        def on_focus_changed(step):
+            self._switch_to_step(step)
+        urwid.connect_signal(self._navigator, 'focus_changed', on_focus_changed)
 
     def __create_main_frame(self):
-        cols  = [("weight", 0.2, self.__menu_navigator)]
+        cols  = [("weight", 0.2, self._navigator)]
         cols += [urwid.LineBox(self._view)]
         cols  = urwid.Columns(cols, dividechars=1, focus_column=1)
 
@@ -126,18 +126,18 @@ class UrwidUI(UI):
         raise NotImplementedError()
 
     def run(self):
-        self.__create_menu_navigator()
+        self.__create_navigator()
         self.__create_main_view()
         self.__create_top_bar()
         self.__create_echo_area()
         self.__create_main_frame()
 
-        self._switch_to_first_menu()
+        self._switch_to_first_step()
 
-        def toggle_menu_page_focus():
+        def toggle_navigator_focus():
             self.__main_frame.body.focus_position ^= 1
-        self.register_hotkey('tab', toggle_menu_page_focus)
-        self.register_hotkey('f1', self._switch_to_menu)
+        self.register_hotkey('tab', toggle_navigator_focus)
+        self.register_hotkey('f1', self._switch_to_step)
         self.register_hotkey('f2', self._switch_to_summary)
         self.register_hotkey('f3', self._switch_to_logs)
         self.register_hotkey('f4', self._switch_to_help)
@@ -150,10 +150,10 @@ class UrwidUI(UI):
         self.__init_watch_pipe()
         self.__loop.run()
 
-    def _switch_to_menu(self, menu=None):
-        """Switch the current view to the current menu view"""
-        UI._switch_to_menu(self, menu)
-        self._view.original_widget = self._current_menu.view
+    def _switch_to_step(self, step=None):
+        """Switch the current view to the current step view"""
+        UI._switch_to_step(self, step)
+        self._view.original_widget = self._current_step.view
 
     def _switch_to_summary(self):
         """Switch the current view to the summary view"""
@@ -194,9 +194,9 @@ class UrwidUI(UI):
     def redraw(self):
         if self.__loop:
             self.__top_bar.refresh()
-            self.__menu_navigator.refresh()
+            self._navigator.refresh()
             self.__loop.draw_screen()
-            self._switch_to_next_menu()
+            self._switch_to_next_step()
 
     @ui_thread
     def set_completion(self, percent, view):
@@ -240,7 +240,7 @@ class StepView(urwid.WidgetWrap):
 
     def set_completion(self, percent):
         #
-        # Hide the progress bar when the menu's job is not yet started or
+        # Hide the progress bar when the step's job is not yet started or
         # is finished.
         #
         if percent < 1 or percent > 99:
@@ -325,68 +325,68 @@ class EchoArea(urwid.Text):
         self.set_text("")
 
 
-class MenuNavigator(urwid.WidgetWrap):
+class Navigator(urwid.WidgetWrap):
 
     signals = ['focus_changed']
 
-    def __init__(self, menus):
-        self._menus = menus
+    def __init__(self, steps):
+        self._steps = steps
 
         items = []
-        for menu in self._menus:
-            items.append(MenuNavigatorEntry(menu))
+        for step in self._steps:
+            items.append(NavigatorEntry(step))
         walker = urwid.SimpleListWalker(items)
         self._walker = walker
 
         urwid.connect_signal(walker, 'modified', self.__on_focus_changed)
         self._list = urwid.ListBox(walker)
-        super(MenuNavigator, self).__init__(urwid.LineBox(self._list))
+        super(Navigator, self).__init__(urwid.LineBox(self._list))
 
     def __on_focus_changed(self):
         urwid.emit_signal(self, "focus_changed", self.get_focus())
 
     def get_focus(self):
-        return self._menus[self._list.get_focus()[1]]
+        return self._steps[self._list.get_focus()[1]]
 
-    def set_focus(self, menu):
-        self._list.set_focus(self._menus.index(menu))
+    def set_focus(self, step):
+        self._list.set_focus(self._steps.index(step))
 
     def keypress(self, size, key):
-        return super(MenuNavigator, self).keypress(size, key)
+        return super(Navigator, self).keypress(size, key)
 
     def refresh(self):
         for e in self._walker:
             e.refresh()
 
 
-class MenuNavigatorEntry(urwid.WidgetWrap):
+class NavigatorEntry(urwid.WidgetWrap):
 
     check_mark_markup = ('side.bar.mark.check', u'\u2714')
     cross_mark_markup = ('side.bar.mark.cross', u'\u2718')
 
-    def __init__(self, menu):
-        self._menu  = menu
+    def __init__(self, step):
+        self._step  = step
         self._title = urwid.Text("", align="left")
         self._mark  = urwid.Text("", align="right")
         self.refresh()
 
         columns = urwid.Columns([self._title, (1, self._mark)])
         columns = urwid.AttrMap(columns, None, focus_map='reversed')
-        super(MenuNavigatorEntry, self).__init__(columns)
+        super(NavigatorEntry, self).__init__(columns)
 
     def selectable(self):
-        return self._menu.is_enabled()
+        return self._step.is_enabled()
 
     def keypress(self, size, key):
         return key
 
     def refresh(self):
-        title = self._menu.name
+        title = self._step.name
         mark = ""
-        if self._menu.is_enabled():
-            if self._menu.is_done():
+        if self._step.is_enabled():
+            if self._step.is_done():
                 mark = self.check_mark_markup
-            elif self._menu.is_failed():
+            elif self._step.is_failed():
                 mark = self.cross_mark_markup
         else:
             title = ('list.entry.disabled', title)

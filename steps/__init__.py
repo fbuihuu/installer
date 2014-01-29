@@ -6,29 +6,29 @@ import logging
 from threading import current_thread, Thread, RLock
 
 
-_all_menus = []
+_all_steps = []
 _current_provides = Set([])
 _rlock = RLock()
 
-def _recalculate_menu_dependencies(menu):
-    global _all_menus, _current_provides, _rlock
+def _recalculate_step_dependencies(step):
+    global _all_steps, _current_provides, _rlock
 
-    if menu.provides:
+    if step.provides:
         with _rlock:
-            if menu.is_done():
-                _current_provides |= menu.provides
+            if step.is_done():
+                _current_provides |= step.provides
             else:
-                _current_provides -= menu.provides
+                _current_provides -= step.provides
 
-            for m in _all_menus:
-                if m is menu:
+            for m in _all_steps:
+                if m is step:
                     continue
-                if not menu.provides.intersection(m.requires):
+                if not step.provides.intersection(m.requires):
                     continue
                 if m.requires.issubset(_current_provides):
                     if m.is_enabled():
-                        # 'menu' was already in done state but has been
-                        # revalidated. In that case menu that depends on
+                        # 'step' was already in done state but has been
+                        # revalidated. In that case step that depends on
                         # it should be revalidated as well.
                         m.reset()
                     else:
@@ -37,7 +37,7 @@ def _recalculate_menu_dependencies(menu):
                     m.disable()
 
 
-class MenuLogAdapter(logging.LoggerAdapter):
+class StepLogAdapter(logging.LoggerAdapter):
     def process(self, msg, kwargs):
         return '%s: %s' % (self.extra['title'], msg), kwargs
 
@@ -58,7 +58,7 @@ class Step(object):
         self._ui = ui
         self._view  = view
         self._thread = None
-        self._logger = MenuLogAdapter(ui.logger, {'title': self.name})
+        self._logger = StepLogAdapter(ui.logger, {'title': self.name})
         self.requires = Set(self.requires)
         self.provides = Set(self.provides)
         self._completion = 0
@@ -68,7 +68,7 @@ class Step(object):
         else:
             self.__state = self._STATE_DISABLED
 
-        _all_menus.append(self)
+        _all_steps.append(self)
 
     @property
     def view(self):
@@ -89,15 +89,15 @@ class Step(object):
     @_state.setter
     def _state(self, state):
         self.__state = state
-        _recalculate_menu_dependencies(self)
+        _recalculate_step_dependencies(self)
 
     def __cancel(self):
         #
-        # This can be called by the UI thread, when a menu is
+        # This can be called by the UI thread, when a step is
         # restarted (through the process() method) and all it's
         # running deps are disabled (hence cancelled).
         #
-        # But a menu is never cancelled by its worker thread.
+        # But a step is never cancelled by its worker thread.
         #
         assert(current_thread() != self._thread)
 
@@ -144,7 +144,7 @@ class Step(object):
             self._state = self._STATE_INIT
 
     def _done(self, msg=None):
-        """Used by menu thread to indicate it has finished successfully"""
+        """Used by step thread to indicate it has finished successfully"""
         if not msg:
             msg = _("done.")
         self.logger.info(msg)
@@ -153,7 +153,7 @@ class Step(object):
         self._ui.redraw()
 
     def _failed(self, msg=None, backtrace=False):
-        """Used by menu thread to indicate it has failed"""
+        """Used by step thread to indicate it has failed"""
         if not msg:
             msg = _("failed.")
         if backtrace:
