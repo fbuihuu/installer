@@ -13,27 +13,28 @@ _rlock = RLock()
 def _recalculate_menu_dependencies(menu):
     global _all_menus, _current_provides, _rlock
 
-    with _rlock:
-        if menu.is_done():
-            _current_provides |= menu.provides
-        else:
-            _current_provides -= menu.provides
-
-        for m in _all_menus:
-            if m is menu:
-                continue
-            if not menu.provides.issubset(m.requires):
-                continue
-            if m.requires.issubset(_current_provides):
-                if m.is_enabled():
-                    # 'menu' was already in done state but has been
-                    # revalidated. In that case menu that depends on
-                    # it should be revalidated as well.
-                    m.reset()
-                else:
-                    m.enable()
+    if menu.provides:
+        with _rlock:
+            if menu.is_done():
+                _current_provides |= menu.provides
             else:
-                m.disable()
+                _current_provides -= menu.provides
+
+            for m in _all_menus:
+                if m is menu:
+                    continue
+                if not menu.provides.intersection(m.requires):
+                    continue
+                if m.requires.issubset(_current_provides):
+                    if m.is_enabled():
+                        # 'menu' was already in done state but has been
+                        # revalidated. In that case menu that depends on
+                        # it should be revalidated as well.
+                        m.reset()
+                    else:
+                        m.enable()
+                else:
+                    m.disable()
 
 
 class MenuLogAdapter(logging.LoggerAdapter):
