@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 #
 
-from ui.urwid import UrwidMenu
+from ui.urwid import MenuView
 import urwid
 import widgets
 
 
-class Menu(UrwidMenu):
+class Menu(MenuView):
 
     def __init__(self, ui):
-        UrwidMenu.__init__(self, ui)
+        MenuView.__init__(self, ui)
         self._locale = None
         self.page = widgets.Page()
         self.page.body = urwid.ListBox(urwid.SimpleListWalker([]))

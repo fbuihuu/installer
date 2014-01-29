@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 
-from ui.urwid import UrwidMenu
+from ui.urwid import MenuView
 import urwid
 import widgets
 
@@ -12,12 +12,12 @@ import widgets
 # later (root password setup for example).
 #
 
-class Menu(UrwidMenu):
+class Menu(MenuView):
 
     _actions = ["Quit", "Reboot", "Shutdown"]
 
     def __init__(self, ui):
-        UrwidMenu.__init__(self, ui)
+        MenuView.__init__(self, ui)
 
         self.page = widgets.Page()
         # Make the list centered inside its container

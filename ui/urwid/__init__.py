@@ -7,7 +7,6 @@ import collections
 import logging
 import urwid
 from ui import UI
-from menus import BaseMenu
 import widgets
 
 
@@ -205,7 +204,7 @@ class UrwidUI(UI):
             self.__echo_area.notify(lvl, msg)
 
 
-class UrwidMenu(urwid.WidgetWrap):
+class MenuView(urwid.WidgetWrap):
 
     def __init__(self, ui):
         self._ui = ui
