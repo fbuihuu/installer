@@ -154,15 +154,15 @@ class UrwidUI(UI):
 
     def _switch_to_summary(self):
         """Switch the current view to the summary view"""
-        self._view.original_widget = SummaryPage(self.installer.data)
+        self._view.original_widget = SummaryView(self.installer.data)
 
     def _switch_to_help(self):
         """Switch the current view to the help view"""
-        self._view.original_widget = HelpPage()
+        self._view.original_widget = HelpView()
 
     def _switch_to_logs(self):
         """Switch the current view to the log view"""
-        self._view.original_widget = LogPage(self.logs)
+        self._view.original_widget = LogView(self.logs)
 
     def _handle_hotkeys(self, keys, raws):
         self.__echo_area.clear()
@@ -253,7 +253,7 @@ class UrwidMenu(urwid.WidgetWrap):
         self._progressbar.set_completion(percent)
 
 
-class LogPage(urwid.WidgetWrap):
+class LogView(urwid.WidgetWrap):
 
     def __init__(self, logs):
         items = []
@@ -271,7 +271,7 @@ class LogPage(urwid.WidgetWrap):
         urwid.WidgetWrap.__init__(self, w)
 
 
-class SummaryPage(urwid.WidgetWrap):
+class SummaryView(urwid.WidgetWrap):
 
     def __init__(self, data):
         items = []
@@ -293,15 +293,15 @@ class SummaryPage(urwid.WidgetWrap):
             items.append(col)
 
         walker = urwid.SimpleListWalker(items)
-        super(SummaryPage, self).__init__(urwid.ListBox(walker))
+        super(SummaryView, self).__init__(urwid.ListBox(walker))
 
 
-class HelpPage(urwid.WidgetWrap):
+class HelpView(urwid.WidgetWrap):
 
     def __init__(self):
         txt = urwid.Text("Not Yet Implemented", align='center')
         txt = urwid.Filler(txt)
-        super(HelpPage, self).__init__(txt)
+        super(HelpView, self).__init__(txt)
 
 
 class EchoArea(urwid.Text):
