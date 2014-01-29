@@ -42,7 +42,7 @@ class MenuLogAdapter(logging.LoggerAdapter):
         return '%s: %s' % (self.extra['title'], msg), kwargs
 
 
-class BaseMenu(object):
+class Step(object):
 
     requires = []
     provides = []

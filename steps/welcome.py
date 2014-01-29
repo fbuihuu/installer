@@ -2,15 +2,15 @@
 #
 
 import system
-from menus import BaseMenu
+from steps import Step
 
 
-class WelcomeMenu(BaseMenu):
+class WelcomeStep(Step):
 
     provides = ["language"]
 
     def __init__(self, ui, view):
-        BaseMenu.__init__(self, ui, view)
+        Step.__init__(self, ui, view)
 
         self._country = None
         if self._ui.installer.data["localization/country"]:

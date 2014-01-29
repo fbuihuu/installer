@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 
-from ui.urwid import MenuView
+from ui.urwid import StepView
 import urwid
 import widgets
 import utils
@@ -108,10 +108,10 @@ class DeviceListWidget(widgets.ClickableTextList):
         return self._devices[idx]
 
 
-class Menu(MenuView):
+class InstallView(StepView):
 
     def __init__(self, ui):
-        MenuView.__init__(self, ui)
+        StepView.__init__(self, ui)
 
         self._install_button = urwid.Button("Install", on_press=self.do_install)
         self._partition_list_widget = PartitionListWidget(self._on_select_partition,

@@ -52,28 +52,32 @@ class UrwidUI(UI):
         UI.__init__(self, installer, lang)
         urwid.set_encoding("utf8")
 
-    def _load_menus(self):
+    def _load_steps(self):
         # FIXME: modules loading should be in abstract class.
-        import welcome, license, installation, exit
-        from menus.welcome import WelcomeMenu
-        from menus.license import LicenseMenu
-        from menus.installation import InstallMenu
-        from menus.exit import ExitMenu
+        from welcome import WelcomeView
+        from license import LicenseView
+        from installation import InstallView
+        from exit import ExitView
 
-        view = welcome.Menu(self)
-        menu = WelcomeMenu(self, view)
+        from steps.welcome import WelcomeStep
+        from steps.license import LicenseStep
+        from steps.installation import InstallStep
+        from steps.exit import ExitStep
+
+        view = WelcomeView(self)
+        menu = WelcomeStep(self, view)
         self._menus.append(menu)
 
-        view = license.Menu(self)
-        menu = LicenseMenu(self, view)
+        view = LicenseView(self)
+        menu = LicenseStep(self, view)
         self._menus.append(menu)
 
-        view = installation.Menu(self)
-        menu = InstallMenu(self, view)
+        view = InstallView(self)
+        menu = InstallStep(self, view)
         self._menus.append(menu)
 
-        view = exit.Menu(self)
-        menu = ExitMenu(self, view)
+        view = ExitView(self)
+        menu = ExitStep(self, view)
         self._menus.append(menu)
 
     def __create_main_view(self):
@@ -204,7 +208,7 @@ class UrwidUI(UI):
             self.__echo_area.notify(lvl, msg)
 
 
-class MenuView(urwid.WidgetWrap):
+class StepView(urwid.WidgetWrap):
 
     def __init__(self, ui):
         self._ui = ui

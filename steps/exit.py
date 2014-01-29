@@ -1,18 +1,18 @@
 # -*- coding: utf-8 -*-
 #
 
-from menus import BaseMenu
+from steps import Step
 import partition
 from subprocess import check_call
 
 
-class ExitMenu(BaseMenu):
+class ExitStep(Step):
 
     # FIXME: this should depends on all existing provides.
     requires = ["rootfs"]
 
     def __init__(self, ui, view):
-        BaseMenu.__init__(self, ui, view)
+        Step.__init__(self, ui, view)
 
     @property
     def name(self):

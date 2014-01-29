@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 #
 
-from menus import BaseMenu
+from steps import Step
 
 
-class LicenseMenu(BaseMenu):
+class LicenseStep(Step):
 
     requires = ["language"]
     provides = ["license"]
 
     def __init__(self, ui, view):
-        BaseMenu.__init__(self, ui, view)
+        Step.__init__(self, ui, view)
 
     @property
     def name(self):

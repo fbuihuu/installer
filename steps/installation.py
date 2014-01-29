@@ -6,17 +6,17 @@ import re
 from operator import itemgetter
 from subprocess import *
 from tempfile import mkdtemp
-from menus import BaseMenu
+from steps import Step
 import partition
 
 
-class InstallMenu(BaseMenu):
+class InstallStep(Step):
 
     requires = ["license"]
     provides = ["rootfs"]
 
     def __init__(self, ui, view):
-        BaseMenu.__init__(self, ui, view)
+        Step.__init__(self, ui, view)
         self._mounted_partitions = []
         self._pacstrap = None
         self._root = None

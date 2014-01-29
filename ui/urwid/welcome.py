@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 
-from ui.urwid import MenuView
+from ui.urwid import StepView
 import urwid
 import widgets
 from l10n import country_dict
@@ -13,10 +13,10 @@ from l10n import country_dict
 # later (root password setup for example).
 #
 
-class Menu(MenuView):
+class WelcomeView(StepView):
 
     def __init__(self, ui):
-        MenuView.__init__(self, ui)
+        StepView.__init__(self, ui)
 
         self.page = widgets.Page()
         # Make the list centered inside its container

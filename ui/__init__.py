@@ -42,7 +42,7 @@ class UI(object):
         self._logger.addHandler(handler)
 
         self.language = lang
-        self._load_menus()
+        self._load_steps()
 
     @property
     def logger(self):
