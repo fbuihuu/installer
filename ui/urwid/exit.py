@@ -16,8 +16,8 @@ class ExitView(StepView):
 
     _actions = ["Quit", "Reboot", "Shutdown"]
 
-    def __init__(self, ui):
-        StepView.__init__(self, ui)
+    def __init__(self, ui, step):
+        StepView.__init__(self, ui, step)
 
         self.page = widgets.Page()
         # Make the list centered inside its container

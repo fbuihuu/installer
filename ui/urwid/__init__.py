@@ -66,23 +66,23 @@ class UrwidUI(UI):
         from steps.installation import InstallStep
         from steps.exit import ExitStep
 
-        view = WelcomeView(self)
         step = WelcomeStep(self)
+        view = WelcomeView(self, step)
         self._steps.append(step)
         self._step_views[step] = view
 
-        view = LicenseView(self)
         step = LicenseStep(self)
+        view = LicenseView(self, step)
         self._steps.append(step)
         self._step_views[step] = view
 
-        view = InstallView(self)
         step = InstallStep(self)
+        view = InstallView(self, step)
         self._steps.append(step)
         self._step_views[step] = view
 
-        view = ExitView(self)
         step = ExitStep(self)
+        view = ExitView(self, step)
         self._steps.append(step)
         self._step_views[step] = view
 
@@ -225,8 +225,9 @@ class UrwidUI(UI):
 
 class StepView(urwid.WidgetWrap):
 
-    def __init__(self, ui):
+    def __init__(self, ui, step):
         self._ui = ui
+        self._step = step
         self._page = urwid.WidgetPlaceholder(urwid.Text(""))
         self._progressbar = widgets.ProgressBar(0, 100)
         self._overlay = urwid.Overlay(self._progressbar, self._page,
@@ -251,7 +252,7 @@ class StepView(urwid.WidgetWrap):
         return
 
     def ready(self):
-        self._ui._on_view_event(self)
+        self._step.process()
 
     def set_completion(self, percent):
         #

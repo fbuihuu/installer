@@ -116,11 +116,6 @@ class UI(object):
                 self._select_step(step)
                 return
 
-    def _on_view_event(self, view):
-        for step in self._steps:
-            if self._step_views[step] == view:
-                step.process()
-
     def _on_step_completion(self, step, percent):
         """Use to set the level of completion for a step.
         It can be called by any contexts.

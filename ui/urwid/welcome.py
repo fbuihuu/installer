@@ -15,8 +15,8 @@ from l10n import country_dict
 
 class WelcomeView(StepView):
 
-    def __init__(self, ui):
-        StepView.__init__(self, ui)
+    def __init__(self, ui, step):
+        StepView.__init__(self, ui, step)
 
         self.page = widgets.Page()
         # Make the list centered inside its container
