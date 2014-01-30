@@ -14,3 +14,16 @@ def pretty_size(size, KiB=True):
             return "%3.1f %s" % (size, unit)
         size /= multiple
     return "%3.1f %s" % (size, unit)
+
+
+class Signal(object):
+
+    def __init__(self):
+        self._callbacks = []
+
+    def connect(self, cb):
+        self._callbacks.append(cb)
+
+    def emit(self, *args, **kargs):
+        for cb in self._callbacks:
+            cb(*args, **kargs)

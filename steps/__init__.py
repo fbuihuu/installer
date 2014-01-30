@@ -4,6 +4,7 @@
 from sets import Set
 import logging
 from threading import current_thread, Thread, RLock
+from utils import Signal
 
 
 _all_steps = []
@@ -40,6 +41,9 @@ def _recalculate_step_dependencies(step):
 class StepLogAdapter(logging.LoggerAdapter):
     def process(self, msg, kwargs):
         return '%s: %s' % (self.extra['title'], msg), kwargs
+
+
+finished_signal = Signal()
 
 
 class Step(object):
@@ -119,6 +123,8 @@ class Step(object):
         else:
             if self.__is_in_progress():
                 self._done()
+        finally:
+            finished_signal.emit(self)
 
     def process(self):
         assert(not self.__is_in_progress())
@@ -150,7 +156,6 @@ class Step(object):
         self.logger.info(msg)
         self.set_completion(100)
         self._state = self._STATE_DONE
-        self._ui.redraw()
 
     def _failed(self, msg=None, backtrace=False):
         """Used by step thread to indicate it has failed"""
@@ -162,7 +167,6 @@ class Step(object):
             self.logger.error(msg)
         self.set_completion(0)
         self._state = self._STATE_FAILED
-        self._ui.redraw()
 
     def _process(self):
         """Implement the actual work executed asynchronously"""

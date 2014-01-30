@@ -6,6 +6,7 @@ import locale
 import gettext
 import logging
 from collections import deque
+import steps
 
 
 class UILogHandler(logging.Handler):
@@ -43,6 +44,7 @@ class UI(object):
 
         self.language = lang
         self._load_steps()
+        steps.finished_signal.connect(self.on_step_finished)
 
     @property
     def logger(self):
@@ -120,4 +122,11 @@ class UI(object):
                 step.process()
 
     def set_completion(self, percent, view):
+        """Use to set the level of completion for a step."""
         raise NotImplementedError()
+
+    def on_step_finished(self, step):
+        """Notify that a step is terminated.
+        It can be called by any contexts,
+        """
+        return

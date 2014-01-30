@@ -8,6 +8,7 @@ import logging
 import urwid
 from ui import UI
 import widgets
+import steps
 
 
 palette = [
@@ -173,6 +174,9 @@ class UrwidUI(UI):
             if self.handle_hotkey(key):
                 keys.remove(key)
         return keys
+
+    def on_step_finished(self, step):
+        self.redraw()
 
     def ui_thread(func):
         """This decorator is used to make sure that decorated
