@@ -216,4 +216,4 @@ class InstallView(StepView):
         self._ui.redraw()
 
     def do_install(self, widget):
-        self.ready()
+        self.run()

@@ -251,7 +251,7 @@ class StepView(urwid.WidgetWrap):
     def redraw(self):
         return
 
-    def ready(self):
+    def run(self):
         self._step.process()
 
     def set_completion(self, percent):

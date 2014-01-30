@@ -31,4 +31,4 @@ class ExitView(StepView):
 
     def on_click(self, entry):
         self._ui.installer.data["exit/action"] = entry.text
-        self.ready()
+        self.run()

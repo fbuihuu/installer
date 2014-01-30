@@ -36,8 +36,8 @@ class LicenseView(StepView):
 
     def on_accepted(self, button):
         self._ui.installer.data["license/status"] = "accepted"
-        self.ready()
+        self.run()
 
     def on_disagreed(self, button):
         self._ui.installer.data["license/status"] = "refused"
-        self.ready()
+        self.run()

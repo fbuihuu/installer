@@ -32,4 +32,4 @@ class WelcomeView(StepView):
         place = entry.text
         if self._ui.installer.data["localization/country"] != place:
             self._ui.installer.data["localization/country"] = place
-            self.ready()
+            self.run()
