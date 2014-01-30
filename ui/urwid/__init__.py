@@ -40,13 +40,13 @@ def debug():
 
 class UrwidUI(UI):
 
-    __loop = None
-    __main_frame = None
+    _loop = None
+    _main_frame = None
     _view  = None
     _step_views = {}
     _navigator = None
-    __top_bar = None
-    __echo_area = None
+    _top_bar = None
+    _echo_area = None
 
     def __init__(self, installer, lang):
         self._watch_pipe_fd = None
@@ -101,13 +101,13 @@ class UrwidUI(UI):
         cols += [urwid.LineBox(self._view)]
         cols  = urwid.Columns(cols, dividechars=1, focus_column=1)
 
-        self.__main_frame = urwid.Frame(cols, self.__top_bar, self.__echo_area)
+        self._main_frame = urwid.Frame(cols, self._top_bar, self._echo_area)
 
     def __create_echo_area(self):
-        self.__echo_area = EchoArea()
+        self._echo_area = EchoArea()
 
     def __create_top_bar(self):
-        self.__top_bar = TopBar()
+        self._top_bar = TopBar()
 
     def __init_watch_pipe(self):
 
@@ -118,7 +118,7 @@ class UrwidUI(UI):
             # make sure the pipe read side won't be closed.
             return True
 
-        self._watch_pipe_fd = self.__loop.watch_pipe(watch_pipe_cb)
+        self._watch_pipe_fd = self._loop.watch_pipe(watch_pipe_cb)
 
     def __call(self, func):
         if self._watch_pipe_fd:
@@ -139,7 +139,7 @@ class UrwidUI(UI):
         self.__create_main_frame()
 
         def toggle_navigator_focus():
-            self.__main_frame.body.focus_position ^= 1
+            self._main_frame.body.focus_position ^= 1
         self.register_hotkey('tab', toggle_navigator_focus)
         self.register_hotkey('f1', self._switch_to_step)
         self.register_hotkey('f2', self._switch_to_summary)
@@ -147,13 +147,13 @@ class UrwidUI(UI):
         self.register_hotkey('f4', self._switch_to_help)
         self.register_hotkey('f5', self.quit)
 
-        self.__loop = urwid.MainLoop(self.__main_frame, palette,
+        self._loop = urwid.MainLoop(self._main_frame, palette,
 #                                     event_loop=urwid.GLibEventLoop(),
                                      input_filter=self._handle_hotkeys,
                                      unhandled_input=self.handle_key)
         self._select_first_step()
         self.__init_watch_pipe()
-        self.__loop.run()
+        self._loop.run()
 
     def _switch_to_step(self, step=None):
         """Switch the current view to the current step view"""
@@ -175,7 +175,7 @@ class UrwidUI(UI):
         self._view.original_widget = LogView(self.logs)
 
     def _handle_hotkeys(self, keys, raws):
-        self.__echo_area.clear()
+        self._echo_area.clear()
         for key in keys:
             if self.handle_hotkey(key):
                 keys.remove(key)
@@ -203,10 +203,10 @@ class UrwidUI(UI):
 
     @ui_thread
     def redraw(self):
-        if self.__loop:
-            self.__top_bar.refresh()
+        if self._loop:
+            self._top_bar.refresh()
             self._navigator.refresh()
-            self.__loop.draw_screen()
+            self._loop.draw_screen()
             self._select_next_step()
 
     @ui_thread
@@ -220,8 +220,8 @@ class UrwidUI(UI):
 
     @ui_thread
     def notify(self, lvl, msg):
-        if self.__echo_area:
-            self.__echo_area.notify(lvl, msg)
+        if self._echo_area:
+            self._echo_area.notify(lvl, msg)
 
 
 class StepView(urwid.WidgetWrap):
