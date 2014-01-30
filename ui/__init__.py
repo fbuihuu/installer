@@ -102,18 +102,18 @@ class UI(object):
             return True
         return False
 
-    def _switch_to_step(self, step=None):
+    def _select_step(self, step=None):
         if not step:
             step = self._current_step
         self._current_step = step
 
-    def _switch_to_first_step(self):
-        self._switch_to_step(self._steps[0])
+    def _select_first_step(self):
+        self._select_step(self._steps[0])
 
-    def _switch_to_next_step(self):
+    def _select_next_step(self):
         for step in self._steps:
             if step.is_enabled() and not step.is_done():
-                self._switch_to_step(step)
+                self._select_step(step)
                 return
 
     def on_view_event(self, view):

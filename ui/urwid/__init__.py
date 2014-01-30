@@ -138,8 +138,6 @@ class UrwidUI(UI):
         self.__create_echo_area()
         self.__create_main_frame()
 
-        self._switch_to_first_step()
-
         def toggle_navigator_focus():
             self.__main_frame.body.focus_position ^= 1
         self.register_hotkey('tab', toggle_navigator_focus)
@@ -153,12 +151,13 @@ class UrwidUI(UI):
 #                                     event_loop=urwid.GLibEventLoop(),
                                      input_filter=self._handle_hotkeys,
                                      unhandled_input=self.handle_key)
+        self._select_first_step()
         self.__init_watch_pipe()
         self.__loop.run()
 
     def _switch_to_step(self, step=None):
         """Switch the current view to the current step view"""
-        UI._switch_to_step(self, step)
+        UI._select_step(self, step)
         view = self._step_views[self._current_step]
         view.redraw()
         self._view.original_widget = view
@@ -207,7 +206,11 @@ class UrwidUI(UI):
             self.__top_bar.refresh()
             self._navigator.refresh()
             self.__loop.draw_screen()
-            self._switch_to_next_step()
+            self._select_next_step()
+
+    @ui_thread
+    def _select_step(self, step):
+        self._navigator.set_focus(step)
 
     @ui_thread
     def on_step_completion(self, step, percent):
