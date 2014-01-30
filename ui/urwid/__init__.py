@@ -182,7 +182,8 @@ class UrwidUI(UI):
         return keys
 
     def _on_step_finished(self, step):
-        self.redraw()
+        self._navigator.refresh()
+        self._select_next_step()
 
     def ui_thread(func):
         """This decorator is used to make sure that decorated
@@ -365,6 +366,8 @@ class Navigator(urwid.WidgetWrap):
         return self._steps[self._list.get_focus()[1]]
 
     def set_focus(self, step):
+        if step.is_disabled():
+            raise IndexValueError
         self._list.set_focus(self._steps.index(step))
 
     def keypress(self, size, key):
