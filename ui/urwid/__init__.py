@@ -59,11 +59,13 @@ class UrwidUI(UI):
         from welcome import WelcomeView
         from license import LicenseView
         from installation import InstallView
+        from password import PasswordView
         from exit import ExitView
 
         from steps.welcome import WelcomeStep
         from steps.license import LicenseStep
         from steps.installation import InstallStep
+        from steps.password import PasswordStep
         from steps.exit import ExitStep
 
         step = WelcomeStep(self)
@@ -78,6 +80,11 @@ class UrwidUI(UI):
 
         step = InstallStep(self)
         view = InstallView(self, step)
+        self._steps.append(step)
+        self._step_views[step] = view
+
+        step = PasswordStep(self)
+        view = PasswordView(self, step)
         self._steps.append(step)
         self._step_views[step] = view
 
@@ -181,10 +188,6 @@ class UrwidUI(UI):
                 keys.remove(key)
         return keys
 
-    def _on_step_finished(self, step):
-        self._navigator.refresh()
-        self._select_next_step()
-
     def ui_thread(func):
         """This decorator is used to make sure that decorated
         functions will be executed by the UI thread. Even if the
@@ -212,6 +215,11 @@ class UrwidUI(UI):
     @ui_thread
     def _select_step(self, step):
         self._navigator.set_focus(step)
+
+    @ui_thread
+    def _on_step_finished(self, step):
+        self._navigator.refresh()
+        self._select_next_step()
 
     @ui_thread
     def _on_step_completion(self, step, percent):
