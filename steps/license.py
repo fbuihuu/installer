@@ -9,8 +9,8 @@ class LicenseStep(Step):
     requires = ["language"]
     provides = ["license"]
 
-    def __init__(self, ui, view):
-        Step.__init__(self, ui, view)
+    def __init__(self, ui):
+        Step.__init__(self, ui)
 
     @property
     def name(self):

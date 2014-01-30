@@ -9,8 +9,8 @@ class WelcomeStep(Step):
 
     provides = ["language"]
 
-    def __init__(self, ui, view):
-        Step.__init__(self, ui, view)
+    def __init__(self, ui):
+        Step.__init__(self, ui)
 
         self._country = None
         if self._ui.installer.data["localization/country"]:

@@ -45,6 +45,7 @@ class UI(object):
         self.language = lang
         self._load_steps()
         steps.finished_signal.connect(self.on_step_finished)
+        steps.completion_signal.connect(self.on_step_completion)
 
     @property
     def logger(self):
@@ -105,7 +106,6 @@ class UI(object):
         if not step:
             step = self._current_step
         self._current_step = step
-        self._current_step.view.redraw()
 
     def _switch_to_first_step(self):
         self._switch_to_step(self._steps[0])
@@ -118,12 +118,14 @@ class UI(object):
 
     def on_view_event(self, view):
         for step in self._steps:
-            if step.view == view:
+            if self._step_views[step] == view:
                 step.process()
 
-    def set_completion(self, percent, view):
-        """Use to set the level of completion for a step."""
-        raise NotImplementedError()
+    def on_step_completion(self, step, percent):
+        """Use to set the level of completion for a step.
+        It can be called by any contexts.
+        """
+        return
 
     def on_step_finished(self, step):
         """Notify that a step is terminated.

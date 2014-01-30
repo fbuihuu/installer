@@ -11,8 +11,8 @@ class ExitStep(Step):
     # FIXME: this should depends on all existing provides.
     requires = ["rootfs"]
 
-    def __init__(self, ui, view):
-        Step.__init__(self, ui, view)
+    def __init__(self, ui):
+        Step.__init__(self, ui)
 
     @property
     def name(self):

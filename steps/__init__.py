@@ -44,6 +44,7 @@ class StepLogAdapter(logging.LoggerAdapter):
 
 
 finished_signal = Signal()
+completion_signal = Signal()
 
 
 class Step(object):
@@ -58,9 +59,8 @@ class Step(object):
     _STATE_FAILED      = 3
     _STATE_CANCELLED   = 4
 
-    def __init__(self, ui, view):
+    def __init__(self, ui):
         self._ui = ui
-        self._view  = view
         self._thread = None
         self._logger = StepLogAdapter(ui.logger, {'title': self.name})
         self.requires = Set(self.requires)
@@ -73,10 +73,6 @@ class Step(object):
             self.__state = self._STATE_DISABLED
 
         _all_steps.append(self)
-
-    @property
-    def view(self):
-        return self._view
 
     @property
     def name(self):
@@ -200,4 +196,4 @@ class Step(object):
     def set_completion(self, percent):
         if percent != self._completion:
             self._completion = percent
-            self._ui.set_completion(percent, self.view)
+            completion_signal.emit(self, percent)

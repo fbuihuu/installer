@@ -43,6 +43,7 @@ class UrwidUI(UI):
     __loop = None
     __main_frame = None
     _view  = None
+    _step_views = {}
     _navigator = None
     __top_bar = None
     __echo_area = None
@@ -66,20 +67,24 @@ class UrwidUI(UI):
         from steps.exit import ExitStep
 
         view = WelcomeView(self)
-        step = WelcomeStep(self, view)
+        step = WelcomeStep(self)
         self._steps.append(step)
+        self._step_views[step] = view
 
         view = LicenseView(self)
-        step = LicenseStep(self, view)
+        step = LicenseStep(self)
         self._steps.append(step)
+        self._step_views[step] = view
 
         view = InstallView(self)
-        step = InstallStep(self, view)
+        step = InstallStep(self)
         self._steps.append(step)
+        self._step_views[step] = view
 
         view = ExitView(self)
-        step = ExitStep(self, view)
+        step = ExitStep(self)
         self._steps.append(step)
+        self._step_views[step] = view
 
     def __create_main_view(self):
         self._view = urwid.WidgetPlaceholder(urwid.Text(""))
@@ -154,7 +159,9 @@ class UrwidUI(UI):
     def _switch_to_step(self, step=None):
         """Switch the current view to the current step view"""
         UI._switch_to_step(self, step)
-        self._view.original_widget = self._current_step.view
+        view = self._step_views[self._current_step]
+        view.redraw()
+        self._view.original_widget = view
 
     def _switch_to_summary(self):
         """Switch the current view to the summary view"""
@@ -203,7 +210,8 @@ class UrwidUI(UI):
             self._switch_to_next_step()
 
     @ui_thread
-    def set_completion(self, percent, view):
+    def on_step_completion(self, step, percent):
+        view = self._step_views[step]
         view.set_completion(percent)
 
     @ui_thread

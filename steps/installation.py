@@ -15,8 +15,8 @@ class InstallStep(Step):
     requires = ["license"]
     provides = ["rootfs"]
 
-    def __init__(self, ui, view):
-        Step.__init__(self, ui, view)
+    def __init__(self, ui):
+        Step.__init__(self, ui)
         self._mounted_partitions = []
         self._pacstrap = None
         self._root = None
