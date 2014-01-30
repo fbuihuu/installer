@@ -181,7 +181,7 @@ class UrwidUI(UI):
                 keys.remove(key)
         return keys
 
-    def on_step_finished(self, step):
+    def _on_step_finished(self, step):
         self.redraw()
 
     def ui_thread(func):
@@ -213,7 +213,7 @@ class UrwidUI(UI):
         self._navigator.set_focus(step)
 
     @ui_thread
-    def on_step_completion(self, step, percent):
+    def _on_step_completion(self, step, percent):
         view = self._step_views[step]
         view.set_completion(percent)
 
@@ -251,7 +251,7 @@ class StepView(urwid.WidgetWrap):
         return
 
     def ready(self):
-        self._ui.on_view_event(self)
+        self._ui._on_view_event(self)
 
     def set_completion(self, percent):
         #
