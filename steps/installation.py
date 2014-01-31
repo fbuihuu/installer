@@ -8,23 +8,85 @@ from subprocess import *
 from tempfile import mkdtemp
 from steps import Step
 from partition import mount_rootfs, unmount_rootfs, mounted_partitions
+from system import distribution
 
 
-class InstallStep(Step):
+class _InstallStep(Step):
 
     requires = ["license"]
     provides = ["rootfs"]
 
     def __init__(self, ui):
         Step.__init__(self, ui)
-        self._pacstrap = None
         self._root = None
 
     @property
     def name(self):
         return _("Installation")
 
-    def _do_pacstrap(self):
+    def _do_rootfs(self):
+        raise NotImplementedError()
+
+    def __genfstab(self, partitions):
+        fstab = []
+        for part in partitions:
+            if part.device.partuuid:
+                source = "PARTUUID=" + part.device.partuuid
+            elif part.device.partlabel:
+                source = "PARTLABEL=" + part.device.partlabel
+            elif part.device.uuid:
+                source = "UUID=" + part.device.fsuuid
+            elif part.device.label:
+                source = "LABEL=" + part.device.fslabel
+            else:
+                source = part.device.devpath
+
+            options = check_output("findmnt -cvuno OPTIONS " + part.device.devpath, shell=True)
+            options = options.split()[0]
+
+            target = part.name
+            fstype = part.device.filesystem
+            dump   = 0
+            passno = 1 if target == "/" else 2
+
+            fstab.append("%-20s\t%-10s %-10s %-10s\t%d %d" % (source, target,
+                                                              fstype, options,
+                                                              dump, passno))
+        return fstab
+
+    def _do_fstab(self):
+        self.logger.info("generating fstab")
+        with open(os.path.join(self._root, 'etc/fstab'), 'w') as f:
+            for entry in self.__genfstab(mounted_partitions):
+                print >>f, entry, '\n'
+
+    def _cancel(self):
+        raise NotImplementedError()
+
+    def _process(self):
+        self.set_completion(1)
+        self._root = mount_rootfs()
+
+        try:
+            self._do_rootfs()
+            self._do_fstab()
+            self._done()
+        finally:
+            unmount_rootfs()
+            self._root = None
+
+
+class ArchInstallStep(_InstallStep):
+
+    def __init__(self, ui):
+        _InstallStep.__init__(self, ui)
+        self._pacstrap = None
+
+    def _cancel(self):
+        if self._pacstrap:
+            self._pacstrap.terminate()
+
+    def _do_rootfs(self):
         self.logger.info("collecting information...")
 
         cmd = "pacstrap %s base" % self._root
@@ -75,58 +137,13 @@ class InstallStep(Step):
         if retcode:
             raise CalledProcessError(retcode, cmd)
 
-    def __genfstab(self, partitions):
-        fstab = []
-        for part in partitions:
-            if part.device.partuuid:
-                source = "PARTUUID=" + part.device.partuuid
-            elif part.device.partlabel:
-                source = "PARTLABEL=" + part.device.partlabel
-            elif part.device.uuid:
-                source = "UUID=" + part.device.fsuuid
-            elif part.device.label:
-                source = "LABEL=" + part.device.fslabel
-            else:
-                source = part.device.devpath
 
-            options = check_output("findmnt -cvuno OPTIONS " + part.device.devpath, shell=True)
-            options = options.split()[0]
+def InstallStep(ui):
+    if distribution.distributor == "Mandriva":
+        return MandrivaInstallStep(ui)
 
-            target = part.name
-            fstype = part.device.filesystem
-            dump   = 0
-            passno = 1 if target == "/" else 2
+    elif distribution.distributor == "Arch":
+        return ArchInstallStep(ui)
 
-            fstab.append("%-20s\t%-10s %-10s %-10s\t%d %d" % (source, target,
-                                                              fstype, options,
-                                                              dump, passno))
-        return fstab
+    raise NotImplementedError()
 
-    def _do_fstab(self):
-        self.logger.info("generating fstab")
-        with open(os.path.join(self._root, 'etc/fstab'), 'w') as f:
-            for entry in self.__genfstab(mounted_partitions):
-                print >>f, entry, '\n'
-
-    def _cancel(self):
-        if self._pacstrap:
-            self._pacstrap.terminate()
-
-    def _process(self):
-        self.set_completion(1)
-        self._root = mount_rootfs()
-
-        try:
-            self._do_pacstrap()
-            self._do_fstab()
-            self._done()
-        finally:
-            unmount_rootfs()
-            self._root = None
-
-        # complete installation
-        #    1/ root password
-        #    2/ setup locale
-        #    3/ setup timezone
-        #    4/ regenerer initramfs (archlinux)
-        #    5/ bootloader :(
