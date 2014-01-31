@@ -4,6 +4,11 @@
 import system
 import device
 
+import os
+from operator import itemgetter
+from tempfile import mkdtemp
+
+
 class Partition(object):
 
     def __init__(self, name, is_optional=True, minsize=0):
@@ -60,6 +65,37 @@ partitions = [
     BootPartition(),
 ]
 
+
+_rootfs_mntpnt = None
+_mounted_partitions = []
+
+def mount_rootfs():
+    global _rootfs_mntpnt, _mounted_partitions
+
+    if _rootfs_mntpnt:
+        return _rootfs_mntpnt
+    _rootfs_mntpnt = mkdtemp()
+
+    lst = [ (p.name, p) for p in partitions if p.device ]
+    lst.sort(key=itemgetter(0))
+
+    for name, part in lst:
+        mntpnt = _rootfs_mntpnt + name
+        if name != "/" and not os.path.exists(mntpnt):
+            os.mkdir(mntpnt)
+        part.device.mount(mntpnt)
+        _mounted_partitions.append(part)
+
+    return _rootfs_mntpnt
+
+def unmount_rootfs():
+    global _rootfs_mntpnt, _mounted_partitions
+
+    if _rootfs_mntpnt:
+        for part in reversed(_mounted_partitions):
+            mntpnt = part.device.umount()
+            _mounted_partitions.remove(part)
+        _rootfs_mntpnt = None
 
 def find_partition(name):
     for part in partitions:

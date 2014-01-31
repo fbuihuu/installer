@@ -7,7 +7,7 @@ from operator import itemgetter
 from subprocess import *
 from tempfile import mkdtemp
 from steps import Step
-import partition
+from partition import mount_rootfs, unmount_rootfs
 
 
 class InstallStep(Step):
@@ -24,22 +24,6 @@ class InstallStep(Step):
     @property
     def name(self):
         return _("Installation")
-
-    def _do_mount_partitions(self):
-        lst = [ (p.name, p) for p in partition.partitions if p.device ]
-        lst.sort(key=itemgetter(0))
-
-        for name, part in lst:
-            mountpoint = self._root + name
-            if name != "/" and not os.path.exists(mountpoint):
-                os.mkdir(mountpoint)
-            self.logger.debug(_("mounting %s") % name)
-            part.device.mount(mountpoint)
-            self._mounted_partitions.append(part)
-
-    def _do_umount_partitions(self):
-        for part in reversed(self._mounted_partitions):
-            mntpnt = part.device.umount()
 
     def _do_pacstrap(self):
         self.logger.info("collecting information...")
@@ -130,17 +114,14 @@ class InstallStep(Step):
 
     def _process(self):
         self.set_completion(1)
-        self._root = mkdtemp()
-        self.logger.debug(_("creating temp dir at %s") % self._root)
+        self._root = mount_rootfs()
 
         try:
-            self._do_mount_partitions()
             self._do_pacstrap()
             self._do_fstab()
             self._done()
         finally:
-            self._do_umount_partitions()
-            os.rmdir(self._root)
+            unmount_rootfs()
             self._root = None
 
         # complete installation
