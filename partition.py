@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 #
 
-import system
-import device
-
 import os
 from operator import itemgetter
 from tempfile import mkdtemp
+
+import system
+import device
 
 
 class Partition(object):
