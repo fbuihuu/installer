@@ -7,7 +7,7 @@ from operator import itemgetter
 from subprocess import *
 from tempfile import mkdtemp
 from steps import Step
-from partition import mount_rootfs, unmount_rootfs
+from partition import mount_rootfs, unmount_rootfs, mounted_partitions
 
 
 class InstallStep(Step):
@@ -17,7 +17,6 @@ class InstallStep(Step):
 
     def __init__(self, ui):
         Step.__init__(self, ui)
-        self._mounted_partitions = []
         self._pacstrap = None
         self._root = None
 
@@ -104,8 +103,9 @@ class InstallStep(Step):
         return fstab
 
     def _do_fstab(self):
+        self.logger.info("generating fstab")
         with open(os.path.join(self._root, 'etc/fstab'), 'w') as f:
-            for entry in self.__genfstab(self._mounted_partitions):
+            for entry in self.__genfstab(mounted_partitions):
                 print >>f, entry, '\n'
 
     def _cancel(self):

@@ -67,10 +67,10 @@ partitions = [
 
 
 _rootfs_mntpnt = None
-_mounted_partitions = []
+mounted_partitions = []
 
 def mount_rootfs():
-    global _rootfs_mntpnt, _mounted_partitions
+    global _rootfs_mntpnt, mounted_partitions
 
     if _rootfs_mntpnt:
         return _rootfs_mntpnt
@@ -84,17 +84,18 @@ def mount_rootfs():
         if name != "/" and not os.path.exists(mntpnt):
             os.mkdir(mntpnt)
         part.device.mount(mntpnt)
-        _mounted_partitions.append(part)
+        mounted_partitions.append(part)
 
     return _rootfs_mntpnt
 
 def unmount_rootfs():
-    global _rootfs_mntpnt, _mounted_partitions
+    global _rootfs_mntpnt, mounted_partitions
 
     if _rootfs_mntpnt:
-        for part in reversed(_mounted_partitions):
+        for part in reversed(mounted_partitions):
             mntpnt = part.device.umount()
-            _mounted_partitions.remove(part)
+            mounted_partitions.remove(part)
+        os.rmdir(_rootfs_mntpnt)
         _rootfs_mntpnt = None
 
 def find_partition(name):
