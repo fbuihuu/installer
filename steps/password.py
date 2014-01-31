@@ -8,7 +8,7 @@ from partition import mount_rootfs, unmount_rootfs
 
 class PasswordStep(Step):
 
-    requires = []
+    requires = ["rootfs"]
     provides = ["password"]
 
     def __init__(self, ui):

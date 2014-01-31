@@ -9,7 +9,7 @@ from subprocess import check_call
 class ExitStep(Step):
 
     # FIXME: this should depends on all existing provides.
-    requires = ["rootfs"]
+    requires = ["password"]
 
     def __init__(self, ui):
         Step.__init__(self, ui)
