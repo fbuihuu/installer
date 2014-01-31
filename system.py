@@ -3,8 +3,8 @@
 #
 
 import os
-import platform
 import systemd.localed
+from subprocess import check_output
 
 
 def reboot():
@@ -17,21 +17,28 @@ def is_efi():
     return os.path.exists("/sys/firmware/efi")
 
 
+def _lsb_release(o):
+    return check_output("lsb_release -s %s" % o, shell=True).rstrip()
+
 class Distribution(object):
 
-    _linux_distribution = platform.linux_distribution()
+    _distributor = _lsb_release('-i')
+    _description = _lsb_release('-d')
+    _release     = _lsb_release('-r')
 
-    @staticmethod
-    def name():
-        return distribution._linux_distribution[0]
+    @property
+    def distributor(self):
+        return self._distributor
 
-    @staticmethod
-    def version():
-        return distribution._linux_distribution[1]
+    @property
+    def description(self):
+        return self._description
 
-    @staticmethod
-    def id():
-        return distribution._linux_distribution[2]
+    @property
+    def release(self):
+        return self._release
+
+distribution = Distribution()
 
 
 class Keyboard(object):
