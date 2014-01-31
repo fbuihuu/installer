@@ -49,6 +49,62 @@ class ClickableTextList(urwid.WidgetWrap):
         urwid.WidgetWrap.__init__(self, urwid.ListBox(self._walker))
 
 
+class Field(urwid.Edit):
+    """Edit widget with a limited number of chars.
+
+    It also sends a signal when <enter> has been pressed.
+    """
+
+    signals = ['validated']
+
+    def __init__(self, caption, max_length=-1):
+        super(Field, self).__init__(caption, wrap='clip')
+        self._max_len = max_length
+
+    def keypress(self, size, key):
+        if key == 'enter' and self.edit_text:
+            urwid.emit_signal(self, "validated")
+            return None
+
+        if len(self.edit_text) == self._max_len:
+            if self.valid_char(key):
+                # No more room for printable chars.
+                return None
+
+        return super(Field, self).keypress(size, key)
+
+
+class Password(Field):
+    """An EditBox widget initialize to match password requierements"""
+
+    default_mask = u'\u2022' # bullet
+
+    def __init__(self, caption):
+        self._is_masked = False
+        self._mask = self.default_mask
+        self._saved_mask = self._mask
+        super(Password, self).__init__(caption, 32)
+        self.set_mask(self.default_mask)
+
+    def is_masked(self):
+        return self._is_masked
+
+    def set_masked(self, masked):
+        if masked != self.is_masked():
+            if masked:
+                self._saved_mask = self._mask
+                super(Password, self).set_mask(None)
+            else:
+                super(Password, self).set_mask(self._saved_mask)
+            self._is_masked = masked
+
+    def set_mask(self, mask):
+        if self.is_masked():
+            self._saved_mask = mask
+        else:
+            super(Password, self).set_mask(mask)
+
+
 class FillRightLayout(urwid.StandardTextLayout):
 
     def __init__(self, filler='_'):
