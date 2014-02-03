@@ -11,6 +11,35 @@ from partition import mount_rootfs, unmount_rootfs, mounted_partitions
 from system import distribution
 
 
+class FStabEntry(object):
+
+    def __init__(self, part):
+        self.target = part.name
+        self.fstype = part.device.filesystem
+        self.dump   = 0
+        self.passno = 1 if self.target == "/" else 2
+
+        devpath = part.device.devpath
+        options = check_output("findmnt -cvuno OPTIONS " + devpath , shell=True)
+        self.options = options.split()[0]
+
+        if part.device.partuuid:
+            self.source = "PARTUUID=" + part.device.partuuid
+        elif part.device.partlabel:
+            self.source = "PARTLABEL=" + part.device.partlabel
+        elif part.device.uuid:
+            self.source = "UUID=" + part.device.fsuuid
+        elif part.device.label:
+            self.source = "LABEL=" + part.device.fslabel
+        else:
+            self.source = part.device.devpath
+
+    def format(self):
+        return "%-20s\t%-10s %-10s %-10s\t%d %d" % (self.source, self.target,
+                                                    self.fstype, self.options,
+                                                    self.dump, self.passno)
+
+
 class _InstallStep(Step):
 
     requires = ["license"]
@@ -19,6 +48,7 @@ class _InstallStep(Step):
     def __init__(self, ui):
         Step.__init__(self, ui)
         self._root = None
+        self._fstab = {}
 
     @property
     def name(self):
@@ -27,38 +57,14 @@ class _InstallStep(Step):
     def _do_rootfs(self):
         raise NotImplementedError()
 
-    def __genfstab(self, partitions):
-        fstab = []
-        for part in partitions:
-            if part.device.partuuid:
-                source = "PARTUUID=" + part.device.partuuid
-            elif part.device.partlabel:
-                source = "PARTLABEL=" + part.device.partlabel
-            elif part.device.uuid:
-                source = "UUID=" + part.device.fsuuid
-            elif part.device.label:
-                source = "LABEL=" + part.device.fslabel
-            else:
-                source = part.device.devpath
-
-            options = check_output("findmnt -cvuno OPTIONS " + part.device.devpath, shell=True)
-            options = options.split()[0]
-
-            target = part.name
-            fstype = part.device.filesystem
-            dump   = 0
-            passno = 1 if target == "/" else 2
-
-            fstab.append("%-20s\t%-10s %-10s %-10s\t%d %d" % (source, target,
-                                                              fstype, options,
-                                                              dump, passno))
-        return fstab
-
     def _do_fstab(self):
         self.logger.info("generating fstab")
+        for part in mounted_partitions:
+            self._fstab[part.name] = FStabEntry(part)
+
         with open(os.path.join(self._root, 'etc/fstab'), 'w') as f:
-            for entry in self.__genfstab(mounted_partitions):
-                print >>f, entry, '\n'
+            for entry in self._fstab.values():
+                print >>f, entry.format(), '\n'
 
     def _cancel(self):
         raise NotImplementedError()
