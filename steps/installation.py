@@ -27,9 +27,9 @@ class FStabEntry(object):
             self.source = "PARTUUID=" + part.device.partuuid
         elif part.device.partlabel:
             self.source = "PARTLABEL=" + part.device.partlabel
-        elif part.device.uuid:
+        elif part.device.fsuuid:
             self.source = "UUID=" + part.device.fsuuid
-        elif part.device.label:
+        elif part.device.fslabel:
             self.source = "LABEL=" + part.device.fslabel
         else:
             self.source = part.device.devpath
