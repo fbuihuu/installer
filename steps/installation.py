@@ -66,6 +66,23 @@ class _InstallStep(Step):
             for entry in self._fstab.values():
                 print >>f, entry.format(), '\n'
 
+    def _do_bootloader(self):
+        #
+        # Several cases to handle:
+        #
+        #   1/ EFI (imply GTP) => gummiboot
+        #   2/ BIOS + GPT      => syslinux
+        #   3/ BIOS + MBR      => syslinux
+        #
+        # syslinux cannot access files from partitions other than its
+        # own (unlike GRUB). This feature (called multi-fs) is
+        # therefore unavailable. It supports the FAT, ext2, ext3,
+        # ext4, and Btrfs file systems.
+        #
+        if not system.is_efi():
+            raise NotImplementedError()
+        self._do_bootloader_on_efi()
+
     def _cancel(self):
         raise NotImplementedError()
 
@@ -76,6 +93,7 @@ class _InstallStep(Step):
         try:
             self._do_rootfs()
             self._do_fstab()
+            self._do_bootloader()
             self._done()
         finally:
             unmount_rootfs()
@@ -142,6 +160,35 @@ class ArchInstallStep(_InstallStep):
         retcode = pacstrap.wait()
         if retcode:
             raise CalledProcessError(retcode, cmd)
+
+    def _do_bootloader_on_efi(self):
+        self.logger.info("installing gummiboot as bootloader on EFI system")
+
+        cmd = "pacstrap %s efibootmgr gummiboot" % self._root
+        check_call(cmd, shell=True)
+
+        # ESP = /boot
+        #
+        # The following copies the gummiboot binary to your EFI System
+        # Partition and create a boot entry in the EFI Boot Manager.
+        #
+        cmd  = "systemd-nspawn -D %s " %self._root
+        cmd += "--bind /dev "
+        cmd += "--bind /sys/firmware/efi/efivars "
+        check_call(cmd + "gummiboot --path=/boot install", shell=True)
+
+        self.logger.info("generating bootloader default entry")
+
+        with open(self._root + '/boot/loader/entries/archlinux.conf', 'w') as f:
+            f.write("title       Arch Linux\n")
+            f.write("linux       /vmlinuz-linux\n")
+            f.write("initrd      /initramfs-linux.img\n")
+            f.write("options     root=%s rw\n" % self._fstab["/"].source)
+
+        with open(self._root + '/boot/loader/loader.conf', 'w') as f:
+            f.write("timeout 3\n")
+            f.write("default archlinux\n")
+
 
 
 def InstallStep(ui):
