@@ -37,6 +37,12 @@ class BlockDevice(object):
     def bus(self):
         return self._gudev.get_property("ID_BUS")
 
+    @property
+    def size(self):
+        with open(self.syspath + "/size", 'r') as f:
+            size = f.read()
+        return int(size) * 512
+
 
 class PartitionDevice(BlockDevice):
 
@@ -47,12 +53,6 @@ class PartitionDevice(BlockDevice):
     @property
     def filesystem(self):
         return self._gudev.get_property("ID_FS_TYPE")
-
-    @property
-    def size(self):
-        with open(self.syspath + "/size", 'r') as f:
-            size = f.read()
-        return int(size) * 512
 
     @property
     def scheme(self):
