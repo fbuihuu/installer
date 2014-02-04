@@ -4,7 +4,7 @@
 from subprocess import check_output, check_call, CalledProcessError
 import gudev
 import utils
-
+import os
 
 class BlockDevice(object):
 
@@ -12,7 +12,7 @@ class BlockDevice(object):
         self._gudev = gudev
 
     def __eq__(self, other):
-        return other and other.syspath == self.syspath
+        return other and os.path.samefile(other.syspath, self.syspath)
 
     def __ne__(self, other):
         return not self.__eq__(other)
