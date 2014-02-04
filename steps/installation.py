@@ -112,7 +112,7 @@ class ArchInstallStep(_InstallStep):
             self._pacstrap = None
 
     def _do_rootfs(self):
-        self.logger.info("collecting information...")
+        self.logger.info("Initializing rootfs with pacstrap...")
 
         cmd = "pacstrap %s base" % self._root
         self._pacstrap = Popen(cmd, shell=True, stdout=PIPE, stderr=STDOUT)
@@ -131,7 +131,7 @@ class ArchInstallStep(_InstallStep):
             line = pacstrap.stdout.readline()
             if not line:
                 break
-            self.logger.info(line.rstrip())
+            self.logger.debug(line.rstrip())
 
             match = pattern.search(line)
             if match:
@@ -146,7 +146,7 @@ class ArchInstallStep(_InstallStep):
             line = pacstrap.stdout.readline()
             if not line:
                 break
-            self.logger.info(line.rstrip())
+            self.logger.debug(line.rstrip())
 
             match = pattern.match(line)
             if not match:
