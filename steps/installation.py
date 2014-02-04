@@ -109,6 +109,7 @@ class ArchInstallStep(_InstallStep):
     def _cancel(self):
         if self._pacstrap:
             self._pacstrap.terminate()
+            self._pacstrap = None
 
     def _do_rootfs(self):
         self.logger.info("collecting information...")
