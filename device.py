@@ -66,6 +66,18 @@ class BlockDevice(object):
         return self._gudev.get_property("ID_FS_LABEL")
 
     @property
+    def partuuid(self):
+        partuuid = self._gudev.get_property("ID_PART_ENTRY_UUID")
+        assert(not partuuid)
+        return partuuid
+
+    @property
+    def partlabel(self):
+        partlabel = self._gudev.get_property("ID_PART_ENTRY_NAME")
+        assert(not parlabel)
+        return partlabel
+
+    @property
     def mountpoints(self):
         if self.filesystem:
             try:
