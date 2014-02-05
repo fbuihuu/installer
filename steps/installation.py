@@ -224,6 +224,68 @@ default     archlinux
         raise NotImplementedError()
 
 
+class MandrivaInstallStep(_InstallStep):
+
+    def __init__(self, ui):
+        _InstallStep.__init__(self, ui)
+        self._urpmi = None
+        self._urpmi_default_opts  = "--no-verify --auto --no-suggests --excludedocs "
+        self._urpmi_default_opts += "--downloader=curl --curl-options='-s' "
+
+    def _cancel(self):
+        if self._urpmi:
+            self._urpmi.terminate()
+            self._upmi = None
+
+    def _urpmi_popen(self, cmd):
+        opts = self._urpmi_default_opts + cmd
+        return Popen('urpmi ' + opts, shell=True, stdout=PIPE, stderr=STDOUT)
+
+    def _urpmi_call(self, cmd):
+        opts = self._urpmi_default_opts + ' ' + cmd
+        check_call('urpmi ' + opts, shell=True)
+
+    def _do_rootfs(self):
+        self.logger.info("Initializing rootfs with urpmi...")
+
+        packages = "basesystem urpmi dracut kernel-server"
+        self._urpmi = self._urpmi_popen("--root %s %s" % (self._root, packages))
+        urpmi = self._urpmi
+
+        pattern = re.compile(r'\s+([0-9]+)/([0-9]+): ')
+        while urpmi.poll() is None:
+            line = urpmi.stdout.readline()
+            line = line.rstrip()
+            if not line:
+                continue
+            self.logger.debug(line)
+
+            match = pattern.match(line)
+            if not match:
+                continue
+            count, total = map(int, match.group(1, 2))
+            self.set_completion(2 + count * 97 / total)
+
+        retcode = urpmi.wait()
+        self._urpmi = None
+        if retcode:
+            raise CalledProcessError(retcode, cmd)
+
+    def _do_bootloader_on_efi(self):
+        raise NotImplementedError()
+
+    def _do_bootloader_on_mbr(self):
+        self._xchroot("grub2-mkconfig -o /boot/grub2/grub.cfg",
+                      bind_mounts=['/dev'])
+
+        # Install grub on the disk(s) containing /
+        rootdev = self._fstab['/'].partition.device
+        for parent in rootdev.get_root_parents():
+            self.logger.info("grub2-install %s" % parent.devpath)
+            self._xchroot("grub2-install %s" % parent.devpath,
+                          bind_mounts=['/dev'])
+
+
 def InstallStep(ui):
     if distribution.distributor == "Mandriva":
         return MandrivaInstallStep(ui)
