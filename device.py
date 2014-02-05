@@ -14,6 +14,7 @@ class BlockDevice(object):
 
     def __init__(self, gudev):
         self._gudev = gudev
+        self._mntpoint = None
 
     def __eq__(self, other):
         return other and os.path.samefile(other.syspath, self.syspath)
@@ -47,41 +48,14 @@ class BlockDevice(object):
             size = f.read()
         return int(size) * 512
 
-    def get_parents(self):
-        return []
-
-    def get_root_parents(self):
-        if not self.get_parents():
-            return [self]
-
-        roots = []
-        for parent in self.get_parents():
-            roots.extend(parent.get_root_parents())
-        return roots
-
-
-
-class PartitionDevice(BlockDevice):
-
-    def __init__(self, gudev):
-        super(PartitionDevice, self).__init__(gudev)
-        self._mntpoint = None
+    @property
+    def scheme(self):
+        """Empty if there's a filesystem or no part table at all."""
+        return self._gudev.get_property("ID_PART_TABLE_TYPE")
 
     @property
     def filesystem(self):
         return self._gudev.get_property("ID_FS_TYPE")
-
-    @property
-    def scheme(self):
-        return self._gudev.get_property("ID_PART_ENTRY_SCHEME")
-
-    @property
-    def partuuid(self):
-        return self._gudev.get_property("ID_PART_ENTRY_UUID")
-
-    @property
-    def partlabel(self):
-        return self._gudev.get_property("ID_PART_ENTRY_NAME")
 
     @property
     def fsuuid(self):
@@ -101,14 +75,6 @@ class PartitionDevice(BlockDevice):
                 pass
         return []
 
-    def get_parents(self):
-        parent = os.path.join(self.syspath, "..")
-        for dev in block_devices:
-            if os.path.samefile(dev.syspath, parent):
-                return [dev]
-        # Can't be here.
-        raise Exception("partition %s has no parent" % self.devpath)
-
     def mount(self, mountpoint):
         if self._mntpoint:
             raise Exception()
@@ -123,6 +89,18 @@ class PartitionDevice(BlockDevice):
             self._mntpoint = None
             return mntpnt
 
+    def get_parents(self):
+        return []
+
+    def get_root_parents(self):
+        if not self.get_parents():
+            return [self]
+
+        roots = []
+        for parent in self.get_parents():
+            roots.extend(parent.get_root_parents())
+        return roots
+
     def __str__(self):
         lines = [(_("Model"),      self.model),
                  (_("Bus"),        self.bus),
@@ -133,6 +111,32 @@ class PartitionDevice(BlockDevice):
 
         return "\n".join(["%s : %s" % (("{0:%d}" % width).format(f), v)
                          for f, v in lines])
+
+
+class PartitionDevice(BlockDevice):
+
+    def __init__(self, gudev):
+        super(PartitionDevice, self).__init__(gudev)
+
+    @property
+    def scheme(self):
+        return self._gudev.get_property("ID_PART_ENTRY_SCHEME")
+
+    @property
+    def partuuid(self):
+        return self._gudev.get_property("ID_PART_ENTRY_UUID")
+
+    @property
+    def partlabel(self):
+        return self._gudev.get_property("ID_PART_ENTRY_NAME")
+
+    def get_parents(self):
+        parent = os.path.join(self.syspath, "..")
+        for dev in block_devices:
+            if os.path.samefile(dev.syspath, parent):
+                return [dev]
+        # Can't be here.
+        raise Exception("partition %s has no parent" % self.devpath)
 
 
 __uevent_handlers = []
