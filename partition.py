@@ -30,7 +30,8 @@ class Partition(object):
         return self._minsize
 
     def _is_valid_fs(self, fs):
-        if not fs or fs == "swap":
+        invalid_fs = ("swap", "linux_raid_member")
+        if not fs or fs in invalid_fs:
             return False
         return True
 
