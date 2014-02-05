@@ -74,7 +74,7 @@ class BlockDevice(object):
     @property
     def partlabel(self):
         partlabel = self._gudev.get_property("ID_PART_ENTRY_NAME")
-        assert(not parlabel)
+        assert(not partlabel)
         return partlabel
 
     @property
