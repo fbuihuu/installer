@@ -275,15 +275,16 @@ class MandrivaInstallStep(_InstallStep):
         raise NotImplementedError()
 
     def _do_bootloader_on_mbr(self):
-        self._xchroot("grub2-mkconfig -o /boot/grub2/grub.cfg",
-                      bind_mounts=['/dev'])
+        cmd = "grub2-mkconfig -o /boot/grub2/grub.cfg"
+        self.logger.debug(cmd)
+        self._xchroot(cmd, bind_mounts=['/dev'])
 
         # Install grub on the disk(s) containing /
         rootdev = self._fstab['/'].partition.device
         for parent in rootdev.get_root_parents():
-            self.logger.info("grub2-install %s" % parent.devpath)
-            self._xchroot("grub2-install %s" % parent.devpath,
-                          bind_mounts=['/dev'])
+            cmd = "grub2-install --target=i386-pc %s" % parent.devpath
+            self.logger.debug("executing %s" % cmd)
+            self._xchroot(cmd, bind_mounts=['/dev'])
 
 
 def InstallStep(ui):
