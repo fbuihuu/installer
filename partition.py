@@ -35,13 +35,16 @@ class Partition(object):
             return False
         return True
 
+    def is_valid_dev(self, dev):
+        return self._is_valid_fs(dev.filesystem)
+
     @property
     def device(self):
         return self._device
 
     @device.setter
     def device(self, dev):
-        if dev and not self._is_valid_fs(dev.filesystem):
+        if dev and not self.is_valid_dev(dev):
             raise Exception()
         self._device = dev
 
@@ -110,7 +113,7 @@ def get_candidates(part):
     for dev in device.block_devices:
         if dev in in_use_devices:
             continue
-        if not part._is_valid_fs(dev.filesystem):
+        if not part.is_valid_dev(dev):
             continue
         # skip any devices with mounted filesystem.
         if dev.mountpoints:
