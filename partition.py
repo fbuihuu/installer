@@ -29,14 +29,15 @@ class Partition(object):
     def minsize(self):
         return self._minsize
 
-    def _is_valid_fs(self, fs):
-        invalid_fs = ("swap", "linux_raid_member")
-        if not fs or fs in invalid_fs:
-            return False
-        return True
+    @property
+    def _invalid_fs(self):
+        return ("swap", "linux_raid_member")
+
+    def is_valid_fs(self, fs):
+        return fs and fs not in self._invalid_fs
 
     def is_valid_dev(self, dev):
-        return self._is_valid_fs(dev.filesystem)
+        return self.is_valid_fs(dev.filesystem)
 
     @property
     def device(self):
@@ -56,10 +57,10 @@ class BootPartition(Partition):
         self._is_optional = not system.is_efi()
         self._minsize = 1*1024*1024*1024
 
-    def _is_valid_fs(self, fs):
+    def is_valid_fs(self, fs):
         if system.is_efi():
             return fs == "vfat"
-        return Partition._is_valid_fs(self, fs)
+        return Partition.is_valid_fs(self, fs)
 
 
 partitions = [
