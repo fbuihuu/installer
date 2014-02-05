@@ -109,8 +109,6 @@ def get_candidates(part):
     for dev in device.block_devices:
         if dev in in_use_devices:
             continue
-        if dev.devtype != "partition":
-            continue
         if not part._is_valid_fs(dev.filesystem):
             continue
         # skip any devices with mounted filesystem.
