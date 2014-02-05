@@ -8,12 +8,20 @@ from subprocess import *
 from tempfile import mkdtemp
 from steps import Step
 from partition import mount_rootfs, unmount_rootfs, mounted_partitions
-from system import distribution
+from system import distribution, is_efi
+import systemd
+
+
+try:
+    from subprocess import DEVNULL # py3k
+except ImportError:
+    DEVNULL = open(os.devnull, 'wb')
 
 
 class FStabEntry(object):
 
     def __init__(self, part):
+        self.partition = part
         self.target = part.name
         self.fstype = part.device.filesystem
         self.dump   = 0
@@ -70,18 +78,37 @@ class _InstallStep(Step):
         #
         # Several cases to handle:
         #
-        #   1/ EFI (imply GTP) => gummiboot
-        #   2/ BIOS + GPT      => syslinux
-        #   3/ BIOS + MBR      => syslinux
+        #   1/ EFI (GTP)   =>  gummiboot + EFI System Partiton
+        #   2/ BIOS + GPT  =>  syslinux  + BIOS Boot Partition
+        #   3/ BIOS + MBR  =>  syslinux  + /boot partition      [3]
+        #
+        # We prefer to use GPT over MBR for several reasons:
+        #
+        #   - support of disks larger than 2TB
+        #   - use of PARTUUID which is stable across partition reformat
         #
         # syslinux cannot access files from partitions other than its
         # own (unlike GRUB). This feature (called multi-fs) is
-        # therefore unavailable. It supports the FAT, ext2, ext3,
-        # ext4, and Btrfs file systems.
+        # therefore unavailable.
         #
-        if not system.is_efi():
-            raise NotImplementedError()
-        self._do_bootloader_on_efi()
+        # [3] syslinux supports the FAT, ext2, ext3, ext4, and Btrfs file
+        # systems.
+        #
+        if is_efi():
+            self._do_bootloader_on_efi()
+        else:
+            rootdev = self._fstab['/'].partition.device
+            if rootdev.scheme == 'dos':
+                self._do_bootloader_on_mbr()
+            elif rootdev.scheme == 'gpt':
+                raise NotImplementedError()
+            else:
+                raise NotImplementedError()
+
+    def _xchroot(self, *args, **kwargs):
+        if "logger" not in kwargs:
+            kwargs["logger"] = self.logger
+        systemd.xchroot(self._root, *args, **kwargs)
 
     def _cancel(self):
         raise NotImplementedError()
@@ -166,30 +193,35 @@ class ArchInstallStep(_InstallStep):
         self.logger.info("installing gummiboot as bootloader on EFI system")
 
         cmd = "pacstrap %s efibootmgr gummiboot" % self._root
-        check_call(cmd, shell=True)
+        check_call(cmd, shell=True, stdout=DEVNULL, stderr=STDOUT)
 
         # ESP = /boot
         #
         # The following copies the gummiboot binary to your EFI System
         # Partition and create a boot entry in the EFI Boot Manager.
         #
-        cmd  = "systemd-nspawn -D %s " %self._root
-        cmd += "--bind /dev "
-        cmd += "--bind /sys/firmware/efi/efivars "
-        check_call(cmd + "gummiboot --path=/boot install", shell=True)
+        self._xchroot("gummiboot --path=/boot install",
+                      bind_mounts=['/dev', '/sys/firmware/efi/efivars'])
 
-        self.logger.info("generating bootloader default entry")
+        GUMMY_ARCH_ENTRY_CONF = """
+title       Arch Linux
+linux       /vmlinuz-linux
+initrd      /initramfs-linux.img
+options     root=%s rw
+"""
 
+        LOADER_CONF = """
+timeout     3
+default     archlinux
+"""
         with open(self._root + '/boot/loader/entries/archlinux.conf', 'w') as f:
-            f.write("title       Arch Linux\n")
-            f.write("linux       /vmlinuz-linux\n")
-            f.write("initrd      /initramfs-linux.img\n")
-            f.write("options     root=%s rw\n" % self._fstab["/"].source)
+            f.write(GUMMY_ARCH_ENTRY_CONF % self._fstab["/"].source)
 
         with open(self._root + '/boot/loader/loader.conf', 'w') as f:
-            f.write("timeout 3\n")
-            f.write("default archlinux\n")
+            f.write(LOADER_CONF)
 
+    def _do_bootloader_on_mbr(self):
+        raise NotImplementedError()
 
 
 def InstallStep(ui):
