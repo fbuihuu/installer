@@ -50,7 +50,6 @@ class BlockDevice(object):
 
     @property
     def scheme(self):
-        """Empty if there's a filesystem or no part table at all."""
         return self._gudev.get_property("ID_PART_TABLE_TYPE")
 
     @property
