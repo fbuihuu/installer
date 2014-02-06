@@ -62,6 +62,11 @@ class BootPartition(Partition):
             return fs == "vfat"
         return Partition.is_valid_fs(self, fs)
 
+    def is_valid_dev(self, dev):
+        if system.is_efi():
+            return dev.devtype == "partition" and dev.scheme == 'gpt'
+        return Partition.is_valid_dev(self, dev)
+
 
 partitions = [
     Partition("/", is_optional=False, minsize=200000000),
