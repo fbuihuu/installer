@@ -24,7 +24,8 @@ class DeviceError(Exception):
 class SignatureDeviceError(DeviceError):
 
     def __init__(self, dev, *args):
-        DeviceError.__init__(self, dev, "multiple signatures detected")
+        message = "disk has multiple signatures making it hazardous to use"
+        DeviceError.__init__(self, dev, message)
 
 
 class BlockDevice(object):

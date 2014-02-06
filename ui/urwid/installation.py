@@ -168,8 +168,13 @@ class InstallView(StepView):
 
     def _on_select_device(self, dev):
         if dev:
-            part = self._partition_list_widget.get_focus()
-            part.device = dev
+            try:
+                part = self._partition_list_widget.get_focus()
+                part.device = dev
+            except device.DeviceError as e:
+                self.logger.error(e)
+                return
+
             self._update_install_data(part, dev)
 
         #
