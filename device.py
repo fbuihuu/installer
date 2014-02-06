@@ -10,6 +10,23 @@ import os
 block_devices = []
 
 
+class DeviceError(Exception):
+    """Base class for exceptions for the device module."""
+
+    def __init__(self, dev, *args):
+        self.dev = dev
+        Exception.__init__(self, *args)
+
+    def __str__(self):
+        return self.dev.devpath + ": " + Exception.__str__(self)
+
+
+class SignatureDeviceError(DeviceError):
+
+    def __init__(self, dev, *args):
+        DeviceError.__init__(self, dev, "multiple signatures detected")
+
+
 class BlockDevice(object):
 
     def __init__(self, gudev):
@@ -75,6 +92,10 @@ class BlockDevice(object):
         partlabel = self._gudev.get_property("ID_PART_ENTRY_NAME")
         assert(not partlabel)
         return partlabel
+
+    def validate(self):
+        if self.devtype == 'disk' and self.scheme and self.filesystem:
+            raise SignatureDeviceError(self)
 
     @property
     def mountpoints(self):

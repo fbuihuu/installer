@@ -34,9 +34,11 @@ class Partition(object):
         return ("swap", "linux_raid_member")
 
     def is_valid_fs(self, fs):
+        """Check the passed fs matches this partition requirements"""
         return fs and fs not in self._invalid_fs
 
     def is_valid_dev(self, dev):
+        """Check the passed device matches partition requirements"""
         return True
 
     @property
@@ -46,6 +48,9 @@ class Partition(object):
     @device.setter
     def device(self, dev):
         if dev:
+            # track any inconsistencies for this device.
+            dev.validate()
+
             if not self.is_valid_dev(dev):
                 raise Exception()
             if not self.is_valid_fs(dev.filesystem):
