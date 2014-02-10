@@ -134,10 +134,7 @@ class RootPartition(Partition):
         # For any fancy devices (RAID, etc...), we request a separate
         # /boot.
         boot = find_partition("/boot")
-        if dev.devtype != 'partition' or (dev.get_parents() and dev.get_parents()[0].get_parents()):
-            boot.is_optional = False
-        else:
-            boot.is_optional = True
+        boot.is_optional = dev.devtype == 'partition' and not dev.is_compound()
 
 
 class BootPartition(Partition):
@@ -158,7 +155,7 @@ class BootPartition(Partition):
     def _validate_dev(self, dev):
         # Since we make sure that the device used for /boot is a
         # partition, the parent disk has a valid partition table.
-        if dev.devtype != 'partition' or (dev.get_parents() and dev.get_parents()[0].get_parents()):
+        if dev.devtype != 'partition' or dev.is_compound():
             raise device.DeviceError(dev, "must be a (raw) disk partition")
 
         if system.is_efi():

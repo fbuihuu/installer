@@ -145,6 +145,15 @@ class BlockDevice(object):
             roots.extend(parent.get_root_parents())
         return roots
 
+    def is_compound(self):
+        """Indicate if the device is built unpon other devices"""
+        parents = self.get_parents()
+        if len(parents) > 1:
+            return True
+        if not parents:
+            return False
+        return parents[0].is_compound()
+
     def __str__(self):
         lines = [(_("Model"),      self.model),
                  (_("Bus"),        self.bus),
