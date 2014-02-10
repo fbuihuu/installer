@@ -45,35 +45,47 @@ class PartitionEntryWidget(urwid.WidgetWrap):
 class PartitionListWidget(urwid.WidgetWrap):
 
     def __init__(self, on_select, on_clear):
-        items = []
+        self._entries = []
         for part in partition.partitions:
-            if not part.is_optional:
-                items.append(PartitionEntryWidget(part, on_select, on_clear))
-        items.append(urwid.Divider(" "))
-        for part in partition.partitions:
-            if part.is_optional:
-                items.append(PartitionEntryWidget(part, on_select, on_clear))
+            self._entries.append(PartitionEntryWidget(part, on_select, on_clear))
 
-        self._walker = urwid.SimpleListWalker(items)
-        listbox = urwid.ListBox(self._walker)
-        linebox = urwid.LineBox(listbox)
+        # First list contains mandatory partitions, the second
+        # contains optional ones.
+        items = [urwid.ListBox(urwid.SimpleListWalker([])),
+                 ('pack', urwid.Divider(" ")),
+                 urwid.ListBox(urwid.SimpleListWalker([]))]
+        self._pile = urwid.Pile(items)
+        linebox = urwid.LineBox(self._pile)
         attrmap = urwid.Padding(linebox, align='center', width=('relative', 70))
         attrmap = urwid.Filler(attrmap, 'middle', height=('relative', 90))
         super(PartitionListWidget, self).__init__(attrmap)
+        self.refresh()
+
+    @property
+    def _walkers(self):
+        return (self._pile[0].body, self._pile[2].body)
 
     def get_focus(self):
-        return self._walker.get_focus()[0].partition
+        return self._pile.focus.get_focus()[0].partition
 
     def update_focus(self):
         """Move the focus on the first unconfigured entry"""
-        for idx, entry in enumerate(self._walker):
-            if isinstance(entry, PartitionEntryWidget):
+        for walker in (self._walkers):
+            for idx, entry in enumerate(walker):
                 if not entry.partition.device:
-                    self._walker.set_focus(idx)
+                    walker.set_focus(idx)
                     return
 
     def refresh(self):
-        for entry in self._walker:
+        for walker in self._walkers:
+            del walker[:]
+        for entry in self._entries:
+            if not entry.partition.is_optional:
+                self._walkers[0].append(entry)
+            else:
+                self._walkers[1].append(entry)
+
+        for entry in self._entries:
             if isinstance(entry, PartitionEntryWidget):
                 entry.refresh()
 
