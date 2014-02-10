@@ -186,6 +186,9 @@ class InstallView(StepView):
             except device.DeviceError as e:
                 self.logger.error(e)
                 return
+            except partition.PartitionError as e:
+                self.logger.error(e)
+                return
 
             self._update_install_data(part, dev)
 

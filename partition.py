@@ -7,6 +7,11 @@ from tempfile import mkdtemp
 
 import system
 import device
+import utils
+
+
+class PartitionError(Exception):
+    """Base class for exceptions in the partition module"""
 
 
 class Partition(object):
@@ -25,6 +30,10 @@ class Partition(object):
     def is_optional(self):
         return self._is_optional
 
+    @is_optional.setter
+    def is_optional(self, optional):
+        self._is_optional = optional
+
     @property
     def minsize(self):
         return self._minsize
@@ -33,13 +42,18 @@ class Partition(object):
     def _invalid_fs(self):
         return ("swap", "linux_raid_member")
 
-    def is_valid_fs(self, fs):
+    def _validate_fs(self, fs):
         """Check the passed fs matches this partition requirements"""
-        return fs and fs not in self._invalid_fs
+        if not fs:
+            raise PartitionError("device is not formatted")
+        if fs in self._invalid_fs:
+            raise PartitionError("%s is an invalid filesystem" % fs)
 
-    def is_valid_dev(self, dev):
+    def _validate_dev(self, dev):
         """Check the passed device matches partition requirements"""
-        return True
+        if dev.size < self._minsize:
+            minsize = utils.pretty_size(self._minsize, KiB=False)
+            raise PartitionError("you need at least %s" % minsize)
 
     @property
     def device(self):
@@ -48,36 +62,114 @@ class Partition(object):
     @device.setter
     def device(self, dev):
         if dev:
-            # track any inconsistencies for this device.
-            dev.validate()
-
-            if not self.is_valid_dev(dev):
-                raise Exception()
-            if not self.is_valid_fs(dev.filesystem):
-                raise Exception()
+            dev.validate()  # track any device inconsistencies.
+            self._validate_dev(dev)
+            self._validate_fs(dev.filesystem)
         self._device = dev
+
+
+# /boot partition can be:
+#
+# on EFI:
+# -------
+#    1/ a disk partition using GTP
+#    2/ a MD RAID1 device with metadata (1.0 or 0.9) => underlying device must be 1/
+#    3/ a fakeraid partition device => underlying device must be 1/
+#    4/ a partition inside a fakeraid device => same as 1/
+#
+# on BIOS + GPT: (a partition with type BIOS Boot Partition (BBP) must be used to store bootloader)
+# -------------
+#    same restriction as "BIOS + MBR"
+#
+# on BIOS + MBR:
+# -------------
+#    1/ a partition inside a disk using MBR
+#    2/ if grub any RAID/LVM devices
+#    3/ if not grub MD RAID1 device (1.0 or 0.9)
+#
+# Conclusion:
+# ----------
+# On EFI, ESP (hence /boot) mut be kept simple: vfat, RAID1
+# (0.9, 1) at most.
+#
+# On BIOS, if / needs to use a complex layout (RAID > 1, LVM,
+# advanced FS) we need a separate /boot with a much simpler
+# layout so the bootloader can access to the kernel file.
+#
+# A common denominator is to always have a separate /boot and
+# keep it simple (ext[234], or btrfs).
+# Pros:
+#
+#    1/ We don't have to stick with only one
+#    (crapish/over-bloated) bootloader (call it GRUB).
+#
+#    2/ root partition can use any fancy things that the
+#    kernel/initramfs combo can support (bcache is an example).
+#
+#    3/ probably easier for secure boot integration
+#
+# For the simplest case (1 disk containig a '/' partition with a
+# standard FS), we make '/boot' partition optinal. All others cases
+# will have a separate '/boot'.
+#
+class RootPartition(Partition):
+
+    def __init__(self):
+        Partition.__init__(self, "/")
+        self._is_optional = False
+        self._minsize = 200 * 1000 * 1000
+
+    def _validate_fs(self, fs):
+        Partition._validate_fs(self, fs)
+
+        if fs in ('msdos', 'fat', 'vfat', 'ntfs'):
+            raise PartitionError("come on, %s for your root partition !" % fs)
+
+        # for any other fancy FS, we request a separate /boot.
+        boot = find_partition("/boot")
+        boot.is_optional = fs in ('ext2', 'ext3', 'ext4', 'btrfs')
+
+    def _validate_dev(self, dev):
+        Partition._validate_dev(self, dev)
+        # For any fancy devices (RAID, etc...), we request a separate
+        # /boot.
+        boot = find_partition("/boot")
+        if dev.devtype != 'partition' or (dev.get_parents() and dev.get_parents()[0].get_parents()):
+            boot.is_optional = False
+        else:
+            boot.is_optional = True
 
 
 class BootPartition(Partition):
 
     def __init__(self):
         Partition.__init__(self, "/boot")
-        self._is_optional = not system.is_efi()
-        self._minsize = 1*1024*1024*1024
-
-    def is_valid_fs(self, fs):
         if system.is_efi():
-            return fs == "vfat"
-        return Partition.is_valid_fs(self, fs)
+            self._is_optional = False
+            self._minsize = 1024 * 1024 * 1024
+        else:
+            self._minsize = 50 * 1000 * 1000
 
-    def is_valid_dev(self, dev):
+    def _validate_fs(self, fs):
+        if system.is_efi() and fs != "vfat":
+            raise PartitionError("/boot must use vfat FS on UEFI systems")
+        Partition._validate_fs(self, fs)
+
+    def _validate_dev(self, dev):
+        # Since we make sure that the device used for /boot is a
+        # partition, the parent disk has a valid partition table.
+        if dev.devtype != 'partition' or (dev.get_parents() and dev.get_parents()[0].get_parents()):
+            raise device.DeviceError(dev, "must be a (raw) disk partition")
+
         if system.is_efi():
-            return dev.devtype == "partition" and dev.scheme == 'gpt'
-        return Partition.is_valid_dev(self, dev)
+            if dev.scheme != 'gpt':
+                raise device.DeviceError(dev, "GPT is needed on UEFI systems")
+
+        Partition._validate_dev(self, dev)
 
 
 partitions = [
-    Partition("/", is_optional=False, minsize=200000000),
+    RootPartition(),
     Partition("/home"),
     Partition("/var"),
     BootPartition(),
@@ -127,13 +219,18 @@ def get_candidates(part):
     for dev in device.block_devices:
         if dev in in_use_devices:
             continue
-        if not part.is_valid_dev(dev):
+        #
+        # Work on partitions first.
+        #
+        if dev.devtype == 'disk' and dev.scheme:
             continue
-        if not part.is_valid_fs(dev.filesystem):
-            continue
-        # skip any devices with mounted filesystem.
-        if dev.mountpoints:
-            continue
+        #if not part.is_valid_dev(dev):
+        #    continue
+        #if not part.is_valid_fs(dev.filesystem):
+        #    continue
+        ## skip any devices with mounted filesystem.
+        #if dev.mountpoints:
+        #    continue
         candidates.append(dev)
     return candidates
 

@@ -28,6 +28,13 @@ class SignatureDeviceError(DeviceError):
         DeviceError.__init__(self, dev, message)
 
 
+class MountedDeviceError(DeviceError):
+
+    def __init__(self, dev, *args):
+        message = "is currently mounted, no harm will be done"
+        DeviceError.__init__(self, dev, message)
+
+
 class BlockDevice(object):
 
     def __init__(self, gudev):
@@ -97,6 +104,8 @@ class BlockDevice(object):
     def validate(self):
         if self.devtype == 'disk' and self.scheme and self.filesystem:
             raise SignatureDeviceError(self)
+        if self.mountpoints:
+            raise MountedDeviceError(self)
 
     @property
     def mountpoints(self):
@@ -123,9 +132,11 @@ class BlockDevice(object):
             return mntpnt
 
     def get_parents(self):
+        """Gives the list of direct parent(s)"""
         return []
 
     def get_root_parents(self):
+        """Give the list of the very first parent(s)"""
         if not self.get_parents():
             return [self]
 
@@ -168,8 +179,8 @@ class PartitionDevice(BlockDevice):
         for dev in block_devices:
             if os.path.samefile(dev.syspath, parent):
                 return [dev]
-        # Can't be here.
-        raise Exception("partition %s has no parent" % self.devpath)
+        # Can't be reached.
+        raise DeviceError(self, "partition %s has no direct parent !")
 
 
 __uevent_handlers = []
