@@ -60,6 +60,10 @@ class BlockDevice(object):
         return self._gudev.get_devtype()
 
     @property
+    def major(self):
+        return self._gudev.get_property("MAJOR")
+
+    @property
     def model(self):
         return self._gudev.get_property("ID_MODEL")
 
