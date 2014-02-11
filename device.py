@@ -12,7 +12,7 @@ block_devices = []
 
 def find_device(syspath):
     for dev in block_devices:
-        if dev.syspath == os.path.realpath(syspath):
+        if os.path.samefile(dev.syspath, syspath):
             return dev
 
 
@@ -250,12 +250,10 @@ class PartitionDevice(BlockDevice):
         return self._gudev.get_property("ID_PART_ENTRY_NAME")
 
     def get_parents(self):
-        parent = os.path.join(self.syspath, "..")
-        for dev in block_devices:
-            if os.path.samefile(dev.syspath, parent):
-                return [dev]
-        # Can't be reached.
-        raise DeviceError(self, "partition %s has no direct parent !")
+        pdev = find_device(os.path.join(self.syspath, ".."))
+        if not pdev:
+            raise DeviceError(self, "partition has no direct parent !")
+        return [pdev]
 
 
 __uevent_handlers = []
