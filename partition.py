@@ -232,6 +232,10 @@ def get_installable_devices(part, all=False):
         if dev.devtype == 'disk' and dev.scheme:
             continue
 
+        # skip component devices added to an MD array
+        if dev.filesystem in ("linux_raid_member",):
+            continue
+
         # Following devices can't be a good candidate.
         if type(dev) is device.CdromDevice:
             continue

@@ -10,6 +10,12 @@ import os
 block_devices = []
 
 
+def find_device(syspath):
+    for dev in block_devices:
+        if dev.syspath == os.path.realpath(syspath):
+            return dev
+
+
 class DeviceError(Exception):
     """Base class for exceptions for the device module."""
 
@@ -200,6 +206,32 @@ class CdromDevice(BlockDevice):
         return "SCSI CDROM"
 
 
+class MetadiskDevice(BlockDevice):
+
+    @property
+    def model(self):
+        return "MD (%s)" % self.level
+
+    @property
+    def level(self):
+        return self._gudev.get_property("MD_LEVEL")
+
+    @property
+    def metadata_version(self):
+        return self._gudev.get_property("MD_METADATA")
+
+    def get_parents(self):
+        parents = []
+        md_dir = os.path.join(self.syspath, 'md')
+        for f in os.listdir(md_dir):
+            if f.startswith('dev-'):
+                parent = find_device(os.path.join(md_dir, f, 'block'))
+                if parent:
+                    parents.append(parent)
+        assert(parents)
+        return parents
+
+
 class PartitionDevice(BlockDevice):
 
     def __init__(self, gudev):
@@ -244,6 +276,8 @@ def __on_add_uevent(gudev):
         bdev = FloppyDevice(gudev)
     elif gudev.get_property("MAJOR") == "7":
         bdev = LoopDevice(gudev)
+    elif gudev.get_property("MAJOR") == "9":
+        bdev = MetadiskDevice(gudev)
     elif gudev.get_property("ID_CDROM_DVD") == "1":
         bdev = CdromDevice(gudev)
     elif gudev.get_property("ID_CDROM") == "1":
