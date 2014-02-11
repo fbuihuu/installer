@@ -172,7 +172,7 @@ class BootPartition(Partition):
     def _validate_dev(self, dev):
         if dev.devtype != 'partition':
             #
-            # For now the only supported case if dev is a disk is when
+            # For now the only supported case: dev is a disk is when
             # it's a RAID1 MD device using 0.9 metadata.
             #
             if type(dev) is not device.MetadiskDevice:
@@ -245,18 +245,23 @@ def find_partition(name):
 
 def get_installable_devices(part, all=False):
     candidates = []
-    in_use_devices = [p.device for p in partitions if p != part and p.device]
+
+    #
+    # Build the list of devices currently selected by partitions and
+    # exclude them.
+    #
+    busy_devices = [p.device for p in partitions if p != part and p.device]
+
+    # Only consider leaf devices.
+    leaves = list(device.block_devices)
     for dev in device.block_devices:
+        for parent in dev.get_parents():
+            if parent in leaves:
+                leaves.remove(parent)
+
+    for dev in leaves:
         # skip already in use devices
-        if dev in in_use_devices:
-            continue
-
-        # Disks with partitions are not showed.
-        if dev.devtype == 'disk' and dev.scheme:
-            continue
-
-        # skip component devices added to an MD array
-        if dev.filesystem in ("linux_raid_member",):
+        if dev in busy_devices:
             continue
 
         # Following devices can't be a good candidate.

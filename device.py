@@ -220,6 +220,11 @@ class MetadiskDevice(BlockDevice):
     def metadata_version(self):
         return self._gudev.get_property("MD_METADATA")
 
+    @property
+    def scheme(self):
+        parent = self.get_parents()[0]
+        return parent.scheme
+
     def get_parents(self):
         parents = []
         md_dir = os.path.join(self.syspath, 'md')
