@@ -14,6 +14,13 @@ class PartitionError(Exception):
     """Base class for exceptions in the partition module"""
 
 
+class BootPartitionError(PartitionError):
+
+    def __init__(self):
+        message = _("only disk partition or RAID1 with v0.9 metadata devices are allowed")
+        PartitionError.__init__(self, message)
+
+
 class Partition(object):
 
     def __init__(self, name, is_optional=True, minsize=0):
@@ -163,14 +170,30 @@ class BootPartition(Partition):
         Partition._validate_fs(self, fs)
 
     def _validate_dev(self, dev):
-        # Since we make sure that the device used for /boot is a
-        # partition, the parent disk has a valid partition table.
-        if dev.devtype != 'partition' or dev.is_compound():
-            raise device.DeviceError(dev, "must be a (raw) disk partition")
+        if dev.devtype != 'partition':
+            #
+            # For now the only supported case if dev is a disk is when
+            # it's a RAID1 MD device using 0.9 metadata.
+            #
+            if type(dev) is not device.MetadiskDevice:
+                raise BootPartitionError()
+
+            if dev.level != 'raid1':
+                raise BootPartitionError()
+
+            if dev.metadata_version != '0.90':
+                raise BootPartitionError()
+        else:
+            #
+            # Ok looks a simple case, check that dev is a 'raw' disk
+            # partition.
+            #
+            if dev.is_compound():
+                raise BootPartitionError()
 
         if system.is_efi():
             if dev.scheme != 'gpt':
-                raise device.DeviceError(dev, "GPT is needed on UEFI systems")
+                raise PartitionError("GPT is required on UEFI systems")
 
         Partition._validate_dev(self, dev)
 
