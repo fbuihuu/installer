@@ -61,7 +61,7 @@ class BlockDevice(object):
 
     @property
     def major(self):
-        return self._gudev.get_property("MAJOR")
+        return int(self._gudev.get_property("MAJOR"))
 
     @property
     def model(self):
@@ -170,6 +170,36 @@ class BlockDevice(object):
                          for f, v in lines])
 
 
+class RamDevice(BlockDevice):
+
+    @property
+    def model(self):
+        return "RAM disk"
+
+
+class LoopDevice(BlockDevice):
+
+    @property
+    def model(self):
+        return "loopback device"
+
+
+class FloppyDevice(BlockDevice):
+
+    @property
+    def model(self):
+        return "floppy disk"
+
+
+class CdromDevice(BlockDevice):
+
+    @property
+    def model(self):
+        if super(CdromDevice, self).model:
+            return super(CdromDevice, self).model
+        return "SCSI CDROM"
+
+
 class PartitionDevice(BlockDevice):
 
     def __init__(self, gudev):
@@ -208,6 +238,16 @@ def __notify_uevent_handlers(action, bdev):
 def __on_add_uevent(gudev):
     if gudev.get_devtype() == "partition":
         bdev = PartitionDevice(gudev)
+    elif gudev.get_property("MAJOR") == "1":
+        bdev = RamDevice(gudev)
+    elif gudev.get_property("MAJOR") == "2":
+        bdev = FloppyDevice(gudev)
+    elif gudev.get_property("MAJOR") == "7":
+        bdev = LoopDevice(gudev)
+    elif gudev.get_property("ID_CDROM_DVD") == "1":
+        bdev = CdromDevice(gudev)
+    elif gudev.get_property("ID_CDROM") == "1":
+        bdev = CdromDevice(gudev)
     else:
         bdev = BlockDevice(gudev)
     block_devices.append(bdev)

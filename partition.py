@@ -210,25 +210,31 @@ def find_partition(name):
         if part.name == name:
             return part
 
-def get_candidates(part):
+def get_installable_devices(part, all=False):
     candidates = []
     in_use_devices = [p.device for p in partitions if p != part and p.device]
     for dev in device.block_devices:
+        # skip already in use devices
         if dev in in_use_devices:
             continue
-        #
-        # Work on partitions first.
-        #
+
+        # Disks with partitions are not showed.
         if dev.devtype == 'disk' and dev.scheme:
             continue
-        #if not part.is_valid_dev(dev):
-        #    continue
-        #if not part.is_valid_fs(dev.filesystem):
-        #    continue
-        ## skip any devices with mounted filesystem.
-        #if dev.mountpoints:
-        #    continue
+
+        # Following devices can't be a good candidate.
+        if type(dev) is device.CdromDevice:
+            continue
+
+        # Those ones might be used (for testing purposes) but shouldn't
+        # during a real installation.
+        if not all and type(dev) in (device.RamDevice,
+                                     device.LoopDevice,
+                                     device.FloppyDevice):
+            continue
+
         candidates.append(dev)
+
     return candidates
 
 def __uevent_callback(action, bdev):
@@ -244,7 +250,7 @@ def __uevent_callback(action, bdev):
         for part in partitions:
             if part.device == bdev:
                 part.device = None
-                if bdev in get_candidates(part):
+                if bdev in get_installable_devices(part):
                     part.device = bdev
 
 device.listen_uevent(__uevent_callback)
