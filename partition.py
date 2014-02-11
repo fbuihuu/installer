@@ -125,16 +125,26 @@ class RootPartition(Partition):
         if fs in ('msdos', 'fat', 'vfat', 'ntfs'):
             raise PartitionError("come on, %s for your root partition !" % fs)
 
-        # for any other fancy FS, we request a separate /boot.
-        boot = find_partition("/boot")
-        boot.is_optional = fs in ('ext2', 'ext3', 'ext4', 'btrfs')
-
     def _validate_dev(self, dev):
         Partition._validate_dev(self, dev)
-        # For any fancy devices (RAID, etc...), we request a separate
-        # /boot.
+
+    @Partition.device.setter
+    def device(self, dev):
+        Partition.device.fset(self, dev)
+
+        is_optional = True
+        if dev:
+            # for any other fancy FS, we request a separate /boot.
+            if dev.filesystem not in ('ext2', 'ext3', 'ext4', 'btrfs'):
+                is_optional = False
+
+            # For any fancy devices (RAID, etc...), we request a separate
+            # /boot.
+            elif dev.devtype != 'partition' or dev.is_compound():
+                is_optional = False
+
         boot = find_partition("/boot")
-        boot.is_optional = dev.devtype == 'partition' and not dev.is_compound()
+        boot.is_optional = is_optional
 
 
 class BootPartition(Partition):
