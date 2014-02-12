@@ -96,14 +96,37 @@ class _InstallStep(Step):
         #
         if is_efi():
             self._do_bootloader_on_efi()
+            return
+
+        if '/boot' in self._fstab:
+            bootable = self._fstab['/boot'].partition.device
         else:
-            rootdev = self._fstab['/'].partition.device
-            if rootdev.scheme == 'dos':
-                self._do_bootloader_on_mbr()
-            elif rootdev.scheme == 'gpt':
-                raise NotImplementedError()
-            else:
-                raise NotImplementedError()
+            bootable = self._fstab['/'].partition.device
+
+        #
+        # Find out which partition scheme is used by this
+        # device. The device can be a RAID disk based on disk
+        # partitions. In that case the RAID device does not have
+        # a partition scheme but its parents have.
+        #
+        for dev in bootable.iterparents():
+            scheme = dev.scheme
+            if scheme:
+                break
+
+        if not scheme:
+            self._failed("failed to find out the partition scheme used")
+            return
+        if scheme == 'dos':
+            self._do_bootloader_on_mbr(bootable)
+            return
+        if scheme == 'gpt':
+            raise NotImplementedError()
+
+        self._failed("bootable device has unsupported partition scheme '%s'", scheme)
+
+    def _do_initramfs(self):
+        raise NotImplementedError()
 
     def _xchroot(self, *args, **kwargs):
         if "logger" not in kwargs:
@@ -278,14 +301,13 @@ class MandrivaInstallStep(_InstallStep):
     def _do_bootloader_on_efi(self):
         raise NotImplementedError()
 
-    def _do_bootloader_on_mbr(self):
+    def _do_bootloader_on_mbr(self, bootable):
         cmd = "grub2-mkconfig -o /boot/grub2/grub.cfg"
         self.logger.debug(cmd)
         self._xchroot(cmd, bind_mounts=['/dev'])
 
-        # Install grub on the disk(s) containing /
-        rootdev = self._fstab['/'].partition.device
-        for parent in rootdev.get_root_parents():
+        # Install grub on the bootable disk(s)
+        for parent in bootable.get_root_parents():
             cmd = "grub2-install --target=i386-pc %s" % parent.devpath
             self.logger.debug("executing %s" % cmd)
             self._xchroot(cmd, bind_mounts=['/dev'])

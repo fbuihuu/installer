@@ -155,6 +155,13 @@ class BlockDevice(object):
             roots.extend(parent.get_root_parents())
         return roots
 
+    def iterparents(self):
+        """Helper to recursively yield all device parents"""
+        yield self
+        for p in self.get_parents():
+            for gp in p.iterparents():
+                yield gp
+
     def is_compound(self):
         """Indicate if the device is built unpon other devices"""
         parents = self.get_parents()
@@ -219,11 +226,6 @@ class MetadiskDevice(BlockDevice):
     @property
     def metadata_version(self):
         return self._gudev.get_property("MD_METADATA")
-
-    @property
-    def scheme(self):
-        parent = self.get_parents()[0]
-        return parent.scheme
 
     def get_parents(self):
         parents = []
