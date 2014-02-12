@@ -141,7 +141,7 @@ class ArchInstallStep(_InstallStep):
     def _do_rootfs(self):
         self.logger.info("Initializing rootfs with pacstrap...")
 
-        cmd = "pacstrap %s base" % self._root
+        cmd = "pacstrap %s base mdadm" % self._root
         self._pacstrap = Popen(cmd, shell=True, stdout=PIPE, stderr=STDOUT)
         pacstrap = self._pacstrap
 
@@ -248,7 +248,7 @@ class MandrivaInstallStep(_InstallStep):
     def _do_rootfs(self):
         self.logger.info("Initializing rootfs with urpmi...")
 
-        packages = "basesystem urpmi dracut kernel-server"
+        packages = "basesystem urpmi dracut kernel-server mdadm"
         self._urpmi = self._urpmi_popen("--root %s %s" % (self._root, packages))
         urpmi = self._urpmi
 
