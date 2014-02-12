@@ -121,6 +121,7 @@ class _InstallStep(Step):
             self._do_rootfs()
             self._do_fstab()
             self._do_bootloader()
+            self._do_initramfs()
             self._done()
         finally:
             unmount_rootfs()
@@ -223,6 +224,9 @@ default     archlinux
     def _do_bootloader_on_mbr(self):
         raise NotImplementedError()
 
+    def _do_initramfs(self):
+        self._xchroot("mkinitcpio -p linux")
+
 
 class MandrivaInstallStep(_InstallStep):
 
@@ -286,6 +290,20 @@ class MandrivaInstallStep(_InstallStep):
             self.logger.debug("executing %s" % cmd)
             self._xchroot(cmd, bind_mounts=['/dev'])
 
+    def _do_initramfs(self):
+        cmd = "dracut --hostonly --force"
+        #
+        # Even if the initramfs has been built during kernel
+        # installation, we regenerate it now so it includes all tools
+        # needed to mount the rootfs since the rootfs is completely
+        # initialized.
+        #
+        for f in os.listdir(os.path.join(self._root, 'boot')):
+            if f.startswith("initrd-"):
+                initramfs = os.path.join('/boot', f)
+                kversion  = f[7:-4] if f.endswith('.img') else f[7:]
+                self._xchroot(" ".join((cmd, initramfs, kversion)))
+                break
 
 def InstallStep(ui):
     if distribution.distributor == "Mandriva":
