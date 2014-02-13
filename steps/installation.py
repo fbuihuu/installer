@@ -282,28 +282,34 @@ class MandrivaInstallStep(_InstallStep):
     def __init__(self, ui):
         _InstallStep.__init__(self, ui)
         self._urpmi = None
-        self._urpmi_default_opts  = "--no-verify --auto --no-suggests --excludedocs "
-        self._urpmi_default_opts += "--downloader=curl --curl-options='-s' "
+        self._urpmi_default_opts  = "--no-verify --auto "
+        self._urpmi_default_opts += "--no-suggests --excludedocs "
+        self._urpmi_default_opts += "--downloader=curl --curl-options='-s'"
 
     def _cancel(self):
         if self._urpmi:
             self._urpmi.terminate()
             self._upmi = None
 
-    def _urpmi_popen(self, cmd):
-        opts = self._urpmi_default_opts + cmd
-        return Popen('urpmi ' + opts, shell=True, stdout=PIPE, stderr=STDOUT)
+    def _urpmi_popen(self, cmd, stdout=PIPE):
+        opts = self._urpmi_default_opts + ' --root ' + self._root + ' ' + cmd
+        self._urpmi = Popen('urpmi ' + opts, shell=True, stdout=stdout, stderr=STDOUT)
+        return self._urpmi
 
     def _urpmi_call(self, cmd):
-        opts = self._urpmi_default_opts + ' ' + cmd
-        check_call('urpmi ' + opts, shell=True)
+        self._urpmi_popen(cmd, stdout=DEVNULL)
+        self._urpmi_wait()
+
+    def _urpmi_wait(self):
+        retcode = self._urpmi.wait()
+        self._urpmi = None
+        return retcode
 
     def _do_rootfs(self):
         self.logger.info("Initializing rootfs with urpmi...")
 
         packages = "basesystem urpmi dracut kernel-server mdadm"
-        self._urpmi = self._urpmi_popen("--root %s %s" % (self._root, packages))
-        urpmi = self._urpmi
+        urpmi = self._urpmi_popen(packages)
 
         pattern = re.compile(r'\s+([0-9]+)/([0-9]+): ')
         while urpmi.poll() is None:
@@ -319,14 +325,12 @@ class MandrivaInstallStep(_InstallStep):
             count, total = map(int, match.group(1, 2))
             self.set_completion(2 + count * 97 / total)
 
-        retcode = urpmi.wait()
-        self._urpmi = None
-        if retcode:
+        if self._urpmi_wait():
             raise CalledProcessError(retcode, cmd)
 
     def _do_i18n(self):
         locale = self._ui.installer.data["localization/locale"]
-        self._urpmi_call('--root %s locales-%s' % (self._root, locale.split('_')[0]))
+        self._urpmi_call('locales-%s' % locale.split('_')[0])
         _InstallStep._do_i18n(self)
 
     def _do_bootloader_on_efi(self):
