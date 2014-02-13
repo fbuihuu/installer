@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 #
 
-from sets import Set
 import logging
 from threading import current_thread, Thread, RLock
 from utils import Signal
 
 
 _all_steps = []
-_current_provides = Set([])
+_current_provides = set([])
 _rlock = RLock()
 
 def _recalculate_step_dependencies(step):
@@ -63,8 +62,8 @@ class Step(object):
         self._ui = ui
         self._thread = None
         self._logger = StepLogAdapter(ui.logger, {'title': self.name})
-        self.requires = Set(self.requires)
-        self.provides = Set(self.provides)
+        self.requires = set(self.requires)
+        self.provides = set(self.provides)
         self._completion = 0
 
         if len(self.requires) == 0:
