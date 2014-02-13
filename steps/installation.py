@@ -128,6 +128,25 @@ class _InstallStep(Step):
     def _do_initramfs(self):
         raise NotImplementedError()
 
+    def _do_i18n(self):
+        # Don't rely on localectl(1), it may be missing on old
+        # systems.
+
+        locale = self._ui.installer.data["localization/locale"]
+        keymap = self._ui.installer.data["localization/keyboard"]
+        tzone  = self._ui.installer.data["localization/timezone"]
+
+        self.logger.debug("using locale '%s'" % locale)
+        with open(self._root + '/etc/locale.conf', 'w') as f:
+            f.write("LANG=%s\n" % locale)
+
+        self.logger.debug("using keymap '%s'" % keymap)
+        with open(self._root + '/etc/vconsole.conf', 'w') as f:
+            f.write("KEYMAP=%s\n" % keymap)
+
+        self.logger.debug("selecting timezone '%s'" % tzone)
+        self._xchroot('ln -sf /usr/share/zoneinfo/%s /etc/localtime' % tzone)
+
     def _xchroot(self, *args, **kwargs):
         if "logger" not in kwargs:
             kwargs["logger"] = self.logger
@@ -142,6 +161,7 @@ class _InstallStep(Step):
 
         try:
             self._do_rootfs()
+            self._do_i18n()
             self._do_fstab()
             self._do_bootloader()
             self._do_initramfs()
@@ -212,6 +232,12 @@ class ArchInstallStep(_InstallStep):
         retcode = pacstrap.wait()
         if retcode:
             raise CalledProcessError(retcode, cmd)
+
+    def _do_i18n(self):
+        # Uncomment all related locales
+        self._xchroot("sed -i s/^#\(%s.*\)/\1/ /etc/locale.gen")
+        self._xchroot("locale-gen")
+        _InstallStep._do_i18n(self)
 
     def _do_bootloader_on_efi(self):
         self.logger.info("installing gummiboot as bootloader on EFI system")
@@ -298,6 +324,11 @@ class MandrivaInstallStep(_InstallStep):
         if retcode:
             raise CalledProcessError(retcode, cmd)
 
+    def _do_i18n(self):
+        locale = self._ui.installer.data["localization/locale"]
+        self._urpmi_call('--root %s locales-%s' % (self._root, locale.split('_')[0]))
+        _InstallStep._do_i18n(self)
+
     def _do_bootloader_on_efi(self):
         raise NotImplementedError()
 
@@ -326,6 +357,7 @@ class MandrivaInstallStep(_InstallStep):
                 kversion  = f[7:-4] if f.endswith('.img') else f[7:]
                 self._xchroot(" ".join((cmd, initramfs, kversion)))
                 break
+
 
 def InstallStep(ui):
     if distribution.distributor == "Mandriva":

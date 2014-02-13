@@ -47,7 +47,7 @@ class InstallerData(dict):
 
         if key == "localization/country":
             self["localization/locale"]   = country_dict[value][3]
-            self["localization/timezone"] = country_dict[value][2]
+            self["localization/timezone"] = '/'.join((country_dict[value][0], country_dict[value][2]))
             self["localization/keyboard"] = country_dict[value][1]
 
         dict.__setitem__(self, key, value)
