@@ -19,6 +19,7 @@ class WelcomeView(StepView):
 
     def __init__(self, ui, step):
         StepView.__init__(self, ui, step)
+        self._zone = None
 
         self.page = widgets.Page()
         # Make the list centered inside its container
@@ -31,13 +32,14 @@ class WelcomeView(StepView):
         self.page.title = _("Select your location")
 
     def on_click(self, entry):
-        place = entry.text
+        zone = entry.text
 
-        if settings.I18n.country  != place:
-            settings.I18n.country  = place
-            settings.I18n.timezone = country_dict[place][0]
-            settings.I18n.keymap   = country_dict[place][1]
-            settings.I18n.locale   = country_dict[place][2]
+        if self._zone != zone:
+            self._zone = zone
+            settings.I18n.country  = zone
+            settings.I18n.timezone = country_dict[zone][0]
+            settings.I18n.keymap   = country_dict[zone][1]
+            settings.I18n.locale   = country_dict[zone][2]
 
             # Change the language of the whole ui.
             self._ui.language = settings.I18n.locale
