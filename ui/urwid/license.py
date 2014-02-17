@@ -4,6 +4,7 @@
 from ui.urwid import StepView
 import urwid
 import widgets
+from settings import settings
 
 
 class LicenseView(StepView):
@@ -35,9 +36,9 @@ class LicenseView(StepView):
         walker.append(urwid.Button(_("Refuse"), on_press=self.on_disagreed))
 
     def on_accepted(self, button):
-        self._ui.installer.data["license/status"] = "accepted"
+        settings.License.status = "accepted"
         self.run()
 
     def on_disagreed(self, button):
-        self._ui.installer.data["license/status"] = "refused"
+        settings.License.status = "refused"
         self.run()

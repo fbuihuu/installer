@@ -4,6 +4,7 @@
 from steps import Step
 import partition
 from subprocess import check_call
+from settings import settings
 
 
 class ExitStep(Step):
@@ -22,7 +23,7 @@ class ExitStep(Step):
         return
 
     def _process(self):
-        action = self._ui.installer.data["exit/action"]
+        action = settings.exit.action
         if action == "Quit":
             self._done("quitting...")
             self._ui.quit()

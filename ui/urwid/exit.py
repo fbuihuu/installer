@@ -4,13 +4,8 @@
 from ui.urwid import StepView
 import urwid
 import widgets
+from settings import settings
 
-#
-# Language selection should be immediate.
-#
-# Layout should be effective when validating since keyboard is needed
-# later (root password setup for example).
-#
 
 class ExitView(StepView):
 
@@ -30,5 +25,5 @@ class ExitView(StepView):
         self.page.title = _("Your system is ready to be used")
 
     def on_click(self, entry):
-        self._ui.installer.data["exit/action"] = entry.text
+        settings.exit.action = entry.text
         self.run()

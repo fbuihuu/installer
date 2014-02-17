@@ -7,7 +7,6 @@ import locale
 import logging
 import gettext
 from ui.urwid import UrwidUI
-from l10n import country_dict
 
 
 def parse_cmdline():
@@ -35,28 +34,6 @@ logging.basicConfig(format='%(name)-12s%(levelname)-8s%(asctime)s  %(message)s',
 logger = logging.getLogger('installer')
 
 
-class InstallerData(dict):
-
-    def __init__(self):
-        dict.__init__(self)
-
-    def __getitem__(self, key):
-        return dict.get(self, key, None)
-
-    def __setitem__(self, key, value):
-
-        if key == "localization/country":
-            self["localization/locale"]   = country_dict[value][3]
-            self["localization/timezone"] = '/'.join((country_dict[value][0], country_dict[value][2]))
-            self["localization/keyboard"] = country_dict[value][1]
-
-        dict.__setitem__(self, key, value)
-
-    def __delitem__(self, key):
-        if key in self:
-            dict.__delitem__(self, key)
-
-
 class Installer(object):
 
     __version = "0.0"
@@ -69,7 +46,6 @@ class Installer(object):
         reload(sys)
         sys.setdefaultencoding('utf-8')
 
-        self.data = InstallerData()
         self.ui = UrwidUI(self, lang)
 
     def run(self):

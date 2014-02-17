@@ -4,6 +4,7 @@
 from ui.urwid import StepView
 import urwid
 import widgets
+from settings import settings
 
 
 class PasswordView(StepView):
@@ -45,7 +46,7 @@ class PasswordView(StepView):
         elif not p2:
             self._pile.focus_position = 1
         elif p1 == p2:
-            self._ui.installer.data["password/root"] = p1
+            settings.password.root = p1
             self.run()
         else:
             self.logger.error(_("passwords mismatch"))

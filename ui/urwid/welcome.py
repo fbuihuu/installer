@@ -3,8 +3,10 @@
 
 from ui.urwid import StepView
 import urwid
+from settings import settings
 import widgets
 from l10n import country_dict
+
 
 #
 # Language selection should be immediate.
@@ -30,6 +32,6 @@ class WelcomeView(StepView):
 
     def on_click(self, entry):
         place = entry.text
-        if self._ui.installer.data["localization/country"] != place:
-            self._ui.installer.data["localization/country"] = place
+        if settings.I18n.country != place:
+            settings.I18n.country = place
             self.run()

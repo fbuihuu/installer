@@ -9,6 +9,7 @@ import urwid
 from ui import UI
 import widgets
 import steps
+from settings import settings
 
 
 palette = [
@@ -171,7 +172,7 @@ class UrwidUI(UI):
 
     def _switch_to_summary(self):
         """Switch the current view to the summary view"""
-        self._view.original_widget = SummaryView(self.installer.data)
+        self._view.original_widget = SummaryView()
 
     def _switch_to_help(self):
         """Switch the current view to the help view"""
@@ -301,24 +302,20 @@ class LogView(urwid.WidgetWrap):
 
 class SummaryView(urwid.WidgetWrap):
 
-    def __init__(self, data):
+    def __init__(self):
         items = []
 
-        parent = ""
-        keys = data.keys()
-        keys.sort()
+        for section in settings.sections:
+            items.append(urwid.Text(('sum.section', section.name)))
+            for entry in section.entries:
+                value = urwid.Text(settings.get(section.name, entry))
+                entry = "    " + entry
+                entry = urwid.Text(entry, layout=widgets.FillRightLayout('.'))
 
-        for k in keys:
-            if parent != k.split('/', 1)[0]:
-                parent = k.split('/', 1)[0]
-                items.append(urwid.Divider(" "))
-                items.append(urwid.Text(('sum.section', parent)))
-
-            child = "    " + k.split('/', 1)[1]
-            child = urwid.Text(child, layout=widgets.FillRightLayout('.'))
-            col = urwid.Columns([('weight', 0.6, child),
-                                 ('weight', 1, urwid.Text(data[k]))])
-            items.append(col)
+                col = urwid.Columns([('weight', 0.6, entry),
+                                     ('weight',   1, value)])
+                items.append(col)
+            items.append(urwid.Divider(" "))
 
         walker = urwid.SimpleListWalker(items)
         super(SummaryView, self).__init__(urwid.ListBox(walker))

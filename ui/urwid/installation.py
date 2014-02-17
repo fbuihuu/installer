@@ -7,6 +7,7 @@ import widgets
 import utils
 import partition
 import device
+from settings import settings
 
 
 class PartitionEntryWidget(urwid.WidgetWrap):
@@ -160,9 +161,9 @@ class InstallView(StepView):
     def _update_install_data(self, part, dev):
         name = part.name if part.name != "/" else "/root"
         if dev:
-            self._ui.installer.data["partition" + name] = dev.devpath
+            settings.set("Partition", name, dev.devpath)
         else:
-            del self._ui.installer.data["partition" + name]
+            settings.remove("Partition", name)
 
     def _on_clear_partition(self, part):
         self._update_install_data(part, None)

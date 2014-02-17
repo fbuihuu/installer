@@ -2,14 +2,13 @@
 # -*- coding: utf-8 -*-
 #
 
-# [1]: geographic zone (same one used by timezone)
+# [1]: default time zone
 # [2]: default keymap
-# [3]: default timezone
-# [4]: default locale (<language>_<country>)
+# [3]: default locale (<language>_<country>)
 
 country_dict = {
-    'America':  [ 'America', 'us',       'New_York', 'en_US'],
-    'Brasil':   [ 'Brazil',  'br-abnt2', 'West',     'pt_BR'],
-    'Deutsch':  [ 'Europe',  'de',       'Berlin',   'de_DE'],
-    'France':   [ 'Europe',  'fr',       'Paris',    'fr_FR'],
+    'America':  [ 'America/New_York', 'us',        'en_US'],
+    'Brasil':   [ 'Brazil/West',      'br-abnt2',  'pt_BR'],
+    'Deutsch':  [ 'Europe/Berlin',    'de',        'de_DE'],
+    'France':   [ 'Europe/Paris',     'fr',        'fr_FR'],
 }

@@ -4,6 +4,7 @@
 from subprocess import check_call
 from steps import Step
 from partition import mount_rootfs, unmount_rootfs
+from settings import settings
 
 
 class PasswordStep(Step):
@@ -22,7 +23,7 @@ class PasswordStep(Step):
         pass
 
     def _process(self):
-        password = self._ui.installer.data['password/root']
+        password = settings.password.root
 
         root = mount_rootfs()
         try:

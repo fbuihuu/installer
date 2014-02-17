@@ -10,6 +10,7 @@ from steps import Step
 from partition import mount_rootfs, unmount_rootfs, mounted_partitions
 from system import distribution, is_efi
 import systemd
+from settings import settings
 
 
 try:
@@ -132,9 +133,9 @@ class _InstallStep(Step):
         # Don't rely on localectl(1), it may be missing on old
         # systems.
 
-        locale = self._ui.installer.data["localization/locale"]
-        keymap = self._ui.installer.data["localization/keyboard"]
-        tzone  = self._ui.installer.data["localization/timezone"]
+        locale = settings.I18n.locale
+        keymap = settings.I18n.keyboard
+        tzone  = settings.I18n.timezone
 
         self.logger.debug("using locale '%s'" % locale)
         with open(self._root + '/etc/locale.conf', 'w') as f:
@@ -329,7 +330,7 @@ class MandrivaInstallStep(_InstallStep):
             raise CalledProcessError(retcode, cmd)
 
     def _do_i18n(self):
-        locale = self._ui.installer.data["localization/locale"]
+        locale = settings.I18n.locale
         self._urpmi_call('locales-%s' % locale.split('_')[0])
         _InstallStep._do_i18n(self)
 
