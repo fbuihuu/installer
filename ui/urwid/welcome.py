@@ -32,6 +32,16 @@ class WelcomeView(StepView):
 
     def on_click(self, entry):
         place = entry.text
-        if settings.I18n.country != place:
-            settings.I18n.country = place
+
+        if settings.I18n.country  != place:
+            settings.I18n.country  = place
+            settings.I18n.timezone = country_dict[place][0]
+            settings.I18n.keymap   = country_dict[place][1]
+            settings.I18n.locale   = country_dict[place][2]
+
+            # Change the language of the whole ui.
+            self._ui.language = settings.I18n.locale
+
             self.run()
+        else:
+            self._ui._select_next_step()

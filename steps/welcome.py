@@ -22,14 +22,6 @@ class WelcomeStep(Step):
     def _do_country(self, place):
         self._country = place
 
-        timezone, keymap, locale = country_dict[place]
-        settings.I18n.timezone = timezone
-        settings.I18n.keymap   = keymap
-        settings.I18n.locale   = locale
-
-        # Change the language of the whole ui.
-        self._ui.language = settings.I18n.locale
-
         # Switch the keyboard layout accordingly.
         layout = settings.I18n.keyboard
         # if system.keyboard.get_layout() != layout:
