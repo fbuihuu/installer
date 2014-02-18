@@ -2,6 +2,7 @@
 #
 
 import os
+import sys
 import time
 import collections
 import logging
@@ -10,6 +11,7 @@ from ui import UI
 import widgets
 import steps
 from settings import settings
+import utils
 
 
 palette = [
@@ -54,6 +56,9 @@ class UrwidUI(UI):
         self._watch_pipe_queue = collections.deque()
         UI.__init__(self, installer, lang)
         urwid.set_encoding("utf8")
+
+        if not sys.stdout.isatty():
+            utils.die(_("urwid frontend requires a tty"))
 
     def _load_steps(self):
         # FIXME: modules loading should be in abstract class.
