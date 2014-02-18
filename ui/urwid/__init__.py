@@ -300,6 +300,7 @@ class LogView(urwid.WidgetWrap):
             if record.levelno > logging.INFO:
                 txt = urwid.AttrMap(txt, 'log.warn')
             self._walker.append(txt)
+            self._walker.set_focus(len(self._walker) - 1)
 
     def __init__(self):
         self._walker = urwid.SimpleFocusListWalker([])
