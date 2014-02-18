@@ -64,27 +64,28 @@ class PartitionListWidget(urwid.WidgetWrap):
 
     @property
     def _walkers(self):
-        return (self._pile[0].body, self._pile[2].body)
+        return ((0, self._pile[0].body), (2, self._pile[2].body))
 
     def get_focus(self):
         return self._pile.focus.get_focus()[0].partition
 
     def update_focus(self):
         """Move the focus on the first unconfigured entry"""
-        for walker in self._walkers:
-            for idx, entry in enumerate(walker):
+        for i, walker in self._walkers:
+            for j, entry in enumerate(walker):
                 if not entry.partition.device:
-                    walker.set_focus(idx)
+                    walker.set_focus(j)
+                    self._pile.focus_position = i
                     return
 
     def refresh(self):
-        for walker in self._walkers:
+        for idx, walker in self._walkers:
             del walker[:]
         for entry in self._entries:
             if not entry.partition.is_optional():
-                self._walkers[0].append(entry)
+                self._walkers[0][1].append(entry)
             else:
-                self._walkers[1].append(entry)
+                self._walkers[1][1].append(entry)
             entry.refresh()
 
 
