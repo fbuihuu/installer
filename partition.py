@@ -34,20 +34,15 @@ class Partition(object):
         return self._name
 
     @property
-    def is_optional(self):
-        return self._is_optional
-
-    @is_optional.setter
-    def is_optional(self, optional):
-        self._is_optional = optional
-
-    @property
     def minsize(self):
         return self._minsize
 
     @property
     def _invalid_fs(self):
         return ("swap", "linux_raid_member")
+
+    def is_optional(self):
+        return self._is_optional
 
     def _validate_fs(self, fs):
         """Check the passed fs matches this partition requirements"""
@@ -151,7 +146,7 @@ class RootPartition(Partition):
                 is_optional = False
 
         boot = find_partition("/boot")
-        boot.is_optional = is_optional
+        boot._is_optional = is_optional
 
 
 class BootPartition(Partition):
@@ -159,10 +154,14 @@ class BootPartition(Partition):
     def __init__(self):
         Partition.__init__(self, "/boot")
         if system.is_efi():
-            self._is_optional = False
             self._minsize = 1024 * 1024 * 1024
         else:
             self._minsize = 50 * 1000 * 1000
+
+    def is_optional(self):
+        if system.is_efi():
+            return False
+        return self._is_optional
 
     def _validate_fs(self, fs):
         if system.is_efi() and fs != "vfat":

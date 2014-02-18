@@ -81,7 +81,7 @@ class PartitionListWidget(urwid.WidgetWrap):
         for walker in self._walkers:
             del walker[:]
         for entry in self._entries:
-            if not entry.partition.is_optional:
+            if not entry.partition.is_optional():
                 self._walkers[0].append(entry)
             else:
                 self._walkers[1].append(entry)
@@ -152,7 +152,7 @@ class InstallView(StepView):
 
     def _update_install_button(self):
         for part in partition.partitions:
-            if not part.is_optional and part.device is None:
+            if not part.is_optional() and part.device is None:
                 self._partition_page.footer = None
                 return
         self._partition_page.footer = self._install_button
