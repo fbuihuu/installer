@@ -58,6 +58,7 @@ class _InstallStep(Step):
         Step.__init__(self, ui)
         self._root = None
         self._fstab = {}
+        self._extra_packages = []
 
     @property
     def name(self):
@@ -157,6 +158,8 @@ class _InstallStep(Step):
         raise NotImplementedError()
 
     def _process(self):
+        if settings.Packages.list:
+            self._read_extra_package_file(settings.Packages.list)
         self.set_completion(1)
         self._root = mount_rootfs()
 
@@ -170,6 +173,15 @@ class _InstallStep(Step):
         finally:
             unmount_rootfs()
             self._root = None
+
+    def _read_extra_package_file(self, pkgfile):
+        self.logger.debug("using package list %s" % pkgfile)
+        with open(settings.Packages.list, 'r') as f:
+            for line in f:
+                line = line.partition('#')[0]
+                line = line.strip()
+                if line:
+                    self._extra_packages.append(line)
 
 
 class ArchInstallStep(_InstallStep):
@@ -186,7 +198,8 @@ class ArchInstallStep(_InstallStep):
     def _do_rootfs(self):
         self.logger.info("Initializing rootfs with pacstrap...")
 
-        cmd = "pacstrap %s base mdadm" % self._root
+        packages = ["base", "mdadm"] + self._extra_packages
+        cmd = "pacstrap %s %s" % (self._root, " ".join(packages))
         self._pacstrap = Popen(cmd, shell=True, stdout=PIPE, stderr=STDOUT)
         pacstrap = self._pacstrap
 
@@ -309,8 +322,9 @@ class MandrivaInstallStep(_InstallStep):
     def _do_rootfs(self):
         self.logger.info("Initializing rootfs with urpmi...")
 
-        packages = "basesystem urpmi dracut kernel-server mdadm"
-        urpmi = self._urpmi_popen(packages)
+        packages = ["basesystem", "urpmi", "dracut", "kernel-server", "mdadm"]
+        packages = packages + self._extra_packages
+        urpmi = self._urpmi_popen(" ".join(packages))
 
         pattern = re.compile(r'\s+([0-9]+)/([0-9]+): ')
         while urpmi.poll() is None:

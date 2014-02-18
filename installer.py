@@ -76,6 +76,17 @@ def main():
                         level=logging.DEBUG)
 
     #
+    # check the extra package list now to catch any errors early.
+    #
+    if settings.Packages.list:
+        # ok this means that a config file has been read.
+        pkgfile = settings.Packages.list
+        pkgfile = os.path.join(os.path.dirname(config_file), pkgfile)
+        if not os.path.exists(pkgfile):
+            die("Can't find package list file")
+        settings.Packages.list = pkgfile
+
+    #
     # Start the frontend interface.
     #
     ui = UrwidUI(None, lang)
