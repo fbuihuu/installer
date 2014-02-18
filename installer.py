@@ -27,7 +27,7 @@ def parse_cmdline():
     return parser.parse_args()
 
 
-logging.basicConfig(format='%(name)-12s%(levelname)-8s%(asctime)s  %(message)s',
+logging.basicConfig(format='%(asctime)s %(levelname)-8s %(name)-12s  %(message)s',
                     datefmt='%H:%M:%S',
                     filename='/tmp/installer.log',
                     level=logging.DEBUG, filemode='w')
