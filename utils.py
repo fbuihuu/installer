@@ -1,6 +1,15 @@
 # -*- coding: utf-8 -*-
 #
 
+from __future__ import print_function
+import sys
+
+
+def die(*args):
+    print(*args, end='\n', file=sys.stderr)
+    exit(1)
+
+
 def pretty_size(size, KiB=True):
     UNITS = {
         1000: ['bytes',  'KB',  'MB',  'GB',  'TB',  'PB'],

@@ -2,66 +2,85 @@
 # -*- coding: utf-8 -*-
 #
 
+import os
 import sys
 import locale
 import logging
 import gettext
+import argparse
 from ui.urwid import UrwidUI
+from settings import settings, load_config_file
+from utils import die
+
+
+VERSION='0.0'
+CONFIG_FILE='/etc/installer/installer.conf'
+LOG_FILE='/tmp/installer.log'
 
 
 def parse_cmdline():
-    """Parses the relevant cmdline arguments
-    """
-    parser = OptionParser()
-    parser.add_option("--dry",
-                      action='store_true',
-                      dest="dry",
-                      default=False,
-                      help="Just write defaults, nothing else")
-    parser.add_option("--debug",
-                      action='store_true',
-                      dest="debug",
-                      default=False,
-                      help="Run in debug mode (suitable for pdb)")
+    """Parses the relevant cmdline arguments"""
+
+    parser = argparse.ArgumentParser(description="An easy way to install your favorite distribution")
+    parser.add_argument("-c", "--config",
+                        metavar='file',
+                        help="Specify a configuration file")
+    parser.add_argument("--log",
+                        dest="logfile",
+                        metavar='file',
+                        help="Specify the log file")
+    parser.add_argument("--version",
+                        action='version',
+                        version=VERSION)
 
     return parser.parse_args()
 
 
-logging.basicConfig(format='%(asctime)s %(levelname)-8s %(name)-12s  %(message)s',
-                    datefmt='%H:%M:%S',
-                    filename='/tmp/installer.log',
-                    level=logging.DEBUG, filemode='w')
-logger = logging.getLogger()
+def main():
+    locale.resetlocale()
+    lang, enc = locale.getlocale()
 
+    reload(sys)
+    sys.setdefaultencoding('utf-8')
 
-class Installer(object):
+    args = parse_cmdline()
 
-    __version = "0.0"
+    #
+    # Config file must be valid if specified by the user. If not
+    # specified, it doesn't matter anymore if it exists or not
+    #
+    if args.config:
+        if not os.path.exists(args.config):
+            die("Can't find config file")
+        config_file = args.config
+    else:
+        config_file = CONFIG_FILE
+    load_config_file(config_file)
 
-    def __init__(self, ui="urwid"):
+    #
+    # Setting up the default logging facility: it uses a log file. If
+    # the user wants to disable this it can pass '--config=/dev/null'.
+    #
+    # Each frontend can add additional hanlders to meet its needs.
+    #
+    logfile = LOG_FILE
 
-        locale.resetlocale()
-        lang, enc = locale.getlocale()
+    if args.logfile:
+        settings.options.logfile = args.logfile
+    if settings.options.logfile:
+        logfile = settings.options.logfile
 
-        reload(sys)
-        sys.setdefaultencoding('utf-8')
+    logging.basicConfig(format='%(asctime)s %(levelname)-8s %(name)-12s  %(message)s',
+                        datefmt='%H:%M:%S',
+                        filename=logfile, filemode='w',
+                        level=logging.DEBUG)
 
-        self.ui = UrwidUI(self, lang)
-
-    def run(self):
-        logger.info("Starting installer")
-        self.ui.run()
-
-    def quit(self):
-        logger.info("Quitting installer")
-        self.ui.quit()
+    #
+    # Start the frontend interface.
+    #
+    ui = UrwidUI(None, lang)
+    ui.run()
 
 
 if __name__ == "__main__":
-    installer = Installer()
-    installer.run()
-
-    # import os, pdb
-    # os.system('reset')
-    # print 'Entering debug mode'
-    # pdb.set_trace()
+    main()
