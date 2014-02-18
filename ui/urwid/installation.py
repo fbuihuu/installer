@@ -71,7 +71,7 @@ class PartitionListWidget(urwid.WidgetWrap):
 
     def update_focus(self):
         """Move the focus on the first unconfigured entry"""
-        for walker in (self._walkers):
+        for walker in self._walkers:
             for idx, entry in enumerate(walker):
                 if not entry.partition.device:
                     walker.set_focus(idx)
@@ -85,10 +85,7 @@ class PartitionListWidget(urwid.WidgetWrap):
                 self._walkers[0].append(entry)
             else:
                 self._walkers[1].append(entry)
-
-        for entry in self._entries:
-            if isinstance(entry, PartitionEntryWidget):
-                entry.refresh()
+            entry.refresh()
 
 
 class DeviceListWidget(widgets.ClickableTextList):
