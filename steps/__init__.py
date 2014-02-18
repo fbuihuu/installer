@@ -37,11 +37,6 @@ def _recalculate_step_dependencies(step):
                     m.disable()
 
 
-class StepLogAdapter(logging.LoggerAdapter):
-    def process(self, msg, kwargs):
-        return '%s: %s' % (self.extra['title'], msg), kwargs
-
-
 finished_signal = Signal()
 completion_signal = Signal()
 
@@ -61,7 +56,6 @@ class Step(object):
     def __init__(self, ui):
         self._ui = ui
         self._thread = None
-        self._logger = StepLogAdapter(ui.logger, {'title': self.name})
         self.requires = set(self.requires)
         self.provides = set(self.provides)
         self._completion = 0
@@ -79,7 +73,7 @@ class Step(object):
 
     @property
     def logger(self):
-        return self._logger
+        return logging.getLogger(self.name)
 
     @property
     def _state(self):

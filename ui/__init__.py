@@ -9,6 +9,9 @@ from collections import deque
 import steps
 
 
+logger = logging.getLogger(__name__)
+
+
 class UILogHandler(logging.Handler):
 
     def __init__(self, ui):
@@ -36,20 +39,17 @@ class UI(object):
         self._current_step = None
         self.logs = deque()
 
-        self._logger = logging.getLogger(self.__module__)
+        # Specialize the logger so the UI can report logs visually.
         handler = UILogHandler(self)
         formatter = logging.Formatter('[%(asctime)s] %(message)s','%H:%M:%S')
         handler.setFormatter(formatter)
-        self._logger.addHandler(handler)
+        logger = logging.getLogger()
+        logger.addHandler(handler)
 
         self.language = lang
         self._load_steps()
         steps.finished_signal.connect(self._on_step_finished)
         steps.completion_signal.connect(self._on_step_completion)
-
-    @property
-    def logger(self):
-        return self._logger
 
     @property
     def language(self):
@@ -65,7 +65,7 @@ class UI(object):
         os.environ["LANGUAGE"] = lang
         gettext.install('installer', localedir='po', unicode=True)
         self.redraw()
-        self.logger.debug(_("switch to english language"))
+        logger.debug(_("switch to english language"))
 
     def run(self):
         raise NotImplementedError()
@@ -73,7 +73,7 @@ class UI(object):
     def _quit(self):
         for m in self._steps:
             m.reset()
-        self.logger.info("exiting...")
+        logger.info(_("exiting..."))
 
     def suspend(self):
         raise NotImplementedError()

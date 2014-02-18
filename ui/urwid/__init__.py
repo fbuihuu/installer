@@ -248,7 +248,7 @@ class StepView(urwid.WidgetWrap):
 
     @property
     def logger(self):
-        return self._ui.logger
+        return logging.getLogger(self._step.name)
 
     @property
     def page(self):

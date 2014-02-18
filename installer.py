@@ -31,7 +31,7 @@ logging.basicConfig(format='%(name)-12s%(levelname)-8s%(asctime)s  %(message)s',
                     datefmt='%H:%M:%S',
                     filename='/tmp/installer.log',
                     level=logging.DEBUG, filemode='w')
-logger = logging.getLogger('installer')
+logger = logging.getLogger()
 
 
 class Installer(object):
