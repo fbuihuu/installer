@@ -5,26 +5,10 @@ import os
 import locale
 import gettext
 import logging
-from collections import deque
 import steps
 
 
 logger = logging.getLogger(__name__)
-
-
-class UILogHandler(logging.Handler):
-
-    def __init__(self, ui):
-        logging.Handler.__init__(self)
-        self.ui = ui
-
-    def emit(self, record):
-        lvl = record.levelno
-        msg = self.format(record)
-
-        self.ui.logs.appendleft((lvl, msg))
-        if lvl > logging.DEBUG:
-            self.ui.notify(lvl, msg.split('\n')[0])
 
 
 class UI(object):
@@ -37,15 +21,6 @@ class UI(object):
     def __init__(self, installer, lang):
         self.installer = installer
         self._current_step = None
-        self.logs = deque()
-
-        # Specialize the logger so the UI can report logs visually.
-        handler = UILogHandler(self)
-        formatter = logging.Formatter('[%(asctime)s] %(message)s','%H:%M:%S')
-        handler.setFormatter(formatter)
-        logger = logging.getLogger()
-        logger.addHandler(handler)
-
         self.language = lang
         self._load_steps()
         steps.finished_signal.connect(self._on_step_finished)

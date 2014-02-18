@@ -117,6 +117,9 @@ class UrwidUI(UI):
     def __create_top_bar(self):
         self._top_bar = TopBar()
 
+    def __create_log_view(self):
+        self._log_view = LogView()
+
     def __init_watch_pipe(self):
 
         def watch_pipe_cb(unused):
@@ -145,6 +148,7 @@ class UrwidUI(UI):
         self.__create_top_bar()
         self.__create_echo_area()
         self.__create_main_frame()
+        self.__create_log_view()
 
         def toggle_navigator_focus():
             self._main_frame.body.focus_position ^= 1
@@ -180,7 +184,7 @@ class UrwidUI(UI):
 
     def _switch_to_logs(self):
         """Switch the current view to the log view"""
-        self._view.original_widget = LogView(self.logs)
+        self._view.original_widget = self._log_view
 
     def _handle_hotkeys(self, keys, raws):
         self._echo_area.clear()
@@ -284,20 +288,28 @@ class StepView(urwid.WidgetWrap):
 
 class LogView(urwid.WidgetWrap):
 
-    def __init__(self, logs):
-        items = []
-        for (lvl, msg) in logs:
+    class LogHandler(logging.Handler):
+
+        def __init__(self, walker):
+            logging.Handler.__init__(self)
+            self._walker = walker
+
+        def emit(self, record):
+            msg = self.format(record)
             txt = urwid.Text(msg)
-            if lvl > logging.INFO:
+            if record.levelno > logging.INFO:
                 txt = urwid.AttrMap(txt, 'log.warn')
-            items.append(txt)
+            self._walker.append(txt)
 
-        if not items:
-            w = urwid.Filler(urwid.Text(""))
-        else:
-            w = urwid.ListBox(items)
+    def __init__(self):
+        self._walker = urwid.SimpleFocusListWalker([])
+        urwid.WidgetWrap.__init__(self, urwid.ListBox(self._walker))
 
-        urwid.WidgetWrap.__init__(self, w)
+        h = LogView.LogHandler(self._walker)
+        f = logging.Formatter('[%(asctime)s] %(message)s','%H:%M:%S')
+        h.setFormatter(f)
+        logger = logging.getLogger()
+        logger.addHandler(h)
 
 
 class SummaryView(urwid.WidgetWrap):
@@ -331,8 +343,24 @@ class HelpView(urwid.WidgetWrap):
 
 class EchoArea(urwid.Text):
 
+    class LogHandler(logging.Handler):
+
+        def __init__(self, echobar):
+            logging.Handler.__init__(self)
+            self._echobar = echobar
+
+        def emit(self, record):
+            msg = self.format(record).split('\n')[0]
+            self._echobar.notify(record.levelno, msg)
+
     def __init__(self):
-         urwid.Text.__init__(self, "")
+        urwid.Text.__init__(self, "")
+        h = EchoArea.LogHandler(self)
+        h.setLevel(logging.INFO)
+        f = logging.Formatter('[%(name)s] %(message)s')
+        h.setFormatter(f)
+        logger = logging.getLogger()
+        logger.addHandler(h)
 
     def notify(self, lvl, msg):
         if lvl > logging.INFO:
