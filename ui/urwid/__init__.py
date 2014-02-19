@@ -41,6 +41,17 @@ def debug():
     pdb.set_trace()
 
 
+class LogHandler(logging.Handler):
+
+    def __init__(self, ui):
+        logging.Handler.__init__(self)
+        self._ui = ui
+
+    def emit(self, record):
+        msg = self.format(record).split('\n')[0]
+        self._ui._on_log(record.levelno, msg)
+
+
 class UrwidUI(UI):
 
     _loop = None
@@ -59,6 +70,13 @@ class UrwidUI(UI):
 
         if not sys.stdout.isatty():
             utils.die(_("urwid frontend requires a tty"))
+
+        h = LogHandler(self)
+        h.setLevel(logging.DEBUG)
+        f = logging.Formatter('[%(asctime)s] %(name)s: %(message)s','%H:%M:%S')
+        h.setFormatter(f)
+        logger = logging.getLogger()
+        logger.addHandler(h)
 
     def _load_steps(self):
         # FIXME: modules loading should be in abstract class.
@@ -237,9 +255,9 @@ class UrwidUI(UI):
         view.set_completion(percent)
 
     @ui_thread
-    def notify(self, lvl, msg):
-        if self._echo_area:
-            self._echo_area.notify(lvl, msg)
+    def _on_log(self, lvl, msg):
+        self._log_view.append_log(lvl, msg)
+        self._echo_area.notify(lvl, msg)
 
 
 class StepView(urwid.WidgetWrap):
@@ -293,29 +311,16 @@ class StepView(urwid.WidgetWrap):
 
 class LogView(urwid.WidgetWrap):
 
-    class LogHandler(logging.Handler):
-
-        def __init__(self, walker):
-            logging.Handler.__init__(self)
-            self._walker = walker
-
-        def emit(self, record):
-            msg = self.format(record)
-            txt = urwid.Text(msg)
-            if record.levelno > logging.INFO:
-                txt = urwid.AttrMap(txt, 'log.warn')
-            self._walker.append(txt)
-            self._walker.set_focus(len(self._walker) - 1)
-
     def __init__(self):
         self._walker = urwid.SimpleFocusListWalker([])
         urwid.WidgetWrap.__init__(self, urwid.ListBox(self._walker))
 
-        h = LogView.LogHandler(self._walker)
-        f = logging.Formatter('[%(asctime)s] %(message)s','%H:%M:%S')
-        h.setFormatter(f)
-        logger = logging.getLogger()
-        logger.addHandler(h)
+    def append_log(self, lvl, msg):
+        txt = urwid.Text(msg)
+        if lvl > logging.INFO:
+            txt = urwid.AttrMap(txt, 'log.warn')
+        self._walker.append(txt)
+        self._walker.set_focus(len(self._walker) - 1)
 
 
 class SummaryView(urwid.WidgetWrap):
@@ -349,26 +354,13 @@ class HelpView(urwid.WidgetWrap):
 
 class EchoArea(urwid.Text):
 
-    class LogHandler(logging.Handler):
-
-        def __init__(self, echobar):
-            logging.Handler.__init__(self)
-            self._echobar = echobar
-
-        def emit(self, record):
-            msg = self.format(record).split('\n')[0]
-            self._echobar.notify(record.levelno, msg)
-
     def __init__(self):
         urwid.Text.__init__(self, "")
-        h = EchoArea.LogHandler(self)
-        h.setLevel(logging.INFO)
-        f = logging.Formatter('[%(name)s] %(message)s')
-        h.setFormatter(f)
-        logger = logging.getLogger()
-        logger.addHandler(h)
 
     def notify(self, lvl, msg):
+        if lvl < logging.INFO:
+            return
+        msg = msg.split('\n')[0]
         if lvl > logging.INFO:
             markup = ('log.warn', msg)
         elif lvl == logging.INFO:
