@@ -19,7 +19,7 @@ def xchroot(rootfs, command, bind_mounts=[], logger=None, force_chroot=False):
     use_chroot = False
 
     # Support of bind mounts has been added in v198
-    if systemd_version < 198 or force_chroot:
+    if (bind_mounts and systemd_version < 198) or force_chroot:
         use_chroot = True
 
     if not use_chroot:
