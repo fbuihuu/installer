@@ -89,7 +89,7 @@ def main():
     #
     # Start the frontend interface.
     #
-    ui = UrwidUI(None, lang)
+    ui = UrwidUI(lang)
     ui.run()
 
 

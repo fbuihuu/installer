@@ -51,10 +51,10 @@ class UrwidUI(UI):
     _top_bar = None
     _echo_area = None
 
-    def __init__(self, installer, lang):
+    def __init__(self, lang):
         self._watch_pipe_fd = None
         self._watch_pipe_queue = collections.deque()
-        UI.__init__(self, installer, lang)
+        UI.__init__(self, lang)
         urwid.set_encoding("utf8")
 
         if not sys.stdout.isatty():

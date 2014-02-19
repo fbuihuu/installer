@@ -18,8 +18,7 @@ class UI(object):
     _hotkeys = {}
     _installer = None
 
-    def __init__(self, installer, lang):
-        self.installer = installer
+    def __init__(self, lang):
         self._current_step = None
         self.language = lang
         self._load_steps()
