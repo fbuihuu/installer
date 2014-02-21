@@ -184,8 +184,8 @@ class UrwidUI(UI):
 
         self._loop = urwid.MainLoop(self._main_frame, palette,
 #                                     event_loop=urwid.GLibEventLoop(),
-                                     input_filter=self._handle_hotkeys,
-                                     unhandled_input=self.handle_key)
+                                    input_filter=self._handle_hotkeys,
+                                    unhandled_input=self.handle_key)
         self._select_first_step()
         self.__init_watch_pipe()
         self._loop.run()
