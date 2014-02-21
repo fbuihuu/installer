@@ -138,8 +138,10 @@ class _InstallStep(Step):
         with open(self._root + '/etc/vconsole.conf', 'w') as f:
             f.write("KEYMAP=%s\n" % keymap)
 
+        # Old versions of systemd-nspawn bind mount localtime
         self.logger.debug("selecting timezone '%s'" % tzone)
-        self._chroot('ln -sf /usr/share/zoneinfo/%s /etc/localtime' % tzone)
+        self._chroot('ln -sf /usr/share/zoneinfo/%s /etc/localtime' % tzone,
+                     with_nspawn=False)
 
     def _monitor(self, *args, **kwargs):
         if "logger" not in kwargs:
