@@ -2,7 +2,7 @@
 #
 
 from subprocess import check_output, check_call, CalledProcessError
-import gudev
+from gi.repository import GUdev
 import utils
 import os
 
@@ -312,7 +312,7 @@ def __on_uevent(client, action, gudev):
     if action == "change":
         __on_change_uevent(gudev)
 
-__client = gudev.Client(["block"])
+__client = GUdev.Client(subsystems=["block"])
 __client.connect("uevent", __on_uevent)
 for gudev in __client.query_by_subsystem("block"):
     __on_add_uevent(gudev)
