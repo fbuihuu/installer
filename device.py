@@ -48,7 +48,8 @@ class BlockDevice(object):
         self._mntpoint = None
 
     def __eq__(self, other):
-        return other and os.path.samefile(other.syspath, self.syspath)
+        return other and \
+               os.path.abspath(other.syspath) == os.path.abspath(self.syspath)
 
     def __ne__(self, other):
         return not self.__eq__(other)
