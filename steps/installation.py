@@ -8,7 +8,7 @@ from steps import Step
 from partition import mount_rootfs, unmount_rootfs, mounted_partitions
 from system import distribution, is_efi
 from settings import settings
-from process import process, process_in_chroot
+from process import monitor, monitor_chroot
 
 
 class FStabEntry(object):
@@ -144,21 +144,28 @@ class _InstallStep(Step):
     def _monitor(self, *args, **kwargs):
         if "logger" not in kwargs:
             kwargs["logger"] = self.logger
-        process(*args, **kwargs)
+        monitor(*args, **kwargs)
 
     def _chroot(self, *args, **kwargs):
         if "logger" not in kwargs:
             kwargs["logger"] = self.logger
-        process_in_chroot(self._root, *args, **kwargs)
+        monitor_chroot(self._root, *args, **kwargs)
 
     def _cancel(self):
         raise NotImplementedError()
 
     def _process(self):
-        if settings.Packages.list:
-            self._read_extra_package_file(settings.Packages.list)
         self.set_completion(1)
         self._root = mount_rootfs()
+
+        if settings.Packages.list:
+            self.logger.info("importing extra packages from %s" % pkgfile)
+            with open(settings.Packages.list, 'r') as f:
+                for line in f:
+                    line = line.partition('#')[0]
+                    line = line.strip()
+                    if line:
+                        self._extra_packages.append(line)
 
         try:
             self._do_rootfs()
@@ -177,15 +184,6 @@ class _InstallStep(Step):
         else:
             unmount_rootfs()
             self._root = None
-
-    def _read_extra_package_file(self, pkgfile):
-        self.logger.debug("using package list %s" % pkgfile)
-        with open(settings.Packages.list, 'r') as f:
-            for line in f:
-                line = line.partition('#')[0]
-                line = line.strip()
-                if line:
-                    self._extra_packages.append(line)
 
 
 class ArchInstallStep(_InstallStep):
@@ -246,9 +244,8 @@ class ArchInstallStep(_InstallStep):
         # The following copies the gummiboot binary to your EFI System
         # Partition and create a boot entry in the EFI Boot Manager.
         #
-        process_in_chroot(self._root, "gummiboot --path=/boot install",
-                          logger=self.logger,
-                          bind_mounts=['/dev', '/sys/firmware/efi/efivars'])
+        self._chroot("gummiboot --path=/boot install",
+                     bind_mounts=['/dev', '/sys/firmware/efi/efivars'])
 
         GUMMY_ARCH_ENTRY_CONF = """
 title       Arch Linux

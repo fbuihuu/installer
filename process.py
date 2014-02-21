@@ -24,7 +24,7 @@ systemd_version = int(_output[1])
 #  - It automatically logs all sub process outputs (including stderr)
 #    without the need to spawn any extra threads.
 #
-def process(cmd, logger=None, stdout_handler=None, stderr_handler=None):
+def monitor(cmd, logger=None, stdout_handler=None, stderr_handler=None):
     fd_map = {}
     data = None
 
@@ -83,8 +83,8 @@ def process(cmd, logger=None, stdout_handler=None, stderr_handler=None):
 # Same as above but execute the command in a chrooted/container
 # environment.
 #
-def process_in_chroot(rootfs, cmd, bind_mounts=[],
-                      force_chroot=False, **kwargs):
+def monitor_chroot(rootfs, cmd, bind_mounts=[],
+                   force_chroot=False, **kwargs):
     mounts = []
     use_chroot = False
 
@@ -113,7 +113,7 @@ def process_in_chroot(rootfs, cmd, bind_mounts=[],
             mounts.append(rootfs + src)
 
     try:
-        process(chroot + cmd, **kwargs)
+        monitor(chroot + cmd, **kwargs)
     finally:
         for m in reversed(mounts):
             check_call('umount %s' % m, shell=True, stdout=DEVNULL)
