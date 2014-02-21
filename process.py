@@ -28,6 +28,8 @@ def process(cmd, logger=None, stdout_handler=None, stderr_handler=None):
     fd_map = {}
     data = None
 
+    logger.debug("running: %s" % cmd)
+
     if [logger, stdout_handler, stderr_handler].count(None) == 3:
         return call(cmd, shell=True, stdout=DEVNULL, stderr=DEVNULL)
 

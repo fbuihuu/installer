@@ -319,13 +319,11 @@ class MandrivaInstallStep(_InstallStep):
 
     def _do_bootloader_on_mbr(self, bootable):
         cmd = "grub2-mkconfig -o /boot/grub2/grub.cfg"
-        self.logger.debug(cmd)
         self._chroot(cmd, bind_mounts=['/dev'])
 
         # Install grub on the bootable disk(s)
         for parent in bootable.get_root_parents():
             cmd = "grub2-install --target=i386-pc %s" % parent.devpath
-            self.logger.debug("executing %s" % cmd)
             self._chroot(cmd, bind_mounts=['/dev'])
 
     def _do_initramfs(self):
