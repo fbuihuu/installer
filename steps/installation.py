@@ -3,20 +3,12 @@
 
 import os
 import re
-from operator import itemgetter
-from subprocess import *
-from tempfile import mkdtemp
+from subprocess import check_output
 from steps import Step
 from partition import mount_rootfs, unmount_rootfs, mounted_partitions
 from system import distribution, is_efi
-import systemd
 from settings import settings
-
-
-try:
-    from subprocess import DEVNULL # py3k
-except ImportError:
-    DEVNULL = open(os.devnull, 'wb')
+from process import process, process_in_chroot
 
 
 class FStabEntry(object):
@@ -149,10 +141,15 @@ class _InstallStep(Step):
         self.logger.debug("selecting timezone '%s'" % tzone)
         self._xchroot('ln -sf /usr/share/zoneinfo/%s /etc/localtime' % tzone)
 
+    def _monitor(self, *args, **kwargs):
+        if "logger" not in kwargs:
+            kwargs["logger"] = self.logger
+        process(*args, **kwargs)
+
     def _xchroot(self, *args, **kwargs):
         if "logger" not in kwargs:
             kwargs["logger"] = self.logger
-        systemd.xchroot(self._root, *args, **kwargs)
+        process_in_chroot(self._root, *args, **kwargs)
 
     def _cancel(self):
         raise NotImplementedError()
@@ -170,7 +167,14 @@ class _InstallStep(Step):
             self._do_bootloader()
             self._do_initramfs()
             self._done()
-        finally:
+        except:
+            try:
+                # no need to unmount rootfs is going to fail.
+                unmount_rootfs()
+            except:
+                self.logger.error("failed to umount %s" % self._root)
+            raise
+        else:
             unmount_rootfs()
             self._root = None
 
@@ -195,57 +199,37 @@ class ArchInstallStep(_InstallStep):
             self._pacstrap.terminate()
             self._pacstrap = None
 
+    def _do_pacstrap(self, pkgs, **kwargs):
+        cmd = ['pacstrap', self._root] + pkgs
+        self._monitor(" ".join(cmd), **kwargs)
+        self._pacstrap = None
+
     def _do_rootfs(self):
         self.logger.info("Initializing rootfs with pacstrap...")
 
-        packages = ["base", "mdadm"] + self._extra_packages
-        cmd = "pacstrap %s %s" % (self._root, " ".join(packages))
-        self._pacstrap = Popen(cmd, shell=True, stdout=PIPE, stderr=STDOUT)
-        pacstrap = self._pacstrap
-
-        #
-        # Note: don't use an iterate over file object construct since
-        # it uses a hidden read-ahead buffer which won't play well
-        # with long running process with limited outputs such as
-        # pacstrap.  See:
-        # http://stackoverflow.com/questions/1183643/unbuffered-read-from-process-using-subprocess-in-python
-        #
-        total = 0
-        pattern = re.compile(r'Packages \(([0-9]+)\)')
-        while pacstrap.poll() is None:
-            line = pacstrap.stdout.readline()
-            if not line:
-                break
-            self.logger.debug(line.rstrip())
+        def stdout_handler(p, line, data):
+            self._pacstrap = p
+            if data is None:
+                data = (0, 0, re.compile(r'Packages \(([0-9]+)\)'))
+            count, total, pattern = data
 
             match = pattern.search(line)
-            if match:
-                total = int(match.group(1))
-                self.set_completion(2)
-                break
-
-        count = 0
-        total = total * 2
-        pattern = re.compile(r'downloading |(re)?installing ')
-        while pacstrap.poll() is None:
-            line = pacstrap.stdout.readline()
-            if not line:
-                break
-            self.logger.debug(line.rstrip())
-
-            match = pattern.match(line)
             if not match:
-                continue
-            if not line.startswith('downloading '):
-                count = max(count, total/2)
-            count += 1
-            self.set_completion(2 + count * 97 / total)
+                pass
+            elif total == 0:
+                total = int(match.group(1)) * 2
+                pattern = re.compile(r'downloading |(re)?installing ')
+                self.set_completion(2)
+            else:
+                if not line.startswith('downloading '):
+                    count = max(count, total/2)
+                count += 1
+                self.set_completion(2 + count * 97 / total)
 
-        # wait for pacstrap to exit
-        self._pacstrap = None
-        retcode = pacstrap.wait()
-        if retcode:
-            raise CalledProcessError(retcode, cmd)
+            return (count, total, pattern)
+
+        pkgs = ["base", "mdadm"] + self._extra_packages
+        self._do_pacstrap(pkgs, stdout_handler=stdout_handler)
 
     def _do_i18n(self):
         # Uncomment all related locales
@@ -255,17 +239,16 @@ class ArchInstallStep(_InstallStep):
 
     def _do_bootloader_on_efi(self):
         self.logger.info("installing gummiboot as bootloader on EFI system")
-
-        cmd = "pacstrap %s efibootmgr gummiboot" % self._root
-        check_call(cmd, shell=True, stdout=DEVNULL, stderr=STDOUT)
+        self._do_pacstrap(['efibootmgr', 'gummiboot'])
 
         # ESP = /boot
         #
         # The following copies the gummiboot binary to your EFI System
         # Partition and create a boot entry in the EFI Boot Manager.
         #
-        self._xchroot("gummiboot --path=/boot install",
-                      bind_mounts=['/dev', '/sys/firmware/efi/efivars'])
+        process_in_chroot(self._root, "gummiboot --path=/boot install",
+                          logger=self.logger,
+                          bind_mounts=['/dev', '/sys/firmware/efi/efivars'])
 
         GUMMY_ARCH_ENTRY_CONF = """
 title       Arch Linux
@@ -296,56 +279,39 @@ class MandrivaInstallStep(_InstallStep):
     def __init__(self, ui):
         _InstallStep.__init__(self, ui)
         self._urpmi = None
-        self._urpmi_default_opts  = "--no-verify --auto "
-        self._urpmi_default_opts += "--no-suggests --excludedocs "
-        self._urpmi_default_opts += "--downloader=curl --curl-options='-s'"
 
     def _cancel(self):
         if self._urpmi:
             self._urpmi.terminate()
             self._upmi = None
 
-    def _urpmi_popen(self, cmd, stdout=PIPE):
-        opts = self._urpmi_default_opts + ' --root ' + self._root + ' ' + cmd
-        self._urpmi = Popen('urpmi ' + opts, shell=True, stdout=stdout, stderr=STDOUT)
-        return self._urpmi
+    def _do_urpmi(self, pkgs, **kwargs):
+        default_opts  = ["--no-verify", "--auto", "--no-suggests",
+                         "--excludedocs", "--downloader=curl",
+                         "--curl-options='-s'"]
 
-    def _urpmi_call(self, cmd):
-        self._urpmi_popen(cmd, stdout=DEVNULL)
-        self._urpmi_wait()
-
-    def _urpmi_wait(self):
-        retcode = self._urpmi.wait()
+        cmd = ['urpmi', '--root', self._root] + default_opts + pkgs
+        self._monitor(" ".join(cmd), **kwargs)
         self._urpmi = None
-        return retcode
 
     def _do_rootfs(self):
         self.logger.info("Initializing rootfs with urpmi...")
 
+        pattern = re.compile(r'\s+([0-9]+)/([0-9]+): ')
+        def stdout_handler(p, line, data):
+            self._urpmi = p
+            match = pattern.match(line)
+            if match:
+                count, total = map(int, match.group(1, 2))
+                self.set_completion(2 + count * 97 / total)
+
         packages = ["basesystem", "urpmi", "dracut", "kernel-server", "mdadm"]
         packages = packages + self._extra_packages
-        urpmi = self._urpmi_popen(" ".join(packages))
-
-        pattern = re.compile(r'\s+([0-9]+)/([0-9]+): ')
-        while urpmi.poll() is None:
-            line = urpmi.stdout.readline()
-            line = line.rstrip()
-            if not line:
-                continue
-            self.logger.debug(line)
-
-            match = pattern.match(line)
-            if not match:
-                continue
-            count, total = map(int, match.group(1, 2))
-            self.set_completion(2 + count * 97 / total)
-
-        if self._urpmi_wait():
-            raise CalledProcessError(retcode, cmd)
+        self._do_urpmi(packages, stdout_handler=stdout_handler)
 
     def _do_i18n(self):
         locale = settings.I18n.locale
-        self._urpmi_call('locales-%s' % locale.split('_')[0])
+        self._do_urpmi(['locales-%s' % locale.split('_')[0]])
         _InstallStep._do_i18n(self)
 
     def _do_bootloader_on_efi(self):
