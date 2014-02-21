@@ -84,15 +84,14 @@ def monitor(cmd, logger=None, stdout_handler=None, stderr_handler=None):
 # environment.
 #
 def monitor_chroot(rootfs, cmd, bind_mounts=[],
-                   force_chroot=False, **kwargs):
+                   with_nspawn=True, **kwargs):
     mounts = []
-    use_chroot = False
 
     # Support of bind mounts has been added in v198
-    if (bind_mounts and systemd_version < 198) or force_chroot:
-        use_chroot = True
+    if (bind_mounts and systemd_version < 198):
+        with_nspawn=False
 
-    if not use_chroot:
+    if with_nspawn:
         chroot  = "systemd-nspawn -D %s " % rootfs
         for m in bind_mounts:
             chroot += "--bind %s " % m
