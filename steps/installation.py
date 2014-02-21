@@ -139,14 +139,14 @@ class _InstallStep(Step):
             f.write("KEYMAP=%s\n" % keymap)
 
         self.logger.debug("selecting timezone '%s'" % tzone)
-        self._xchroot('ln -sf /usr/share/zoneinfo/%s /etc/localtime' % tzone)
+        self._chroot('ln -sf /usr/share/zoneinfo/%s /etc/localtime' % tzone)
 
     def _monitor(self, *args, **kwargs):
         if "logger" not in kwargs:
             kwargs["logger"] = self.logger
         process(*args, **kwargs)
 
-    def _xchroot(self, *args, **kwargs):
+    def _chroot(self, *args, **kwargs):
         if "logger" not in kwargs:
             kwargs["logger"] = self.logger
         process_in_chroot(self._root, *args, **kwargs)
@@ -233,8 +233,8 @@ class ArchInstallStep(_InstallStep):
 
     def _do_i18n(self):
         # Uncomment all related locales
-        self._xchroot("sed -i s/^#\(%s.*\)/\1/ /etc/locale.gen")
-        self._xchroot("locale-gen")
+        self._chroot("sed -i s/^#\(%s.*\)/\1/ /etc/locale.gen")
+        self._chroot("locale-gen")
         _InstallStep._do_i18n(self)
 
     def _do_bootloader_on_efi(self):
@@ -271,7 +271,7 @@ default     archlinux
         raise NotImplementedError()
 
     def _do_initramfs(self):
-        self._xchroot("mkinitcpio -p linux")
+        self._chroot("mkinitcpio -p linux")
 
 
 class MandrivaInstallStep(_InstallStep):
@@ -320,13 +320,13 @@ class MandrivaInstallStep(_InstallStep):
     def _do_bootloader_on_mbr(self, bootable):
         cmd = "grub2-mkconfig -o /boot/grub2/grub.cfg"
         self.logger.debug(cmd)
-        self._xchroot(cmd, bind_mounts=['/dev'])
+        self._chroot(cmd, bind_mounts=['/dev'])
 
         # Install grub on the bootable disk(s)
         for parent in bootable.get_root_parents():
             cmd = "grub2-install --target=i386-pc %s" % parent.devpath
             self.logger.debug("executing %s" % cmd)
-            self._xchroot(cmd, bind_mounts=['/dev'])
+            self._chroot(cmd, bind_mounts=['/dev'])
 
     def _do_initramfs(self):
         cmd = "dracut --hostonly --force"
@@ -340,7 +340,7 @@ class MandrivaInstallStep(_InstallStep):
             if f.startswith("initrd-"):
                 initramfs = os.path.join('/boot', f)
                 kversion  = f[7:-4] if f.endswith('.img') else f[7:]
-                self._xchroot(" ".join((cmd, initramfs, kversion)))
+                self._chroot(" ".join((cmd, initramfs, kversion)))
                 break
 
 
