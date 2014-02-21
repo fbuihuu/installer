@@ -344,10 +344,10 @@ class MandrivaInstallStep(_InstallStep):
 
 
 def InstallStep(ui):
-    if distribution.distributor == "Mandriva":
+    if distribution.distributor == b'Mandriva':
         return MandrivaInstallStep(ui)
 
-    elif distribution.distributor == "Arch":
+    elif distribution.distributor == b'Arch':
         return ArchInstallStep(ui)
 
     raise NotImplementedError()
