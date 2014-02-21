@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 #
 
-from ui.urwid import StepView
 import urwid
-import widgets
+from ui.urwid import StepView
+from . import widgets
 from settings import settings
 
 

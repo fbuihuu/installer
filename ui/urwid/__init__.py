@@ -80,11 +80,11 @@ class UrwidUI(UI):
 
     def _load_steps(self):
         # FIXME: modules loading should be in abstract class.
-        from welcome import WelcomeView
-        from license import LicenseView
-        from installation import InstallView
-        from password import PasswordView
-        from exit import ExitView
+        from .welcome import WelcomeView
+        from .license import LicenseView
+        from .installation import InstallView
+        from .password import PasswordView
+        from .exit import ExitView
 
         from steps.welcome import WelcomeStep
         from steps.license import LicenseStep

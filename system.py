@@ -3,8 +3,8 @@
 #
 
 import os
-import systemd.localed
 from subprocess import check_output
+from systemd import localed
 
 
 def reboot():
@@ -52,7 +52,7 @@ class Keyboard(object):
             if os.path.exists(d):
                 self.__keymap_dir = d
                 break
-        self.__systemd_localed = systemd.localed.LocaledWrapper()
+        self.__systemd_localed = localed.LocaledWrapper()
 
     def get_layout(self):
         return self.__systemd_localed.get_keyboard_info()["KEYTABLE"]

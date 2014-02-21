@@ -4,7 +4,7 @@
 from ui.urwid import StepView
 import urwid
 from settings import settings
-import widgets
+from . import widgets
 from l10n import country_dict
 
 

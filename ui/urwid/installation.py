@@ -3,7 +3,7 @@
 
 from ui.urwid import StepView
 import urwid
-import widgets
+from . import widgets
 import utils
 import partition
 import device
