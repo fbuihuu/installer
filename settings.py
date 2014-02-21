@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 #
 
-from ConfigParser import ConfigParser, NoOptionError, NoSectionError
+
+try:
+    from configparser import ConfigParser # py3k
+except ImportError:
+    from ConfigParser import ConfigParser
 
 
 class Section(object):
