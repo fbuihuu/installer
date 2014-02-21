@@ -158,9 +158,10 @@ class _InstallStep(Step):
         self.set_completion(1)
         self._root = mount_rootfs()
 
-        if settings.Packages.list:
+        pkgfile = settings.Packages.list
+        if pkgfile:
             self.logger.info("importing extra packages from %s" % pkgfile)
-            with open(settings.Packages.list, 'r') as f:
+            with open(pkgfile, 'r') as f:
                 for line in f:
                     line = line.partition('#')[0]
                     line = line.strip()
