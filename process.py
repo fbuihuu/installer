@@ -1,7 +1,7 @@
 import os
 import select
 import logging
-from subprocess import PIPE, Popen, call, check_output, CalledProcessError
+from subprocess import PIPE, Popen, call, check_call, check_output, CalledProcessError
 
 try:
     from subprocess import DEVNULL # py3k
