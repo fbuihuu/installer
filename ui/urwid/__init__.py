@@ -37,7 +37,7 @@ palette = [
 def debug():
     import os, pdb
     os.system('reset')
-    print 'Entering debug mode'
+    print('Entering debug mode')
     pdb.set_trace()
 
 
