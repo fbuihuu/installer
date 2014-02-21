@@ -8,7 +8,7 @@ import collections
 import logging
 import urwid
 from ui import UI
-import widgets
+from . import widgets
 import steps
 from settings import settings
 import utils
