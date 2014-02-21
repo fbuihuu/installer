@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 
+from __future__ import print_function
 import os
 import re
 from subprocess import check_output
@@ -66,7 +67,7 @@ class _InstallStep(Step):
 
         with open(os.path.join(self._root, 'etc/fstab'), 'w') as f:
             for entry in self._fstab.values():
-                print >>f, entry.format(), '\n'
+                print(entry.format(), file=f)
 
     def _do_bootloader(self):
         #
