@@ -157,7 +157,7 @@ class UrwidUI(UI):
     def __call(self, func):
         if self._watch_pipe_fd:
             self._watch_pipe_queue.appendleft(func)
-            os.write(self._watch_pipe_fd, "ping")
+            os.write(self._watch_pipe_fd, b'ping')
         else:
             # Used only during initialisation.
             func()
