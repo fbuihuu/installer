@@ -107,7 +107,7 @@ class Password(Field):
 
 class FillRightLayout(urwid.StandardTextLayout):
 
-    def __init__(self, filler='_'):
+    def __init__(self, filler=b'_'):
         self._filler = filler
         urwid.StandardTextLayout.__init__(self)
 

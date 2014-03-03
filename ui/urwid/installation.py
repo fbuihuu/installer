@@ -16,7 +16,7 @@ class PartitionEntryWidget(urwid.WidgetWrap):
         self._on_click = on_click
         self._on_clear = on_clear
         self.partition = part
-        widget1 = urwid.Text(part.name, layout=widgets.FillRightLayout('.'))
+        widget1 = urwid.Text(part.name, layout=widgets.FillRightLayout(b'.'))
         self._devpath = widgets.ClickableText()
         widget2 = urwid.AttrMap(self._devpath, None, focus_map='reversed')
 

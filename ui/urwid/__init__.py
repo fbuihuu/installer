@@ -333,7 +333,7 @@ class SummaryView(urwid.WidgetWrap):
             for entry in section.entries:
                 value = urwid.Text(settings.get(section.name, entry))
                 entry = "    " + entry
-                entry = urwid.Text(entry, layout=widgets.FillRightLayout('.'))
+                entry = urwid.Text(entry, layout=widgets.FillRightLayout(b'.'))
 
                 col = urwid.Columns([('weight', 0.6, entry),
                                      ('weight',   1, value)])
