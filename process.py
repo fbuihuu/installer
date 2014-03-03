@@ -67,6 +67,7 @@ def monitor(cmd, logger=None, stdout_handler=None, stderr_handler=None):
             #
             while True:
                 line = fileobj.readline()
+                line = line.decode()
                 if not line:
                     break
                 logger.log(level, line.rstrip())
