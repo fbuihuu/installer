@@ -1,10 +1,15 @@
 # -*- coding: utf-8 -*-
 #
 
+import os
+import logging
 from subprocess import check_output, check_call, CalledProcessError
 from gi.repository import GUdev
 import utils
-import os
+from process import monitor
+
+
+logger = logging.getLogger(__name__)
 
 
 block_devices = []
@@ -132,12 +137,12 @@ class BlockDevice(object):
         if self._mntpoint:
             raise Exception()
         cmd = "mount %s %s" % (self.devpath, mountpoint)
-        check_call(cmd, shell=True)
+        monitor(cmd, logger)
         self._mntpoint = mountpoint
 
     def umount(self):
         if self._mntpoint:
-            check_call("umount %s" % self._mntpoint, shell=True)
+            monitor("umount %s" % self._mntpoint, logger)
             mntpnt = self._mntpoint
             self._mntpoint = None
             return mntpnt
