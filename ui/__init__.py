@@ -2,6 +2,7 @@
 #
 
 import os
+import sys
 import locale
 import gettext
 import logging
@@ -33,11 +34,24 @@ class UI(object):
     def language(self, lang):
         self._language = lang
         locale.setlocale(locale.LC_ALL, lang)
+        #
         # For some reason, python implementation of gettext.install()
         # ignores the previous call to setlocale(). It only uses
         # environment variables.
+        #
         os.environ["LANGUAGE"] = lang
-        gettext.install('installer', localedir='po', unicode=True)
+        #
+        # In Python 2, ensure that the _() that gets installed into built-ins
+        # always returns unicodes.  This matches the default behavior under Python
+        # 3, although that keyword argument is not present in the Python 3 API.
+        #
+        # http://www.wefearchange.org/2012/06/the-right-way-to-internationalize-your.html
+        #
+        kwargs = {}
+        if sys.version_info[0] < 3:
+            kwargs['unicode'] = True
+        gettext.install('installer', localedir='po', **kwargs)
+
         self.redraw()
         logger.debug(_("switch to english language"))
 
