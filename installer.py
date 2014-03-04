@@ -40,9 +40,6 @@ def main():
     locale.resetlocale()
     lang, enc = locale.getlocale()
 
-    reload(sys)
-    sys.setdefaultencoding('utf-8')
-
     args = parse_cmdline()
 
     #
