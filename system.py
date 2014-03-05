@@ -18,7 +18,7 @@ def is_efi():
 
 
 def _lsb_release(o):
-    return check_output("lsb_release -s %s" % o, shell=True).rstrip()
+    return check_output("lsb_release -s %s" % o, shell=True).decode().rstrip()
 
 class Distribution(object):
 
