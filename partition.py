@@ -154,7 +154,9 @@ class BootPartition(Partition):
     def __init__(self):
         Partition.__init__(self, "/boot")
         if system.is_efi():
-            self._minsize = 1024 * 1024 * 1024
+            # EFI specification does not require a min size for ESP
+            # but 512MiB and higher tend to avoid some corner cases.
+            self._minsize = 512 * 1024 * 1024
         else:
             self._minsize = 50 * 1000 * 1000
 
@@ -164,6 +166,7 @@ class BootPartition(Partition):
         return self._is_optional
 
     def _validate_fs(self, fs):
+        # ESP partition on UEFI systems should use a FAT32 fs.
         if system.is_efi() and fs != "vfat":
             raise PartitionError("/boot must use vfat FS on UEFI systems")
         Partition._validate_fs(self, fs)
