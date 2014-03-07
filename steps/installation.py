@@ -320,12 +320,12 @@ class MandrivaInstallStep(_InstallStep):
 
     def _do_bootloader_on_mbr(self, bootable):
         cmd = "grub2-mkconfig -o /boot/grub2/grub.cfg"
-        self._chroot(cmd, bind_mounts=['/dev'])
+        self._chroot(cmd)
 
         # Install grub on the bootable disk(s)
         for parent in bootable.get_root_parents():
             cmd = "grub2-install --target=i386-pc %s" % parent.devpath
-            self._chroot(cmd, bind_mounts=['/dev'])
+            self._chroot(cmd)
 
     def _do_initramfs(self):
         cmd = "dracut --hostonly --force"
