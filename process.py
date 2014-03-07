@@ -99,7 +99,7 @@ def monitor_chroot(rootfs, cmd, bind_mounts=[],
     else:
         chroot = "chroot %s " % rootfs
 
-        # Manually bind mount default directories
+        # Manually mount usual tmpfs directories.
         for dst in ['/tmp', '/run', '/dev', '/dev/shm']:
             dst = rootfs + dst
             if not os.path.exists(dst):
@@ -107,7 +107,7 @@ def monitor_chroot(rootfs, cmd, bind_mounts=[],
             check_call('mount -t tmpfs none %s' % dst, shell=True)
             mounts.append(dst)
 
-        # Manually bind mount requested directories
+        # Manually bind mount default and requested directories.
         for src in ['/proc', '/sys'] + bind_mounts:
             check_call('mount -o bind %s %s' % (src, rootfs + src), shell=True)
             mounts.append(rootfs + src)
