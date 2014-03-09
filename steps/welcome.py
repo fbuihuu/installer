@@ -24,7 +24,7 @@ class WelcomeStep(Step):
         # Switch the keyboard layout accordingly.
         layout = settings.I18n.keyboard
         # if system.keyboard.get_layout() != layout:
-        #  self.logger.info(_("switching keyboard layout to %s") % layout)
+        #  self.logger.info(_("switching keyboard layout to %s"), layout)
         #   system.keyboard.set_layout(layout)
 
         self._done(_("set location to %s") % zone)

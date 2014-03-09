@@ -175,7 +175,7 @@ class InstallView(StepView):
             self.page = self._create_device_page(part, devices)
         else:
             name = part.name
-            self.logger.warning(_("No valid device found for %s") % name)
+            self.logger.warning(_("No valid device found for %s"), name)
 
     def _on_select_device(self, dev):
         if dev:

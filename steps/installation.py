@@ -131,16 +131,16 @@ class _InstallStep(Step):
         keymap = settings.I18n.keyboard
         tzone  = settings.I18n.timezone
 
-        self.logger.debug("using locale '%s'" % locale)
+        self.logger.debug("using locale '%s'", locale)
         with open(self._root + '/etc/locale.conf', 'w') as f:
             f.write("LANG=%s\n" % locale)
 
-        self.logger.debug("using keymap '%s'" % keymap)
+        self.logger.debug("using keymap '%s'", keymap)
         with open(self._root + '/etc/vconsole.conf', 'w') as f:
             f.write("KEYMAP=%s\n" % keymap)
 
         # Old versions of systemd-nspawn bind mount localtime
-        self.logger.debug("selecting timezone '%s'" % tzone)
+        self.logger.debug("selecting timezone '%s'", tzone)
         self._chroot('ln -sf /usr/share/zoneinfo/%s /etc/localtime' % tzone,
                      with_nspawn=False)
 
@@ -163,7 +163,7 @@ class _InstallStep(Step):
 
         pkgfile = settings.Packages.list
         if pkgfile:
-            self.logger.info("importing extra packages from %s" % pkgfile)
+            self.logger.info("importing extra packages from %s", pkgfile)
             with open(pkgfile, 'r') as f:
                 for line in f:
                     line = line.partition('#')[0]
@@ -183,7 +183,7 @@ class _InstallStep(Step):
                 # no need to unmount rootfs is going to fail.
                 unmount_rootfs()
             except:
-                self.logger.error("failed to umount %s" % self._root)
+                self.logger.error("failed to umount %s", self._root)
             raise
         else:
             unmount_rootfs()
