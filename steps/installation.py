@@ -235,7 +235,8 @@ class ArchInstallStep(_InstallStep):
 
     def _do_i18n(self):
         # Uncomment all related locales
-        self._chroot("sed -i s/^#\(%s.*\)/\1/ /etc/locale.gen")
+        locale = settings.I18n.locale
+        self._chroot("sed -i 's/^#\(%s.*\)/\\1/' /etc/locale.gen" % locale)
         self._chroot("locale-gen")
         _InstallStep._do_i18n(self)
 
@@ -248,8 +249,10 @@ class ArchInstallStep(_InstallStep):
         # The following copies the gummiboot binary to your EFI System
         # Partition and create a boot entry in the EFI Boot Manager.
         #
-        self._chroot("gummiboot --path=/boot install",
-                     bind_mounts=['/dev', '/sys/firmware/efi/efivars'])
+        # FIXME: for now don't touch EFI vars.
+        #
+        self._chroot("gummiboot --no-variables --path=/boot install",
+                     bind_mounts=['/sys/firmware/efi/efivars'])
 
         GUMMY_ARCH_ENTRY_CONF = """
 title       Arch Linux
