@@ -23,7 +23,7 @@ class FStabEntry(object):
 
         devpath = part.device.devpath
         options = check_output("findmnt -cvuno OPTIONS " + devpath , shell=True)
-        self.options = options.split()[0]
+        self.options = options.split()[0].decode()
 
         if part.device.partuuid:
             self.source = "PARTUUID=" + part.device.partuuid
