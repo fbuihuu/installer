@@ -79,9 +79,10 @@ class Partition(object):
 #    3/ a fakeraid partition device => underlying device must be 1/
 #    4/ a partition inside a fakeraid device => same as 1/
 #
-# on BIOS + GPT: (a partition with type BIOS Boot Partition (BBP) must be used to store bootloader)
+# on BIOS + GPT:
 # -------------
-#    same restriction as "BIOS + MBR"
+#    same restriction as "BIOS + MBR" but if grub is used, a partition with type
+#    BIOS Boot Partition (BBP) must be used to store bootloader).
 #
 # on BIOS + MBR:
 # -------------
@@ -102,16 +103,17 @@ class Partition(object):
 # keep it simple (ext[234], or btrfs).
 # Pros:
 #
-#    1/ We don't have to stick with only one
-#    (crapish/over-bloated) bootloader (call it GRUB).
+#    1/ We don't have to stick with only one (bloated) bootloader
+#       (call it GRUB).
 #
 #    2/ root partition can use any fancy things that the
-#    kernel/initramfs combo can support (bcache is an example).
+#       kernel/initramfs combo can support (bcache is an example).
 #
-#    3/ probably easier for secure boot integration
+#    3/ might be easier for secure boot integration, but it's just
+#       a guess.
 #
 # For the simplest case (1 disk containig a '/' partition with a
-# standard FS), we make '/boot' partition optinal. All others cases
+# standard FS), we make '/boot' partition optional. All others cases
 # will have a separate '/boot'.
 #
 class RootPartition(Partition):
