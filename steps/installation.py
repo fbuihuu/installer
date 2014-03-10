@@ -144,15 +144,15 @@ class _InstallStep(Step):
         self._chroot('ln -sf /usr/share/zoneinfo/%s /etc/localtime' % tzone,
                      with_nspawn=False)
 
-    def _monitor(self, *args, **kwargs):
+    def _monitor(self, args, **kwargs):
         if "logger" not in kwargs:
             kwargs["logger"] = self.logger
-        monitor(*args, **kwargs)
+        monitor(args, **kwargs)
 
-    def _chroot(self, *args, **kwargs):
+    def _chroot(self, args, **kwargs):
         if "logger" not in kwargs:
             kwargs["logger"] = self.logger
-        monitor_chroot(self._root, *args, **kwargs)
+        monitor_chroot(self._root, args, **kwargs)
 
     def _cancel(self):
         raise NotImplementedError()
@@ -202,8 +202,7 @@ class ArchInstallStep(_InstallStep):
             self._pacstrap = None
 
     def _do_pacstrap(self, pkgs, **kwargs):
-        cmd = ['pacstrap', self._root] + pkgs
-        self._monitor(" ".join(cmd), **kwargs)
+        self._monitor(['pacstrap', self._root] + pkgs, **kwargs)
         self._pacstrap = None
 
     def _do_rootfs(self):
@@ -295,7 +294,7 @@ class MandrivaInstallStep(_InstallStep):
                          "--curl-options='-s'"]
 
         cmd = ['urpmi', '--root', self._root] + default_opts + pkgs
-        self._monitor(" ".join(cmd), **kwargs)
+        self._monitor(cmd, **kwargs)
         self._urpmi = None
 
     def _do_rootfs(self):

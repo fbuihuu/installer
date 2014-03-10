@@ -136,13 +136,12 @@ class BlockDevice(object):
     def mount(self, mountpoint):
         if self._mntpoint:
             raise Exception()
-        cmd = "mount %s %s" % (self.devpath, mountpoint)
-        monitor(cmd, logger)
+        monitor(["mount", self.devpath, mountpoint], logger=logger)
         self._mntpoint = mountpoint
 
     def umount(self):
         if self._mntpoint:
-            monitor("umount %s" % self._mntpoint, logger)
+            monitor(["umount", self._mntpoint], logger)
             mntpnt = self._mntpoint
             self._mntpoint = None
             return mntpnt

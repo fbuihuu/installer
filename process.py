@@ -10,7 +10,7 @@ except ImportError:
 
 
 # figure out systemd version
-_output = check_output("systemctl --version", shell=True).split()
+_output = check_output(["systemctl", "--version"]).split()
 systemd_version = int(_output[1])
 
 #
@@ -24,16 +24,19 @@ systemd_version = int(_output[1])
 #  - It automatically logs all sub process outputs (including stderr)
 #    without the need to spawn any extra threads.
 #
-def monitor(cmd, logger=None, stdout_handler=None, stderr_handler=None):
+# 'args' is list of arguments to be passed to Popen(shell=False) (ie
+# execvp())
+#
+def monitor(args, logger=None, stdout_handler=None, stderr_handler=None):
     fd_map = {}
     data = None
 
-    logger.debug("running: %s" % cmd)
+    logger.debug("running: %s", " ".join(args))
 
     if [logger, stdout_handler, stderr_handler].count(None) == 3:
-        return call(cmd, shell=True, stdout=DEVNULL, stderr=DEVNULL)
+        return call(cmd, stdout=DEVNULL, stderr=DEVNULL)
 
-    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
+    p = Popen(args, stdout=PIPE, stderr=PIPE)
 
     if not stdout_handler:
         stdout_handler = lambda p,l,d: d
@@ -78,11 +81,13 @@ def monitor(cmd, logger=None, stdout_handler=None, stderr_handler=None):
     poller.unregister(p.stderr)
 
     if retcode:
-        raise CalledProcessError(retcode, cmd)
+        raise CalledProcessError(retcode, " ".join(args))
 
 #
 # Same as above but execute the command in a chrooted/container
-# environment.
+# environment. The command is always excuted by the shell, hence the
+# cmd parameter should be a string which specifies the command to execute
+# through the shell.
 #
 def monitor_chroot(rootfs, cmd, bind_mounts=[],
                    with_nspawn=True, **kwargs):
@@ -93,15 +98,15 @@ def monitor_chroot(rootfs, cmd, bind_mounts=[],
         with_nspawn=False
 
     if with_nspawn:
-        chroot  = "systemd-nspawn -D %s " % rootfs
+        chroot  = ["systemd-nspawn", "-D", rootfs]
         for m in bind_mounts:
-            chroot += "--bind %s " % m
+            chroot += ["--bind", m]
     else:
-        chroot = "chroot %s " % rootfs
+        chroot = ["chroot", rootfs]
 
         # Manually bind mount default and requested directories.o
         for src in ['/dev', '/proc', '/sys'] + bind_mounts:
-            check_call('mount -o bind %s %s' % (src, rootfs + src), shell=True)
+            check_call(["mount", "-o", "bind", src, rootfs+src])
             mounts.append(rootfs + src)
 
         # Manually mount usual tmpfs directories.
@@ -109,11 +114,11 @@ def monitor_chroot(rootfs, cmd, bind_mounts=[],
             dst = rootfs + dst
             if not os.path.exists(dst):
                 os.mkdir(dst)
-            check_call('mount -t tmpfs none %s' % dst, shell=True)
+            check_call(["mount", "-t", "tmpfs", "none", dst])
             mounts.append(dst)
 
     try:
-        monitor(chroot + cmd, **kwargs)
+        monitor(chroot + ["sh", "-c", cmd], **kwargs)
     finally:
         for m in reversed(mounts):
-            check_call('umount %s' % m, shell=True, stdout=DEVNULL)
+            check_call(["umount", m], stdout=DEVNULL)
