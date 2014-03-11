@@ -2,12 +2,16 @@
 #
 
 import os
+import logging
 from operator import itemgetter
 from tempfile import mkdtemp
 
 import system
 import device
 import utils
+
+
+logger = logging.getLogger(__name__)
 
 
 class PartitionError(Exception):
@@ -288,6 +292,8 @@ def __uevent_callback(action, bdev):
         for part in partitions:
             if part.device == bdev:
                 part.device = None
+                logger.warn("device %s used by partition %s has disappeared",
+                            bdev.devpath, part.name)
     #
     # On 'change' event, a device that was previously assigned to a
     # partition may become invalid. If the fs changes for example.
@@ -298,5 +304,8 @@ def __uevent_callback(action, bdev):
                 part.device = None
                 if bdev in get_installable_devices(part):
                     part.device = bdev
+                else:
+                    logger.warn("incompatible changes in device %s for %s",
+                                bdev.devpath, part.name)
 
 device.listen_uevent(__uevent_callback)
