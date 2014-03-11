@@ -266,7 +266,15 @@ def listen_uevent(cb):
 
 def __notify_uevent_handlers(action, bdev):
     for cb in __uevent_handlers:
-        cb(action, bdev)
+        #
+        # pygobject cannot propagate exceptions from a callback back
+        # to the main thread. For now, only log them athough it will
+        # lead to a fatal error.
+        #
+        try:
+            cb(action, bdev)
+        except:
+            logger.exception("uevent callback got an unexpected exception")
 
 def __on_add_uevent(gudev):
     if gudev.get_devtype() == "partition":
