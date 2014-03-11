@@ -258,14 +258,14 @@ title       Arch Linux
 linux       /vmlinuz-linux
 initrd      /initramfs-linux.img
 options     root=%s rw
-"""
+""" % self._fstab["/"].source
 
         LOADER_CONF = """
 timeout     3
 default     archlinux
 """
         with open(self._root + '/boot/loader/entries/archlinux.conf', 'w') as f:
-            f.write(GUMMY_ARCH_ENTRY_CONF % self._fstab["/"].source)
+            f.write(GUMMY_ARCH_ENTRY_CONF)
 
         with open(self._root + '/boot/loader/loader.conf', 'w') as f:
             f.write(LOADER_CONF)
