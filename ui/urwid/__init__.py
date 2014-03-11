@@ -48,8 +48,7 @@ class LogHandler(logging.Handler):
         self._ui = ui
 
     def emit(self, record):
-        msg = self.format(record).split('\n')[0]
-        self._ui._on_log(record.levelno, msg)
+        self._ui._on_log(record.levelno, self.format(record))
 
 
 class UrwidUI(UI):
