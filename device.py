@@ -242,11 +242,27 @@ class PartitionDevice(BlockDevice):
 
     @property
     def partuuid(self):
-        return self._gudev.get_property("ID_PART_ENTRY_UUID")
+        #
+        # partuuid is normally GPT only, but newer versions of libblkid
+        # (util-linux >= 2.24) introduced partuuid for MBR to:
+        # http://git.kernel.org/cgit/utils/util-linux/util-linux.git/commit/?id=d67cc2889a0527b26
+        #
+        # This will allow to use root=PARTUUID for MBR too but since
+        # this feature is relatively new, distros haven't still
+        # updated their udev rules to create the symlinks in
+        # /dev/disk/by-partuuid.
+        #
+        # Therefore, we force partuuid to be null for any scheme by
+        # GPT.
+        #
+        if self.scheme == 'gpt':
+            return self._gudev.get_property("ID_PART_ENTRY_UUID")
 
     @property
     def partlabel(self):
-        return self._gudev.get_property("ID_PART_ENTRY_NAME")
+        # same comments as in partuuid().
+        if self.scheme == 'gpt':
+            return self._gudev.get_property("ID_PART_ENTRY_NAME")
 
     def get_parents(self):
         pdev = find_device(os.path.join(self.syspath, ".."))
