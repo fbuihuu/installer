@@ -116,11 +116,21 @@ class _InstallStep(Step):
             self._do_bootloader_on_mbr(bootable)
             return
         if scheme == 'gpt':
-            raise NotImplementedError()
+            self._do_bootloader_on_gpt(bootable)
+            return
 
         self._failed("bootable device has unsupported partition scheme '%s'", scheme)
 
     def _do_initramfs(self):
+        raise NotImplementedError()
+
+    def _do_bootloader_on_efi(self):
+        raise NotImplementedError()
+
+    def _do_bootloader_on_mbr(self, bootable):
+        raise NotImplementedError()
+
+    def _do_bootloader_on_gpt(self, bootable):
         raise NotImplementedError()
 
     def _do_i18n(self):
@@ -189,6 +199,49 @@ class _InstallStep(Step):
             unmount_rootfs()
             self._root = None
 
+    #
+    # Some generic helpers
+    #
+    def _do_bootloader_on_bios_with_syslinux(self, bootable, gpt=True):
+        self.logger.info("installing syslinux on a GPT disk layout")
+
+        self._chroot('cp -r /usr/lib/syslinux/bios/*.c32 /boot/syslinux/')
+        self._chroot('extlinux --install /boot/syslinux')
+
+        bootcode = "gptmbr.bin" if gpt else "mbr.bin"
+        bootcode = os.path.join("/usr/lib/syslinux/bios", bootcode)
+
+        for parent in bootable.get_root_parents():
+            cmd  = "dd bs=440 conv=notrunc count=1 if={0} of={1} 2>/dev/null"
+            self._chroot(cmd.format(bootcode, parent.devpath))
+
+        cmd = "sed -i 's/root=\([^ ]*\)/root={0}/' {1}"
+        cmd = cmd.format(self._fstab["/"].source, "/boot/syslinux/syslinux.cfg")
+        self._chroot(cmd)
+
+    def _do_bootloader_on_efi_with_gummiboot(self, distro, distro_conf):
+        self.logger.info("installing gummiboot as bootloader on EFI system")
+
+        # ESP = /boot
+        #
+        # The following copies the gummiboot binary to your EFI System
+        # Partition and create a boot entry in the EFI Boot Manager.
+        #
+        # FIXME: for now don't touch EFI vars.
+        #
+        self._chroot("gummiboot --no-variables --path=/boot install",
+                     bind_mounts=['/sys/firmware/efi/efivars'])
+
+        LOADER_CONF = """
+timeout     3
+default     {distro}
+"""
+        with open(self._root + '/boot/loader/loader.conf', 'w') as f:
+            f.write(LOADER_CONF.format(distro=distro))
+
+        with open(self._root + '/boot/loader/entries/' + distro + '.conf', 'w') as f:
+            f.write(distro_conf.format(root=self._fstab["/"].source))
+
 
 class ArchInstallStep(_InstallStep):
 
@@ -240,38 +293,21 @@ class ArchInstallStep(_InstallStep):
         _InstallStep._do_i18n(self)
 
     def _do_bootloader_on_efi(self):
-        self.logger.info("installing gummiboot as bootloader on EFI system")
         self._do_pacstrap(['efibootmgr', 'gummiboot'])
-
-        # ESP = /boot
-        #
-        # The following copies the gummiboot binary to your EFI System
-        # Partition and create a boot entry in the EFI Boot Manager.
-        #
-        # FIXME: for now don't touch EFI vars.
-        #
-        self._chroot("gummiboot --no-variables --path=/boot install",
-                     bind_mounts=['/sys/firmware/efi/efivars'])
-
-        GUMMY_ARCH_ENTRY_CONF = """
+        self._do_bootloader_on_efi_with_gummiboot("archlinux", """
 title       Arch Linux
 linux       /vmlinuz-linux
 initrd      /initramfs-linux.img
-options     root=%s rw
-""" % self._fstab["/"].source
+options     root={root} rw
+""")
 
-        LOADER_CONF = """
-timeout     3
-default     archlinux
-"""
-        with open(self._root + '/boot/loader/entries/archlinux.conf', 'w') as f:
-            f.write(GUMMY_ARCH_ENTRY_CONF)
+    def _do_bootloader_on_mbr(self, bootable):
+        self._do_pacstrap(['syslinux'])
+        self._do_bootloader_on_bios_with_syslinux(bootable, gpt=False)
 
-        with open(self._root + '/boot/loader/loader.conf', 'w') as f:
-            f.write(LOADER_CONF)
-
-    def _do_bootloader_on_mbr(self):
-        raise NotImplementedError()
+    def _do_bootloader_on_gpt(self, bootable):
+        self._do_pacstrap(['syslinux'])
+        self._do_bootloader_on_bios_with_syslinux(bootable, gpt=True)
 
     def _do_initramfs(self):
         self._chroot("mkinitcpio -p linux")
@@ -319,6 +355,10 @@ class MandrivaInstallStep(_InstallStep):
 
     def _do_bootloader_on_efi(self):
         raise NotImplementedError()
+
+    def _do_bootloader_on_gpt(self, bootable):
+        self._do_urpmi(['syslinux'])
+        self._do_bootloader_on_bios_with_syslinux(bootable, gpt=True)
 
     def _do_bootloader_on_mbr(self, bootable):
         cmd = "grub2-mkconfig -o /boot/grub2/grub.cfg"
