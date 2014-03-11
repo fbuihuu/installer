@@ -100,15 +100,11 @@ class BlockDevice(object):
 
     @property
     def partuuid(self):
-        partuuid = self._gudev.get_property("ID_PART_ENTRY_UUID")
-        assert(not partuuid)
-        return partuuid
+        assert(not self._gudev.get_property("ID_PART_ENTRY_UUID"))
 
     @property
     def partlabel(self):
-        partlabel = self._gudev.get_property("ID_PART_ENTRY_NAME")
-        assert(not partlabel)
-        return partlabel
+        assert(not self._gudev.get_property("ID_PART_ENTRY_NAME"))
 
     def validate(self):
         if self.devtype == 'disk' and self.scheme and self.filesystem:
