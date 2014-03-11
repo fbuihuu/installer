@@ -240,7 +240,7 @@ default     {distro}
             f.write(LOADER_CONF.format(distro=distro))
 
         with open(self._root + '/boot/loader/entries/' + distro + '.conf', 'w') as f:
-            f.write(distro_conf.format(root=self._fstab["/"].source))
+            f.write(distro_conf)
 
 
 class ArchInstallStep(_InstallStep):
@@ -294,12 +294,14 @@ class ArchInstallStep(_InstallStep):
 
     def _do_bootloader_on_efi(self):
         self._do_pacstrap(['efibootmgr', 'gummiboot'])
-        self._do_bootloader_on_efi_with_gummiboot("archlinux", """
+        arch_conf = """
 title       Arch Linux
 linux       /vmlinuz-linux
 initrd      /initramfs-linux.img
-options     root={root} rw
-""")
+options     root={0} rw
+"""
+        arch_conf = mdv_conf.format(self._fstab["/"].source)
+        self._do_bootloader_on_efi_with_gummiboot("archlinux", arch_conf)
 
     def _do_bootloader_on_mbr(self, bootable):
         self._do_pacstrap(['syslinux'])
@@ -318,6 +320,7 @@ class MandrivaInstallStep(_InstallStep):
     def __init__(self, ui):
         _InstallStep.__init__(self, ui)
         self._urpmi = None
+        self._uname_r = None
 
     def _cancel(self):
         if self._urpmi:
@@ -348,13 +351,30 @@ class MandrivaInstallStep(_InstallStep):
         packages = packages + self._extra_packages
         self._do_urpmi(packages, stdout_handler=stdout_handler)
 
+        # now the kernel is installed, we can figure out the kernel
+        # version installed.
+        import glob
+        vmlinuz = glob.glob(os.path.join(self._root, 'boot', 'vmlinuz-*'))[0]
+        vmlinuz = os.path.basename(vmlinuz)[8:]
+        if vmlinuz.endswith('.img'):
+            vmlinuz = vmlinuz[:-4]
+        self._uname_r = vmlinuz
+
     def _do_i18n(self):
         locale = settings.I18n.locale
         self._do_urpmi(['locales-%s' % locale.split('_')[0]])
         _InstallStep._do_i18n(self)
 
     def _do_bootloader_on_efi(self):
-        raise NotImplementedError()
+        self._do_urpmi(['efibootmgr', 'gummiboot'])
+        mdv_conf = """
+title       Mandriva Linux
+linux       /vmlinuz-{0}
+initrd      /initrd-{0}.img
+options     root={1} rw
+"""
+        mdv_conf = mdv_conf.format(self._uname_r, self._fstab["/"].source)
+        self._do_bootloader_on_efi_with_gummiboot("mandriva", mdv_conf)
 
     def _do_bootloader_on_gpt(self, bootable):
         self._do_urpmi(['syslinux'])
@@ -370,19 +390,14 @@ class MandrivaInstallStep(_InstallStep):
             self._chroot(cmd)
 
     def _do_initramfs(self):
-        cmd = "dracut --hostonly --force"
         #
         # Even if the initramfs has been built during kernel
         # installation, we regenerate it now so it includes all tools
         # needed to mount the rootfs since the rootfs is completely
         # initialized.
         #
-        for f in os.listdir(os.path.join(self._root, 'boot')):
-            if f.startswith("initrd-"):
-                initramfs = os.path.join('/boot', f)
-                kversion  = f[7:-4] if f.endswith('.img') else f[7:]
-                self._chroot(" ".join((cmd, initramfs, kversion)))
-                break
+        cmd  = "dracut --hostonly --force /boot/initrd-{0}.img {0}"
+        self._chroot(cmd.format(self._uname_r))
 
 
 def InstallStep(ui):
