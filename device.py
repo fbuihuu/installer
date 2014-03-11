@@ -39,13 +39,6 @@ class SignatureDeviceError(DeviceError):
         DeviceError.__init__(self, dev, message)
 
 
-class MountedDeviceError(DeviceError):
-
-    def __init__(self, dev, *args):
-        message = "is currently mounted, no harm will be done"
-        DeviceError.__init__(self, dev, message)
-
-
 class BlockDevice(object):
 
     def __init__(self, gudev):
@@ -120,8 +113,6 @@ class BlockDevice(object):
     def validate(self):
         if self.devtype == 'disk' and self.scheme and self.filesystem:
             raise SignatureDeviceError(self)
-        if self.mountpoints:
-            raise MountedDeviceError(self)
 
     @property
     def mountpoints(self):

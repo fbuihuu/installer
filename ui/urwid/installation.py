@@ -155,7 +155,6 @@ class InstallView(StepView):
                 return
         self._partition_page.footer = self._install_button
 
-
     def _update_install_data(self, part, dev):
         name = part.name if part.name != "/" else "/root"
         if dev:
@@ -179,6 +178,10 @@ class InstallView(StepView):
 
     def _on_select_device(self, dev):
         if dev:
+            if dev.mountpoints:
+                self.logger.error(_("%s is mounted, no harm will be done"),
+                                  dev.devpath)
+                return
             try:
                 part = self._partition_list_widget.get_focus()
                 part.device = dev
