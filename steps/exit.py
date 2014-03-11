@@ -29,7 +29,7 @@ class ExitStep(Step):
             self._ui.quit()
         elif action == "Reboot":
             self._done("rebooting...")
-            # check_call("systemctl reboot", shell=True)
+            # check_call(["systemctl", "reboot"])
         elif action == "Shutdown":
             self._done("shutting down...")
-            # check_call("systemctl poweroff", shell=True)
+            # check_call(["systemctl", "poweroff"])

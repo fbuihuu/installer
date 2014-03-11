@@ -22,7 +22,7 @@ class FStabEntry(object):
         self.passno = 1 if self.target == "/" else 2
 
         devpath = part.device.devpath
-        options = check_output("findmnt -cvuno OPTIONS " + devpath , shell=True)
+        options = check_output(["findmnt", "-cvuno", "OPTIONS", devpath])
         self.options = options.split()[0].decode()
 
         if part.device.partuuid:
