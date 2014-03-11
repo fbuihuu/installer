@@ -138,7 +138,7 @@ class _InstallStep(Step):
         # systems.
 
         locale = settings.I18n.locale
-        keymap = settings.I18n.keyboard
+        keymap = settings.I18n.keymap
         tzone  = settings.I18n.timezone
 
         self.logger.debug("using locale '%s'", locale)
