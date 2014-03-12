@@ -205,15 +205,28 @@ class _InstallStep(Step):
     def _do_bootloader_on_bios_with_syslinux(self, bootable, gpt=True):
         self.logger.info("installing syslinux on a GPT disk layout")
 
-        self._chroot('cp -r /usr/lib/syslinux/bios/*.c32 /boot/syslinux/')
+        # This should work even on RAID1 device, since in that case
+        # the vbr will be mirrored too.
+        self._chroot('cp /usr/lib/syslinux/bios/*.c32 /boot/syslinux/')
         self._chroot('extlinux --install /boot/syslinux')
 
         bootcode = "gptmbr.bin" if gpt else "mbr.bin"
         bootcode = os.path.join("/usr/lib/syslinux/bios", bootcode)
 
         for parent in bootable.get_root_parents():
-            cmd  = "dd bs=440 conv=notrunc count=1 if={0} of={1} 2>/dev/null"
+            # install mbr
+            cmd = "dd bs=440 conv=notrunc count=1 if={0} of={1} 2>/dev/null"
             self._chroot(cmd.format(bootcode, parent.devpath))
+
+            if gpt:
+                # make sure the attribute legacy BIOS bootable (bit 2) is
+                # set for the /boot partition for GPT.
+                self._chroot("sgdisk %s --attributes=%d:set:2" %
+                             (parent.devpath, bootable.partnum))
+            else:
+                # on MBR, we need to mark the boot partition active.
+                self._chroot("sfdisk --activate=%d %s" %
+                             (bootable.partnum, parent.devpath))
 
         cmd = "sed -i 's/root=\([^ ]*\)/root={0}/' {1}"
         cmd = cmd.format(self._fstab["/"].source, "/boot/syslinux/syslinux.cfg")
@@ -304,11 +317,11 @@ options     root={0} rw
         self._do_bootloader_on_efi_with_gummiboot("archlinux", arch_conf)
 
     def _do_bootloader_on_mbr(self, bootable):
-        self._do_pacstrap(['syslinux'])
+        self._do_pacstrap(['syslinux', 'util-linux'])
         self._do_bootloader_on_bios_with_syslinux(bootable, gpt=False)
 
     def _do_bootloader_on_gpt(self, bootable):
-        self._do_pacstrap(['syslinux'])
+        self._do_pacstrap(['syslinux', 'gptfdisk'])
         self._do_bootloader_on_bios_with_syslinux(bootable, gpt=True)
 
     def _do_initramfs(self):
@@ -377,7 +390,7 @@ options     root={1} rw
         self._do_bootloader_on_efi_with_gummiboot("mandriva", mdv_conf)
 
     def _do_bootloader_on_gpt(self, bootable):
-        self._do_urpmi(['syslinux'])
+        self._do_urpmi(['syslinux', 'extlinux', 'gdisk'])
         self._do_bootloader_on_bios_with_syslinux(bootable, gpt=True)
 
     def _do_bootloader_on_mbr(self, bootable):
