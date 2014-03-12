@@ -264,6 +264,10 @@ class PartitionDevice(BlockDevice):
         if self.scheme == 'gpt':
             return self._gudev.get_property("ID_PART_ENTRY_NAME")
 
+    @property
+    def partnum(self):
+        return int(self._gudev.get_property("ID_PART_ENTRY_NUMBER"))
+
     def get_parents(self):
         pdev = find_device(os.path.join(self.syspath, ".."))
         if not pdev:
