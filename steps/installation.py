@@ -232,6 +232,15 @@ class _InstallStep(Step):
         cmd = cmd.format(self._fstab["/"].source, "/boot/syslinux/syslinux.cfg")
         self._chroot(cmd)
 
+    def _do_bootloader_on_bios_with_grub(self, grub="grub"):
+        cmd = "{0}-mkconfig -o /boot/{0}/grub.cfg".format(grub)
+        self._chroot(cmd)
+
+        # Install grub on the bootable disk(s)
+        for parent in bootable.get_root_parents():
+            cmd = "{0}-install --target=i386-pc {1}".format(grub, parent.devpath)
+            self._chroot(cmd)
+
     def _do_bootloader_on_efi_with_gummiboot(self, distro, distro_conf):
         self.logger.info("installing gummiboot as bootloader on EFI system")
 
@@ -394,13 +403,8 @@ options     root={1} rw
         self._do_bootloader_on_bios_with_syslinux(bootable, gpt=True)
 
     def _do_bootloader_on_mbr(self, bootable):
-        cmd = "grub2-mkconfig -o /boot/grub2/grub.cfg"
-        self._chroot(cmd)
-
-        # Install grub on the bootable disk(s)
-        for parent in bootable.get_root_parents():
-            cmd = "grub2-install --target=i386-pc %s" % parent.devpath
-            self._chroot(cmd)
+        self._do_urpmi(['grub2'])
+        self._do_bootloader_on_bios_with_grub(grub="grub2")
 
     def _do_initramfs(self):
         #
