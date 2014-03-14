@@ -241,7 +241,7 @@ class _InstallStep(Step):
             cmd = "{0}-install --target=i386-pc {1}".format(grub, parent.devpath)
             self._chroot(cmd)
 
-    def _do_bootloader_on_efi_with_gummiboot(self, distro, distro_conf):
+    def _do_bootloader_on_efi_with_gummiboot(self):
         self.logger.info("installing gummiboot as bootloader on EFI system")
 
         # ESP = /boot
@@ -254,15 +254,10 @@ class _InstallStep(Step):
         self._chroot("gummiboot --no-variables --path=/boot install",
                      bind_mounts=['/sys/firmware/efi/efivars'])
 
-        LOADER_CONF = """
-timeout     3
-default     {distro}
-"""
-        with open(self._root + '/boot/loader/loader.conf', 'w') as f:
-            f.write(LOADER_CONF.format(distro=distro))
-
-        with open(self._root + '/boot/loader/entries/' + distro + '.conf', 'w') as f:
-            f.write(distro_conf)
+        # setup the kernel command line
+        cmdline = 'root={0} rw'.format(self._fstab["/"].source)
+        self._chroot("sed -i /^options/d /boot/loader/entries/*.conf")
+        self._chroot("echo '%s' >>/boot/loader/entries/*.conf" % cmdline)
 
 
 class ArchInstallStep(_InstallStep):
@@ -316,14 +311,25 @@ class ArchInstallStep(_InstallStep):
 
     def _do_bootloader_on_efi(self):
         self._do_pacstrap(['efibootmgr', 'gummiboot'])
+
+        loader_conf = """
+timeout     3
+default     archlinux
+"""
         arch_conf = """
 title       Arch Linux
 linux       /vmlinuz-linux
 initrd      /initramfs-linux.img
-options     root={0} rw
 """
-        arch_conf = mdv_conf.format(self._fstab["/"].source)
-        self._do_bootloader_on_efi_with_gummiboot("archlinux", arch_conf)
+        entry_file = '/boot/loader/entries/archlinux.conf'
+
+        with open(self._root + '/boot/loader/loader.conf', 'w') as f:
+            f.write(loader_conf)
+
+        with open(self._root + entry_file, 'w') as f:
+            f.write(distro_conf)
+
+        self._do_bootloader_on_efi_with_gummiboot(entry_file)
 
     def _do_bootloader_on_mbr(self, bootable):
         self._do_pacstrap(['syslinux', 'util-linux'])
@@ -389,14 +395,11 @@ class MandrivaInstallStep(_InstallStep):
 
     def _do_bootloader_on_efi(self):
         self._do_urpmi(['efibootmgr', 'gummiboot'])
-        mdv_conf = """
-title       Mandriva Linux
-linux       /vmlinuz-{0}
-initrd      /initrd-{0}.img
-options     root={1} rw
-"""
-        mdv_conf = mdv_conf.format(self._uname_r, self._fstab["/"].source)
-        self._do_bootloader_on_efi_with_gummiboot("mandriva", mdv_conf)
+
+        # generate the very first conf entry, we'll setup kernel
+        # cmdline later.
+        self._chroot('/etc/kernel/postinst.d/*gummiboot* %s' % self._uname_r)
+        self._do_bootloader_on_efi_with_gummiboot()
 
     def _do_bootloader_on_gpt(self, bootable):
         self._do_urpmi(['syslinux', 'extlinux', 'gdisk'])
