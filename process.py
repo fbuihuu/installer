@@ -36,7 +36,11 @@ def monitor(args, logger=None, stdout_handler=None, stderr_handler=None):
     if [logger, stdout_handler, stderr_handler].count(None) == 3:
         return call(cmd, stdout=DEVNULL, stderr=DEVNULL)
 
-    p = Popen(args, stdout=PIPE, stderr=PIPE)
+    # Make sure the command's output is always formatted the same
+    # regardless the current locale setting.
+    env = os.environ.copy()
+    env['LC_ALL'] = 'C'
+    p = Popen(args, env=env, stdout=PIPE, stderr=PIPE)
 
     if not stdout_handler:
         stdout_handler = lambda p,l,d: d
