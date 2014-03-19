@@ -351,6 +351,7 @@ class MandrivaInstallStep(_InstallStep):
         _InstallStep.__init__(self, ui)
         self._urpmi = None
         self._uname_r = None
+        self._urpmi_installed = False
 
     def _cancel(self):
         if self._urpmi:
@@ -370,10 +371,23 @@ class MandrivaInstallStep(_InstallStep):
                 count, total = map(int, match.group(1, 2))
                 self.set_completion(self._completion + count*completion / total)
 
-        cmd = ['urpmi', '--root', self._root] + default_opts + args
-        self._monitor(cmd, stdout_handler=stdout_handler)
+        if self._urpmi_installed:
+            cmd = " ".join(["urpmi"] + default_opts + args)
+            self._chroot(cmd, stdout_handler=stdout_handler)
+        else:
+            cmd = ['urpmi', '--root', self._root] + default_opts + args
+            self._monitor(cmd, stdout_handler=stdout_handler)
         self._urpmi = None
         self.set_completion(completion)
+
+        # Switch to urpmi from rootfs, so all packages installed later
+        # will use a proper environment inside the chroot.
+        if 'urpmi' in args:
+            if not os.path.exists(os.path.join(self._root, 'etc/urpmi/urpmi.cfg')):
+                self._monitor(["cp", "/etc/urpmi/urpmi.cfg",
+                               os.path.join(self._root, 'etc/urpmi')])
+                self._chroot("urpmi.update -a -q")
+                self._urpmi_installed = True
 
         # If the kernel has been installed, it's time to setup
         # self._uname_r.
