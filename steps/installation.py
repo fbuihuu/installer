@@ -355,7 +355,7 @@ class MandrivaInstallStep(_InstallStep):
     def _cancel(self):
         if self._urpmi:
             self._urpmi.terminate()
-            self._upmi = None
+            self._urpmi = None
 
     def _do_urpmi(self, args, completion):
         default_opts  = ["--no-verify", "--auto", "--no-suggests",
