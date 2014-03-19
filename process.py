@@ -94,7 +94,7 @@ def monitor(args, logger=None, stdout_handler=None, stderr_handler=None):
 # through the shell.
 #
 def monitor_chroot(rootfs, cmd, bind_mounts=[],
-                   with_nspawn=True, **kwargs):
+                   with_nspawn=False, **kwargs):
     mounts = []
 
     # Support of bind mounts has been added in v198
