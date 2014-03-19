@@ -4,6 +4,7 @@
 from __future__ import print_function
 import os
 import re
+import glob
 from subprocess import check_output
 from steps import Step
 from partition import mount_rootfs, unmount_rootfs, mounted_partitions
@@ -228,8 +229,9 @@ class _InstallStep(Step):
                 self._chroot("sfdisk --activate=%d %s" %
                              (bootable.partnum, parent.devpath))
 
+        conf = "/boot/syslinux/entries/Mandriva-3.4.80-1.1-server.cfg"
         cmd = "sed -i 's/root=\([^ ]*\)/root={0}/' {1}"
-        cmd = cmd.format(self._fstab["/"].source, "/boot/syslinux/syslinux.cfg")
+        cmd = cmd.format(self._fstab["/"].source, conf)
         self._chroot(cmd)
 
     def _do_bootloader_on_bios_with_grub(self, grub="grub"):
@@ -364,6 +366,16 @@ class MandrivaInstallStep(_InstallStep):
         self._monitor(cmd, **kwargs)
         self._urpmi = None
 
+        # If the kernel has been installed, it's time to setup
+        # self._uname_r.
+        if not self._uname_r:
+            ls = glob.glob(os.path.join(self._root, 'boot', 'vmlinuz-*'))
+            if ls:
+                vmlinuz = os.path.basename(ls[0])[8:]
+                if vmlinuz.endswith('.img'):
+                    vmlinuz = vmlinuz[:-4]
+                self._uname_r = vmlinuz
+
     def _do_rootfs(self):
         self.logger.info("Initializing rootfs with urpmi...")
 
@@ -375,18 +387,12 @@ class MandrivaInstallStep(_InstallStep):
                 count, total = map(int, match.group(1, 2))
                 self.set_completion(2 + count * 97 / total)
 
-        packages = ["basesystem", "urpmi", "dracut", "kernel-server", "mdadm"]
+        # Note that the kernel needs to be installed after the
+        # bootloader so all bootloader configuration files will be
+        # updated accordingly.
+        packages = ["basesystem-minimal", "urpmi", "mdadm"]
         packages = packages + self._extra_packages
         self._do_urpmi(packages, stdout_handler=stdout_handler)
-
-        # now the kernel is installed, we can figure out the kernel
-        # version installed.
-        import glob
-        vmlinuz = glob.glob(os.path.join(self._root, 'boot', 'vmlinuz-*'))[0]
-        vmlinuz = os.path.basename(vmlinuz)[8:]
-        if vmlinuz.endswith('.img'):
-            vmlinuz = vmlinuz[:-4]
-        self._uname_r = vmlinuz
 
     def _do_i18n(self):
         locale = settings.I18n.locale
@@ -394,20 +400,16 @@ class MandrivaInstallStep(_InstallStep):
         _InstallStep._do_i18n(self)
 
     def _do_bootloader_on_efi(self):
-        self._do_urpmi(['efibootmgr', 'gummiboot'])
-
-        # generate the very first conf entry, we'll setup kernel
-        # cmdline later.
-        self._chroot('/etc/kernel/postinst.d/*gummiboot* %s' % self._uname_r)
+        self._do_urpmi(['efibootmgr', 'gummiboot', 'kernel'])
         self._do_bootloader_on_efi_with_gummiboot()
 
     def _do_bootloader_on_gpt(self, bootable):
-        self._do_urpmi(['syslinux', 'extlinux', 'gdisk'])
+        self._do_urpmi(['syslinux', 'extlinux', 'gdisk', 'kernel'])
         self._do_bootloader_on_bios_with_syslinux(bootable, gpt=True)
 
     def _do_bootloader_on_mbr(self, bootable):
-        self._do_urpmi(['grub2'])
-        self._do_bootloader_on_bios_with_grub(grub="grub2")
+        self._do_urpmi(['syslinux', 'extlinux', 'util-linux', 'kernel'])
+        self._do_bootloader_on_bios_with_grub(bootable, gpt=False)
 
     def _do_initramfs(self):
         #
