@@ -182,7 +182,7 @@ class UrwidUI(UI):
         self.register_hotkey('f5', self.quit)
 
         self._loop = urwid.MainLoop(self._main_frame, palette,
-                                    event_loop=urwid.GLibEventLoop(),
+                                    #event_loop=urwid.GLibEventLoop(),
                                     input_filter=self._handle_hotkeys,
                                     unhandled_input=self.handle_key)
         self._select_first_step()
