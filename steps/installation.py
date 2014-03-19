@@ -5,7 +5,7 @@ from __future__ import print_function
 import os
 import re
 import glob
-from subprocess import check_output
+from subprocess import check_output, check_call
 from steps import Step
 from partition import mount_rootfs, unmount_rootfs, mounted_partitions
 from system import distribution, is_efi
@@ -229,10 +229,15 @@ class _InstallStep(Step):
                 self._chroot("sfdisk --activate=%d %s" %
                              (bootable.partnum, parent.devpath))
 
-        conf = "/boot/syslinux/entries/Mandriva-3.4.80-1.1-server.cfg"
-        cmd = "sed -i 's/root=\([^ ]*\)/root={0}/' {1}"
-        cmd = cmd.format(self._fstab["/"].source, conf)
-        self._chroot(cmd)
+        # Setup kernel command line in syslinux.cfg or where appropriate.
+        ls = glob.glob(self._root + '/boot/syslinux/entries/*')
+        config = ls[0] if ls else self._root + '/boot/syslinux/syslinux.cfg'
+
+        self.logger.debug("setting new kernel command line in %s" % config)
+        cmdline = "root={0} rw quiet".format(self._fstab["/"].source)
+        check_call(["sed", "-ri",
+                    's/([[:space:]]*APPEND[[:space:]]+).*/\\1%s/I' % cmdline,
+                    config])
 
     def _do_bootloader_on_bios_with_grub(self, grub="grub"):
         cmd = "{0}-mkconfig -o /boot/{0}/grub.cfg".format(grub)
