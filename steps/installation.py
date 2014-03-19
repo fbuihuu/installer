@@ -357,14 +357,23 @@ class MandrivaInstallStep(_InstallStep):
             self._urpmi.terminate()
             self._upmi = None
 
-    def _do_urpmi(self, pkgs, **kwargs):
+    def _do_urpmi(self, args, completion):
         default_opts  = ["--no-verify", "--auto", "--no-suggests",
                          "--excludedocs", "--downloader=curl",
                          "--curl-options='-s'"]
 
-        cmd = ['urpmi', '--root', self._root] + default_opts + pkgs
-        self._monitor(cmd, **kwargs)
+        pattern = re.compile(r'\s+([0-9]+)/([0-9]+): ')
+        def stdout_handler(p, line, data):
+            self._urpmi = p
+            match = pattern.match(line)
+            if match:
+                count, total = map(int, match.group(1, 2))
+                self.set_completion(self._completion + count*completion / total)
+
+        cmd = ['urpmi', '--root', self._root] + default_opts + args
+        self._monitor(cmd, stdout_handler=stdout_handler)
         self._urpmi = None
+        self.set_completion(completion)
 
         # If the kernel has been installed, it's time to setup
         # self._uname_r.
@@ -379,36 +388,29 @@ class MandrivaInstallStep(_InstallStep):
     def _do_rootfs(self):
         self.logger.info("Initializing rootfs with urpmi...")
 
-        pattern = re.compile(r'\s+([0-9]+)/([0-9]+): ')
-        def stdout_handler(p, line, data):
-            self._urpmi = p
-            match = pattern.match(line)
-            if match:
-                count, total = map(int, match.group(1, 2))
-                self.set_completion(2 + count * 97 / total)
-
         # Note that the kernel needs to be installed after the
         # bootloader so all bootloader configuration files will be
         # updated accordingly.
         packages = ["basesystem-minimal", "urpmi", "mdadm"]
         packages = packages + self._extra_packages
-        self._do_urpmi(packages, stdout_handler=stdout_handler)
+        self._do_urpmi(packages, 70)
 
     def _do_i18n(self):
         locale = settings.I18n.locale
-        self._do_urpmi(['locales-%s' % locale.split('_')[0]])
+        self._do_urpmi(['locales-%s' % locale.split('_')[0]], 75)
         _InstallStep._do_i18n(self)
 
     def _do_bootloader_on_efi(self):
-        self._do_urpmi(['efibootmgr', 'gummiboot', 'kernel'])
+        self._do_urpmi(['efibootmgr', 'gummiboot', 'kernel'], 90)
         self._do_bootloader_on_efi_with_gummiboot()
 
     def _do_bootloader_on_gpt(self, bootable):
-        self._do_urpmi(['syslinux', 'extlinux', 'gdisk', 'kernel'])
+        self._do_urpmi(['syslinux', 'extlinux', 'gdisk'], 90)
+        self._do_urpmi(['kernel'], 95)
         self._do_bootloader_on_bios_with_syslinux(bootable, gpt=True)
 
     def _do_bootloader_on_mbr(self, bootable):
-        self._do_urpmi(['syslinux', 'extlinux', 'util-linux', 'kernel'])
+        self._do_urpmi(['syslinux', 'extlinux', 'util-linux', 'kernel'], 90)
         self._do_bootloader_on_bios_with_grub(bootable, gpt=False)
 
     def _do_initramfs(self):
@@ -420,6 +422,7 @@ class MandrivaInstallStep(_InstallStep):
         #
         cmd  = "dracut --hostonly --force /boot/initrd-{0}.img {0}"
         self._chroot(cmd.format(self._uname_r))
+        self.set_completion(98)
 
 
 def InstallStep(ui):
