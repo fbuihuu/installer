@@ -117,6 +117,11 @@ def monitor_chroot(rootfs, cmd, bind_mounts=[],
             check_call(["mount", "-t", "tmpfs", "none", dst])
             mounts.append(dst)
 
+        # Finally copy /etc/resolv.conf into the chroot but don't barf
+        # if that fails.
+        call(["cp", "/etc/resolv.conf", rootfs + "/etc/resolv.conf"],
+             stderr=DEVNULL)
+
     try:
         monitor(chroot + ["sh", "-c", cmd], **kwargs)
     finally:
