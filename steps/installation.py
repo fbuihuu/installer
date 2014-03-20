@@ -424,15 +424,18 @@ class MandrivaInstallStep(_InstallStep):
         _InstallStep._do_i18n(self)
 
     def _do_bootloader_on_efi(self):
-        self._do_urpmi(['gummiboot', 'kernel'], 90)
+        self._do_urpmi(['gummiboot'], 80)
+        self._do_urpmi(['kernel'], 95)
         self._do_bootloader_on_efi_with_gummiboot()
 
     def _do_bootloader_on_gpt(self, bootable):
-        self._do_urpmi(['syslinux', 'extlinux', 'gdisk', 'kernel'], 90)
+        self._do_urpmi(['syslinux', 'extlinux', 'gdisk'], 80)
+        self._do_urpmi(['kernel'], 95)
         self._do_bootloader_on_bios_with_syslinux(bootable, gpt=True)
 
     def _do_bootloader_on_mbr(self, bootable):
-        self._do_urpmi(['syslinux', 'extlinux', 'util-linux', 'kernel'], 90)
+        self._do_urpmi(['syslinux', 'extlinux', 'util-linux'], 80)
+        self._do_urpmi(['kernel'], 95)
         self._do_bootloader_on_bios_with_syslinux(bootable, gpt=False)
 
     def _do_initramfs(self):
