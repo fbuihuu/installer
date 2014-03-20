@@ -262,9 +262,11 @@ class _InstallStep(Step):
                      bind_mounts=['/sys/firmware/efi/efivars'])
 
         # setup the kernel command line
+        config = glob.glob(self._root + '/boot/loader/entries/*.conf')[0]
+        config = config[len(self._root):]
         cmdline = 'root={0} rw'.format(self._fstab["/"].source)
-        self._chroot("sed -i /^options/d /boot/loader/entries/*.conf")
-        self._chroot("echo '%s' >>/boot/loader/entries/*.conf" % cmdline)
+        self._chroot("sed -i /^options/d %s" % config)
+        self._chroot("echo options %s >>%s" % (cmdline, config))
 
 
 class ArchInstallStep(_InstallStep):
