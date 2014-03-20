@@ -319,7 +319,7 @@ class ArchInstallStep(_InstallStep):
         _InstallStep._do_i18n(self)
 
     def _do_bootloader_on_efi(self):
-        self._do_pacstrap(['efibootmgr', 'gummiboot'])
+        self._do_pacstrap(['gummiboot'])
 
         loader_conf = """
 timeout     3
@@ -424,7 +424,7 @@ class MandrivaInstallStep(_InstallStep):
         _InstallStep._do_i18n(self)
 
     def _do_bootloader_on_efi(self):
-        self._do_urpmi(['efibootmgr', 'gummiboot', 'kernel'], 90)
+        self._do_urpmi(['gummiboot', 'kernel'], 90)
         self._do_bootloader_on_efi_with_gummiboot()
 
     def _do_bootloader_on_gpt(self, bootable):
