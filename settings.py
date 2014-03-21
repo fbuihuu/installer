@@ -51,6 +51,9 @@ class Kernel(Section):
 class Steps(Section):
     _default = True
 
+class Urpmi(Section):
+    options  = ''
+
 
 class _Settings(object):
 
@@ -59,6 +62,7 @@ class _Settings(object):
             'I18n'       : I18n(),
             'Kernel'     : Kernel(),
             'Steps'      : Steps(),
+            'Urpmi'      : Urpmi(),
         }
 
     @property

@@ -384,9 +384,8 @@ class MandrivaInstallStep(_InstallStep):
             self._urpmi = None
 
     def _do_urpmi(self, args, completion):
-        default_opts  = ["--no-verify", "--auto", "--no-suggests",
-                         "--excludedocs", "--downloader=curl",
-                         "--curl-options='-s'"]
+        urpmi_opts = settings.Urpmi.options.split() + \
+                     ["--auto", "--downloader=curl", "--curl-options='-s'"]
 
         completion_origin = self._completion
         pattern = re.compile(r'\s+([0-9]+)/([0-9]+): ')
@@ -399,10 +398,10 @@ class MandrivaInstallStep(_InstallStep):
                 self.set_completion(completion_origin + delta * count / total)
 
         if self._urpmi_installed:
-            cmd = " ".join(["urpmi"] + default_opts + args)
+            cmd = " ".join(["urpmi"] + urpmi_opts + args)
             self._chroot(cmd, stdout_handler=stdout_handler)
         else:
-            cmd = ['urpmi', '--root', self._root] + default_opts + args
+            cmd = ['urpmi', '--root', self._root] + urpmi_opts + args
             self._monitor(cmd, stdout_handler=stdout_handler)
         self._urpmi = None
         self.set_completion(completion)
