@@ -52,7 +52,7 @@ class _InstallStep(Step):
         Step.__init__(self, ui)
         self._root = None
         self._fstab = {}
-        self._extra_packages = []
+        self.__extra_packages = None
 
     @property
     def name(self):
@@ -64,6 +64,24 @@ class _InstallStep(Step):
         if "root=" in cmdline:
             return cmdline
         return "root=" + self._fstab["/"].source + " " + cmdline
+
+    @property
+    def _extra_packages(self):
+        if self.__extra_packages is None:
+            self.__extra_packages = []
+            if settings.Packages.list:
+                self.logger.info("importing extra packages file")
+                try:
+                    with open(settings.Packages.list, 'r') as f:
+                        for line in f:
+                            line = line.partition('#')[0]
+                            line = line.strip()
+                            if line:
+                                self.__extra_packages.append(line)
+                except IOError:
+                    self.logger.error("Failed to read extra packages file %s" %
+                                      settings.Package.list)
+        return self.__extra_packages
 
     def _do_rootfs(self):
         raise NotImplementedError()
@@ -141,6 +159,9 @@ class _InstallStep(Step):
     def _do_bootloader_on_gpt(self, bootable):
         raise NotImplementedError()
 
+    def _do_extra_packages(self):
+        raise NotImplementedError()
+
     def _do_i18n(self):
         # Don't rely on localectl(1), it may be missing on old
         # systems.
@@ -179,21 +200,12 @@ class _InstallStep(Step):
         self.set_completion(1)
         self._root = mount_rootfs()
 
-        pkgfile = settings.Packages.list
-        if pkgfile:
-            self.logger.info("importing extra packages from %s", pkgfile)
-            with open(pkgfile, 'r') as f:
-                for line in f:
-                    line = line.partition('#')[0]
-                    line = line.strip()
-                    if line:
-                        self._extra_packages.append(line)
-
         try:
             self._do_rootfs()
             self._do_i18n()
             self._do_fstab()
             self._do_bootloader()
+            self._do_extra_packages()
             self._do_initramfs()
             self._done()
         except:
@@ -310,7 +322,7 @@ class ArchInstallStep(_InstallStep):
 
             return (count, total, pattern)
 
-        pkgs = ["base", "mdadm"] + self._extra_packages
+        pkgs = ["base", "mdadm"]
         self._do_pacstrap(pkgs, stdout_handler=stdout_handler)
 
     def _do_i18n(self):
@@ -349,6 +361,10 @@ initrd      /initramfs-linux.img
     def _do_bootloader_on_gpt(self, bootable):
         self._do_pacstrap(['syslinux', 'gptfdisk'])
         self._do_bootloader_on_bios_with_syslinux(bootable, gpt=True)
+
+    def _do_extra_packages(self):
+        if self._extra_packages:
+            self._pacstrap(self._extra_packages)
 
     def _do_initramfs(self):
         self._chroot("mkinitcpio -p linux")
@@ -417,28 +433,33 @@ class MandrivaInstallStep(_InstallStep):
         # bootloader so all bootloader configuration files will be
         # updated accordingly.
         packages = ["basesystem-minimal", "urpmi", "mdadm"]
-        packages = packages + self._extra_packages
-        self._do_urpmi(packages, 70)
+        self._do_urpmi(packages, 60)
 
     def _do_i18n(self):
         locale = settings.I18n.locale
-        self._do_urpmi(['locales-%s' % locale.split('_')[0]], 75)
+        self._do_urpmi(['locales-%s' % locale.split('_')[0]], 65)
         _InstallStep._do_i18n(self)
 
     def _do_bootloader_on_efi(self):
-        self._do_urpmi(['gummiboot'], 80)
-        self._do_urpmi(['kernel'], 95)
+        self._do_urpmi(['gummiboot'], 70)
+        self._do_urpmi(['kernel'], 80)
         self._do_bootloader_on_efi_with_gummiboot()
 
     def _do_bootloader_on_gpt(self, bootable):
-        self._do_urpmi(['syslinux', 'extlinux', 'gdisk'], 80)
-        self._do_urpmi(['kernel'], 95)
+        self._do_urpmi(['syslinux', 'extlinux', 'gdisk'], 70)
+        self._do_urpmi(['kernel'], 80)
         self._do_bootloader_on_bios_with_syslinux(bootable, gpt=True)
 
     def _do_bootloader_on_mbr(self, bootable):
-        self._do_urpmi(['syslinux', 'extlinux', 'util-linux'], 80)
-        self._do_urpmi(['kernel'], 95)
+        self._do_urpmi(['syslinux', 'extlinux', 'util-linux'], 70)
+        self._do_urpmi(['kernel'], 80)
         self._do_bootloader_on_bios_with_syslinux(bootable, gpt=False)
+
+    def _do_extra_packages(self):
+        if self._extra_packages:
+            self._do_urpmi(self._extra_packages, 90)
+        else:
+            self.set_completion(90)
 
     def _do_initramfs(self):
         #
