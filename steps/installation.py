@@ -208,13 +208,14 @@ class _InstallStep(Step):
             self._do_extra_packages()
             self._do_initramfs()
             self._done()
-        except:
+        except Exception as e:
             try:
-                # no need to unmount rootfs is going to fail.
+                # At that point umounting rootfs will probably fail, but
+                # let's try to do the cleanup anyways.
                 unmount_rootfs()
             except:
                 self.logger.error("failed to umount %s", self._root)
-            raise
+            raise e
         else:
             unmount_rootfs()
             self._root = None
