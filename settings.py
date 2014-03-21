@@ -45,6 +45,8 @@ class I18n(Section):
     keymap   = 'fr'
     locale   = 'fr_FR'
 
+class Kernel(Section):
+    cmdline  = 'rw quiet'
 
 class Steps(Section):
     _default = True
@@ -54,8 +56,9 @@ class _Settings(object):
 
     def __init__(self):
         self._sections = {
-            'I18n'  : I18n(),
-            'Steps' : Steps(),
+            'I18n'       : I18n(),
+            'Kernel'     : Kernel(),
+            'Steps'      : Steps(),
         }
 
     @property

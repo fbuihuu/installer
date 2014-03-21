@@ -58,6 +58,13 @@ class _InstallStep(Step):
     def name(self):
         return _("Installation")
 
+    @property
+    def _kernel_cmdline(self):
+        cmdline = settings.Kernel.cmdline
+        if "root=" in cmdline:
+            return cmdline
+        return "root=" + self._fstab["/"].source + " " + cmdline
+
     def _do_rootfs(self):
         raise NotImplementedError()
 
@@ -232,12 +239,8 @@ class _InstallStep(Step):
         # Setup kernel command line in syslinux.cfg or where appropriate.
         ls = glob.glob(self._root + '/boot/syslinux/entries/*')
         config = ls[0] if ls else self._root + '/boot/syslinux/syslinux.cfg'
-
-        self.logger.debug("setting new kernel command line in %s" % config)
-        cmdline = "root={0} rw quiet".format(self._fstab["/"].source)
-        check_call(["sed", "-ri",
-                    's/([[:space:]]*APPEND[[:space:]]+).*/\\1%s/I' % cmdline,
-                    config])
+        re = 's/([[:space:]]*APPEND[[:space:]]+).*/\\1%s/I' % self._kernel_cmdline
+        check_call(["sed", "-ri", re, config])
 
     def _do_bootloader_on_bios_with_grub(self, grub="grub"):
         cmd = "{0}-mkconfig -o /boot/{0}/grub.cfg".format(grub)
@@ -264,9 +267,8 @@ class _InstallStep(Step):
         # setup the kernel command line
         config = glob.glob(self._root + '/boot/loader/entries/*.conf')[0]
         config = config[len(self._root):]
-        cmdline = 'root={0} rw'.format(self._fstab["/"].source)
         self._chroot("sed -i /^options/d %s" % config)
-        self._chroot("echo options %s >>%s" % (cmdline, config))
+        self._chroot("echo options %s >>%s" % (self._kernel_cmdline, config))
 
 
 class ArchInstallStep(_InstallStep):
