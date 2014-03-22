@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 #
 
-from subprocess import check_call
 from steps import Step
 from partition import mount_rootfs, unmount_rootfs
 from settings import settings
+from process import monitor_chroot
 
 
 class PasswordStep(Step):
@@ -27,9 +27,10 @@ class PasswordStep(Step):
 
         root = mount_rootfs()
         try:
-            cmd = "echo 'root:%s' | chpasswd --root %s" % (password, root)
-            check_call(cmd, shell=True)
-            self.logger.info(_("root password updated"))
+            self.logger.info(_("setting root's password"))
+            cmd = "echo 'root:%s' | chpasswd" % password
+            # Make sure to not log root's password ;)
+            monitor_chroot(root, cmd, logger=None)
         finally:
             unmount_rootfs()
 
