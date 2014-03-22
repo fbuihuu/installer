@@ -115,7 +115,7 @@ class BlockDevice(object):
         if self.filesystem:
             try:
                 args = ["findmnt", "-n", "-o", "TARGET", "--source", self.devpath]
-                return check_output(args).split()
+                return check_output(args).decode().split()
             except CalledProcessError:
                 pass
         return []
