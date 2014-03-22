@@ -335,25 +335,24 @@ class ArchInstallStep(_InstallStep):
 
     def _do_bootloader_on_efi(self):
         self._do_pacstrap(['gummiboot'])
+        self._chroot('mkdir -p /boot/loader/entries')
 
-        loader_conf = """
-timeout     3
+        loader_conf_file = '/boot/loader/loader.conf'
+        loader_conf = """timeout     3
 default     archlinux
 """
-        arch_conf = """
-title       Arch Linux
+        arch_conf_file = '/boot/loader/entries/archlinux.conf'
+        arch_conf = """title       Arch Linux
 linux       /vmlinuz-linux
 initrd      /initramfs-linux.img
 """
-        entry_file = '/boot/loader/entries/archlinux.conf'
-
-        with open(self._root + '/boot/loader/loader.conf', 'w') as f:
+        with open(self._root + loader_conf_file, 'w') as f:
             f.write(loader_conf)
 
-        with open(self._root + entry_file, 'w') as f:
-            f.write(distro_conf)
+        with open(self._root + arch_conf_file, 'w') as f:
+            f.write(arch_conf)
 
-        self._do_bootloader_on_efi_with_gummiboot(entry_file)
+        self._do_bootloader_on_efi_with_gummiboot()
 
     def _do_bootloader_on_mbr(self, bootable):
         self._do_pacstrap(['syslinux', 'util-linux'])
