@@ -114,7 +114,7 @@ class BlockDevice(object):
     def mountpoints(self):
         if self.filesystem:
             try:
-                args = ["findmnt", "-n", "-o", "TARGET", " --source", self.devpath]
+                args = ["findmnt", "-n", "-o", "TARGET", "--source", self.devpath]
                 return check_output(args).split()
             except CalledProcessError:
                 pass
