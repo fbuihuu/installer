@@ -83,7 +83,7 @@ class _Settings(object):
     def remove(self, section, attribute):
         delattr(getattr(self, section), attribute)
         if not getattr(self, section).entries:
-            del self._section[section]
+            del self._sections[section]
 
 
 def load_config_file(config_file):
