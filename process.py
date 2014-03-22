@@ -31,7 +31,8 @@ def monitor(args, logger=None, stdout_handler=None, stderr_handler=None):
     fd_map = {}
     data = None
 
-    logger.debug("running: %s", " ".join(args))
+    if logger:
+        logger.debug("running: %s", " ".join(args))
 
     if [logger, stdout_handler, stderr_handler].count(None) == 3:
         return call(args, stdout=DEVNULL, stderr=DEVNULL)
@@ -78,7 +79,8 @@ def monitor(args, logger=None, stdout_handler=None, stderr_handler=None):
                     line = line.decode()
                     if not line:
                         break
-                    logger.log(level, line.rstrip())
+                    if logger:
+                        logger.log(level, line.rstrip())
                     data = handler(p, line, data)
 
             # Make sure to deal with fd hangup after emptying them.
