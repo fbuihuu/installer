@@ -34,7 +34,7 @@ def monitor(args, logger=None, stdout_handler=None, stderr_handler=None):
     logger.debug("running: %s", " ".join(args))
 
     if [logger, stdout_handler, stderr_handler].count(None) == 3:
-        return call(cmd, stdout=DEVNULL, stderr=DEVNULL)
+        return call(args, stdout=DEVNULL, stderr=DEVNULL)
 
     # Make sure the command's output is always formatted the same
     # regardless the current locale setting.
