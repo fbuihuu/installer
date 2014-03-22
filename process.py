@@ -51,11 +51,10 @@ def monitor(args, logger=None, stdout_handler=None, stderr_handler=None):
     fd_map[p.stderr.fileno()] = (p.stderr, stderr_handler, logging.WARNING)
 
     poller = select.poll()
-    poller.register(p.stdout, select.POLLIN | select.POLLPRI)
-    poller.register(p.stderr, select.POLLIN | select.POLLPRI)
+    poller.register(p.stdout, select.POLLIN | select.POLLPRI | select.POLLHUP)
+    poller.register(p.stderr, select.POLLIN | select.POLLPRI | select.POLLHUP)
 
-    while p.poll() is None:
-
+    while fd_map:
         try:
             ready = poller.poll()
         except select.error as e:
@@ -64,26 +63,30 @@ def monitor(args, logger=None, stdout_handler=None, stderr_handler=None):
             raise
 
         for fd, event in ready:
-            (fileobj, handler, level) = fd_map[fd]
-            #
-            # Note: don't use an iterate over file object construct since
-            # it uses a hidden read-ahead buffer which won't play well
-            # with long running process with limited outputs such as
-            # pacstrap.  See:
-            # http://stackoverflow.com/questions/1183643/unbuffered-read-from-process-using-subprocess-in-python
-            #
-            while True:
-                line = fileobj.readline()
-                line = line.decode()
-                if not line:
-                    break
-                logger.log(level, line.rstrip())
-                data = handler(p, line, data)
+
+            if event & (select.POLLIN | select.POLLPRI):
+                (fileobj, handler, level) = fd_map[fd]
+                #
+                # Note: don't use an iterate over file object construct since
+                # it uses a hidden read-ahead buffer which won't play well
+                # with long running process with limited outputs such as
+                # pacstrap.  See:
+                # http://stackoverflow.com/questions/1183643/unbuffered-read-from-process-using-subprocess-in-python
+                #
+                while True:
+                    line = fileobj.readline()
+                    line = line.decode()
+                    if not line:
+                        break
+                    logger.log(level, line.rstrip())
+                    data = handler(p, line, data)
+
+            # Make sure to deal with fd hangup after emptying them.
+            if event & select.POLLHUP:
+                poller.unregister(fd)
+                del fd_map[fd]
 
     retcode = p.wait()
-    poller.unregister(p.stdout)
-    poller.unregister(p.stderr)
-
     if retcode:
         raise CalledProcessError(retcode, " ".join(args))
 
