@@ -135,4 +135,4 @@ def monitor_chroot(rootfs, cmd, bind_mounts=[],
         monitor(chroot + ["sh", "-c", cmd], **kwargs)
     finally:
         for m in reversed(mounts):
-            check_call(["umount", m], stdout=DEVNULL)
+            check_call(["umount", "-l", m], stdout=DEVNULL)
