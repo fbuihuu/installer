@@ -330,7 +330,7 @@ class SummaryView(urwid.WidgetWrap):
         for section in settings.sections:
             items.append(urwid.Text(('sum.section', section.name)))
             for entry in section.entries:
-                value = urwid.Text(settings.get(section.name, entry))
+                value = urwid.Text(str(settings.get(section.name, entry)))
                 entry = "    " + entry
                 entry = urwid.Text(entry, layout=widgets.FillRightLayout(b'.'))
 
