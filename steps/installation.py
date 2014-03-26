@@ -99,7 +99,7 @@ class _InstallStep(Step):
         #
         # Several cases to handle:
         #
-        #   1/ EFI (GTP)   =>  gummiboot + EFI System Partiton
+        #   1/ UEFI (GTP)   =>  gummiboot + EFI System Partiton
         #   2/ BIOS + GPT  =>  syslinux  + BIOS Boot Partition
         #   3/ BIOS + MBR  =>  syslinux  + /boot partition      [3]
         #
@@ -115,37 +115,34 @@ class _InstallStep(Step):
         # [3] syslinux supports the FAT, ext2, ext3, ext4, and Btrfs file
         # systems.
         #
-        if is_efi():
+        if 'uefi' in settings.Options.firmware:
             self._do_bootloader_on_efi()
-            return
 
-        if '/boot' in self._fstab:
-            bootable = self._fstab['/boot'].partition.device
-        else:
-            bootable = self._fstab['/'].partition.device
+        if 'bios' in settings.Options.firmware:
+            if '/boot' in self._fstab:
+                bootable = self._fstab['/boot'].partition.device
+            else:
+                bootable = self._fstab['/'].partition.device
+            #
+            # Find out which partition scheme is used by this
+            # device. The device can be a RAID disk based on disk
+            # partitions. In that case the RAID device does not have
+            # a partition scheme but its parents have.
+            #
+            for dev in bootable.iterparents():
+                scheme = dev.scheme
+                if scheme:
+                    break
 
-        #
-        # Find out which partition scheme is used by this
-        # device. The device can be a RAID disk based on disk
-        # partitions. In that case the RAID device does not have
-        # a partition scheme but its parents have.
-        #
-        for dev in bootable.iterparents():
-            scheme = dev.scheme
-            if scheme:
-                break
+            if scheme == 'dos':
+                self._do_bootloader_on_mbr(bootable)
+                return
+            if scheme == 'gpt':
+                self._do_bootloader_on_gpt(bootable)
+                return
 
-        if not scheme:
-            self._failed("failed to find out the partition scheme used")
-            return
-        if scheme == 'dos':
-            self._do_bootloader_on_mbr(bootable)
-            return
-        if scheme == 'gpt':
-            self._do_bootloader_on_gpt(bootable)
-            return
-
-        self._failed("bootable device has unsupported partition scheme '%s'", scheme)
+            self._failed("bootable device has unsupported partition scheme '%s'",
+                         scheme)
 
     def _do_initramfs(self):
         raise NotImplementedError()
@@ -270,18 +267,23 @@ class _InstallStep(Step):
         # ESP = /boot
         #
         # The following copies the gummiboot binary to your EFI System
-        # Partition and create a boot entry in the EFI Boot Manager.
+        # Partition and create a boot entry in the EFI Boot Manager
+        # when '--no-variables' is not passed.
         #
-        # FIXME: for now don't touch EFI vars.
+        # The only case we want to update the EFI Boot Manager entries
+        # is when we're doing an installation for *this* UEFI host.
         #
-        self._chroot("gummiboot --no-variables --path=/boot install",
-                     bind_mounts=['/sys/firmware/efi/efivars'])
+        if is_efi() and settings.Options.hostonly:
+            self._chroot("gummiboot --path=/boot install")
+        else:
+            self._chroot("gummiboot --path=/boot --no-variables install",
+                         bind_mounts=['/sys/firmware/efi/efivars'])
 
         # setup the kernel command line
         config = glob.glob(self._root + '/boot/loader/entries/*.conf')[0]
         config = config[len(self._root):]
         self._chroot("sed -i /^options/d %s" % config)
-        self._chroot("echo options %s >>%s" % (self._kernel_cmdline, config))
+        self._chroot("echo 'options     %s' >>%s" % (self._kernel_cmdline, config))
 
 
 class ArchInstallStep(_InstallStep):
@@ -337,6 +339,11 @@ class ArchInstallStep(_InstallStep):
         self._do_pacstrap(['gummiboot'])
         self._chroot('mkdir -p /boot/loader/entries')
 
+        initrd = "initramfs-linux"
+        if not settings.Options.hostonly:
+            initrd += "-fallback"
+        initrd += ".img"
+
         loader_conf_file = '/boot/loader/loader.conf'
         loader_conf = """timeout     3
 default     archlinux
@@ -344,13 +351,14 @@ default     archlinux
         arch_conf_file = '/boot/loader/entries/archlinux.conf'
         arch_conf = """title       Arch Linux
 linux       /vmlinuz-linux
-initrd      /initramfs-linux.img
+initrd      /{initrd}
 """
+
         with open(self._root + loader_conf_file, 'w') as f:
             f.write(loader_conf)
 
         with open(self._root + arch_conf_file, 'w') as f:
-            f.write(arch_conf)
+            f.write(arch_conf.format(initrd=initrd))
 
         self._do_bootloader_on_efi_with_gummiboot()
 
@@ -467,8 +475,9 @@ class MandrivaInstallStep(_InstallStep):
         # needed to mount the rootfs since the rootfs is completely
         # initialized.
         #
-        cmd  = "dracut --hostonly --force /boot/initrd-{0}.img {0}"
-        self._chroot(cmd.format(self._uname_r))
+        opt = '--hostonly' if settings.Options.hostonly else '--no-hostonly'
+        cmd = "dracut {0} --force /boot/initrd-{1}.img {1}"
+        self._chroot(cmd.format(opt, self._uname_r))
         self.set_completion(98)
 
 

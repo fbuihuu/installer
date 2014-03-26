@@ -50,6 +50,7 @@ class Kernel(Section):
 
 class Options(Section):
     logfile  = '/tmp/installer.log'
+    hostonly = True
 
 class Steps(Section):
     _default = True

@@ -22,6 +22,7 @@ deps:
  - gdisk
  - syslinux  (BIOS or hybrid systems)
  - gummiboot (EFI)
+ - lsb-release
 
 Qemu:
 ====

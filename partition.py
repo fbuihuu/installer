@@ -6,6 +6,7 @@ import logging
 from operator import itemgetter
 from tempfile import mkdtemp
 
+from settings import settings
 import system
 import device
 import utils
@@ -159,7 +160,7 @@ class BootPartition(Partition):
 
     def __init__(self):
         Partition.__init__(self, "/boot")
-        if system.is_efi():
+        if "uefi" in settings.Options.firmware:
             # EFI specification does not require a min size for ESP
             # but 512MiB and higher tend to avoid some corner cases.
             self._minsize = 512 * 1024 * 1024
@@ -167,13 +168,13 @@ class BootPartition(Partition):
             self._minsize = 50 * 1000 * 1000
 
     def is_optional(self):
-        if system.is_efi():
+        if "uefi" in settings.Options.firmware:
             return False
         return self._is_optional
 
     def _validate_fs(self, fs):
         # ESP partition on UEFI systems should use a FAT32 fs.
-        if system.is_efi() and fs != "vfat":
+        if "uefi" in settings.Options.firmware and fs != "vfat":
             raise PartitionError("/boot must use vfat FS on UEFI systems")
         Partition._validate_fs(self, fs)
 
@@ -199,7 +200,7 @@ class BootPartition(Partition):
             if dev.is_compound():
                 raise BootPartitionError()
 
-        if system.is_efi():
+        if "uefi" in settings.Options.firmware:
             if dev.scheme != 'gpt':
                 raise PartitionError("GPT is required on UEFI systems")
 

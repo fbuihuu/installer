@@ -8,6 +8,7 @@ import locale
 import logging
 import gettext
 import argparse
+import system
 from ui.urwid import UrwidUI
 from settings import settings, load_config_file
 from utils import die
@@ -23,11 +24,20 @@ def parse_cmdline():
     parser = argparse.ArgumentParser(description="An easy way to install your favorite distribution")
     parser.add_argument("-c", "--config",
                         metavar='file',
-                        help="Specify a configuration file")
+                        help="specify a configuration file")
     parser.add_argument("--log",
                         dest="logfile",
                         metavar='file',
-                        help="Specify the log file")
+                        help="specify the log file")
+    parser.add_argument("--firmware",
+                        dest="firmware",
+                        choices=['uefi', 'bios'],
+                        nargs="+",
+                        help="force installation for a uefi and/or bios system")
+    parser.add_argument("--no-hostonly",
+                        dest="hostonly",
+                        action="store_false",
+                        help="do a generic installation")
     parser.add_argument("--version",
                         action='version',
                         version=VERSION)
@@ -55,9 +65,10 @@ def main():
 
     #
     # Setting up the default logging facility: it uses a log file. If
-    # the user wants to disable this it can pass '--config=/dev/null'.
+    # the user wants to disable this it can pass '--log=/dev/null'.
     #
-    # Each frontend can add additional hanlders to meet its needs.
+    # Each frontend can add additional handlers to meet its specific
+    # needs.
     #
     if args.logfile:
         settings.Options.logfile = args.logfile
@@ -67,6 +78,22 @@ def main():
                         datefmt='%H:%M:%S',
                         filename=logfile, filemode='w',
                         level=logging.DEBUG)
+
+    #
+    # Set hostonly mode.
+    #
+    settings.Options.hostonly = args.hostonly
+
+    #
+    # Set firmware.
+    #
+    if args.firmware:
+        fw = args.firmware
+    elif settings.Options.firmware:
+        fw = settings.Options.firmware.split()
+    else:
+        fw = ['uefi' if system.is_efi() else 'bios']
+    settings.Options.firmware = set(fw)
 
     #
     # check the extra package list now to catch any errors early.
