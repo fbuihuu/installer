@@ -48,6 +48,9 @@ class I18n(Section):
 class Kernel(Section):
     cmdline  = 'rw quiet'
 
+class Options(Section):
+    logfile  = '/tmp/installer.log'
+
 class Steps(Section):
     _default = True
 
@@ -61,6 +64,7 @@ class _Settings(object):
         self._sections = {
             'I18n'       : I18n(),
             'Kernel'     : Kernel(),
+            'Options'    : Options(),
             'Steps'      : Steps(),
             'Urpmi'      : Urpmi(),
         }

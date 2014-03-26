@@ -15,7 +15,6 @@ from utils import die
 
 VERSION='0.0'
 CONFIG_FILE='/etc/installer/installer.conf'
-LOG_FILE='/tmp/installer.log'
 
 
 def parse_cmdline():
@@ -60,12 +59,9 @@ def main():
     #
     # Each frontend can add additional hanlders to meet its needs.
     #
-    logfile = LOG_FILE
-
     if args.logfile:
-        settings.options.logfile = args.logfile
-    if settings.options.logfile:
-        logfile = settings.options.logfile
+        settings.Options.logfile = args.logfile
+    logfile = settings.Options.logfile
 
     logging.basicConfig(format='%(asctime)s %(levelname)-8s %(name)-12s  %(message)s',
                         datefmt='%H:%M:%S',
