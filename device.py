@@ -26,7 +26,7 @@ def leaf_block_devices():
                 leaves.remove(parent)
     return leaves
 
-def find_device(syspath):
+def _syspath_to_bdev(syspath):
     for dev in block_devices:
         if os.path.samefile(dev.syspath, syspath):
             return dev
@@ -240,7 +240,7 @@ class MetadiskDevice(BlockDevice):
         md_dir = os.path.join(self.syspath, 'md')
         for f in os.listdir(md_dir):
             if f.startswith('dev-'):
-                parent = find_device(os.path.join(md_dir, f, 'block'))
+                parent = _syspath_to_bdev(os.path.join(md_dir, f, 'block'))
                 if parent:
                     parents.append(parent)
         assert(parents)
@@ -289,7 +289,7 @@ class PartitionDevice(BlockDevice):
         return int(self._gudev.get_property("ID_PART_ENTRY_NUMBER"))
 
     def get_parents(self):
-        pdev = find_device(os.path.join(self.syspath, ".."))
+        pdev = _syspath_to_bdev(os.path.join(self.syspath, ".."))
         if not pdev:
             raise DeviceError(self, "partition has no direct parent !")
         return [pdev]
