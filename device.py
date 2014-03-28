@@ -83,6 +83,11 @@ class BlockDevice(object):
         return int(size) * 512
 
     @property
+    def is_removable(self):
+        with open(self.syspath + "/removable", 'r') as f:
+            return f.read().decode() == "1"
+
+    @property
     def scheme(self):
         return self._gudev.get_property("ID_PART_TABLE_TYPE")
 
@@ -235,6 +240,10 @@ class PartitionDevice(BlockDevice):
 
     def __init__(self, gudev):
         super(PartitionDevice, self).__init__(gudev)
+
+    @property
+    def is_removable(self):
+        return False
 
     @property
     def scheme(self):
