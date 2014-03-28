@@ -26,6 +26,19 @@ def leaf_block_devices():
                 leaves.remove(parent)
     return leaves
 
+def root_block_devices():
+    """Returns the list of root block devices"""
+    roots = []
+    for dev in block_devices:
+        if dev.devtype != 'disk':
+            continue
+        if dev.get_parents():
+            continue
+        if dev in roots:
+            continue
+        roots.append(dev)
+    return roots
+
 def _syspath_to_bdev(syspath):
     for dev in block_devices:
         if os.path.samefile(dev.syspath, syspath):
