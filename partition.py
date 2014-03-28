@@ -261,7 +261,11 @@ def get_installable_devices(part, all=False):
     #
     busy_devices = [p.device for p in partitions if p != part and p.device]
 
-    # Only consider leaf devices.
+    #
+    # Consider leaf devices only: it can be either a disk or a
+    # partition. We consider both because soft RAID on partitions are
+    # seen as a single disk.
+    #
     leaves = list(device.block_devices)
     for dev in device.block_devices:
         for parent in dev.get_parents():
