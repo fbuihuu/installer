@@ -223,6 +223,14 @@ class LoopDevice(DiskDevice):
     def model(self):
         return "loopback device"
 
+    @property
+    def backing_file(self):
+        try:
+            with open(self.syspath + '/loop/backing_file', 'r') as f:
+                return f.read()
+        except FileNotFoundError:
+            return None
+
 
 class FloppyDevice(DiskDevice):
 
