@@ -348,6 +348,8 @@ def __on_add_uevent(gudev):
         bdev = FloppyDevice(gudev)
     elif gudev.get_property("MAJOR") == "7":
         bdev = LoopDevice(gudev)
+        if not bdev.backing_file:
+            return
     elif gudev.get_property("MAJOR") == "9":
         bdev = MetadiskDevice(gudev)
     elif gudev.get_property("ID_CDROM_DVD") == "1":
