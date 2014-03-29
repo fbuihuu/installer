@@ -107,15 +107,6 @@ class BlockDevice(object):
         return int(size) * 512
 
     @property
-    def is_removable(self):
-        with open(self.syspath + "/removable", 'r') as f:
-            return f.read().decode() == "1"
-
-    @property
-    def scheme(self):
-        return self._gudev.get_property("ID_PART_TABLE_TYPE")
-
-    @property
     def filesystem(self):
         return self._gudev.get_property("ID_FS_TYPE")
 
@@ -126,14 +117,6 @@ class BlockDevice(object):
     @property
     def fslabel(self):
         return self._gudev.get_property("ID_FS_LABEL")
-
-    @property
-    def partuuid(self):
-        assert(not self._gudev.get_property("ID_PART_ENTRY_UUID"))
-
-    @property
-    def partlabel(self):
-        assert(not self._gudev.get_property("ID_PART_ENTRY_NAME"))
 
     def validate(self):
         if self.devtype == 'disk' and self.scheme and self.filesystem:
@@ -161,10 +144,6 @@ class BlockDevice(object):
             mntpnt = self._mntpoint
             self._mntpoint = None
             return mntpnt
-
-    def get_parents(self):
-        """Gives the list of direct parent(s)"""
-        return []
 
     def get_root_parents(self):
         """Give the list of the very first parent(s)"""
@@ -204,28 +183,55 @@ class BlockDevice(object):
                          for f, v in lines])
 
 
-class RamDevice(BlockDevice):
+class DiskDevice(BlockDevice):
+
+    def __init__(self, gudev):
+        super(DiskDevice, self).__init__(gudev)
+
+    @property
+    def is_removable(self):
+        with open(self.syspath + "/removable", 'r') as f:
+            return f.read().decode() == "1"
+
+    @property
+    def scheme(self):
+        return self._gudev.get_property("ID_PART_TABLE_TYPE")
+
+    @property
+    def partuuid(self):
+        assert(not self._gudev.get_property("ID_PART_ENTRY_UUID"))
+
+    @property
+    def partlabel(self):
+        assert(not self._gudev.get_property("ID_PART_ENTRY_NAME"))
+
+    def get_parents(self):
+        """Gives the list of direct parent(s)"""
+        return []
+
+
+class RamDevice(DiskDevice):
 
     @property
     def model(self):
         return "RAM disk"
 
 
-class LoopDevice(BlockDevice):
+class LoopDevice(DiskDevice):
 
     @property
     def model(self):
         return "loopback device"
 
 
-class FloppyDevice(BlockDevice):
+class FloppyDevice(DiskDevice):
 
     @property
     def model(self):
         return "floppy disk"
 
 
-class CdromDevice(BlockDevice):
+class CdromDevice(DiskDevice):
 
     @property
     def model(self):
@@ -234,7 +240,7 @@ class CdromDevice(BlockDevice):
         return "SCSI CDROM"
 
 
-class MetadiskDevice(BlockDevice):
+class MetadiskDevice(DiskDevice):
 
     @property
     def model(self):
@@ -341,7 +347,7 @@ def __on_add_uevent(gudev):
     elif gudev.get_property("ID_CDROM") == "1":
         bdev = CdromDevice(gudev)
     else:
-        bdev = BlockDevice(gudev)
+        bdev = DiskDevice(gudev)
     block_devices.append(bdev)
     __notify_uevent_handlers("add", bdev)
 
