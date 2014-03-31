@@ -44,6 +44,11 @@ def _syspath_to_bdev(syspath):
         if os.path.samefile(dev.syspath, syspath):
             return dev
 
+def _format_description(lines):
+    width = max([len(line[0]) for line in lines])
+    return "\n".join(["{f:<{w}} : {v}".format(f=f, v=v, w=width)
+                      for f, v in lines])
+
 
 class DeviceError(Exception):
     """Base class for exceptions for the device module."""
@@ -177,10 +182,7 @@ class BlockDevice(object):
                  (_("Filesystem"), self.filesystem),
                  (_("Size"),       utils.pretty_size(self.size)),
                  (_("Scheme"),     self.scheme)]
-        width = max([len(line[0]) for line in lines])
-
-        return "\n".join(["%s : %s" % (("{0:%d}" % width).format(f), v)
-                         for f, v in lines])
+        return _format_description(lines)
 
 
 class DiskDevice(BlockDevice):
