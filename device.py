@@ -254,7 +254,7 @@ class MetadiskDevice(DiskDevice):
 
     @property
     def model(self):
-        return "MD (%s)" % self.level
+        return "MD %s" % self.level
 
     @property
     def level(self):
@@ -274,6 +274,14 @@ class MetadiskDevice(DiskDevice):
                     parents.append(parent)
         assert(parents)
         return parents
+
+    def __str__(self):
+        lines = [(_("Model"),      self.model),
+                 (_("Metadata"),   self.metadata_version),
+                 (_("Filesystem"), self.filesystem),
+                 (_("Size"),       utils.pretty_size(self.size)),
+                 (_("Scheme"),     self.scheme)]
+        return _format_description(lines)
 
 
 class PartitionDevice(BlockDevice):
