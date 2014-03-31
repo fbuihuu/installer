@@ -233,6 +233,14 @@ class LoopDevice(DiskDevice):
         except FileNotFoundError:
             return None
 
+    def __str__(self):
+        lines = [(_("Model"),          self.model),
+                 (_("Backing File"),   self.backing_file),
+                 (_("Filesystem"),     self.filesystem),
+                 (_("Size"),           utils.pretty_size(self.size)),
+                 (_("Scheme"),         self.scheme)]
+        return _format_description(lines)
+
 
 class FloppyDevice(DiskDevice):
 
