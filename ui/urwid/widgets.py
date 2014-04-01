@@ -49,6 +49,29 @@ class ClickableTextList(urwid.WidgetWrap):
         urwid.WidgetWrap.__init__(self, urwid.ListBox(self._walker))
 
 
+class ClickableTextPile(urwid.WidgetWrap):
+
+    def __init__(self, items):
+        lst = []
+
+        for i, item in enumerate(items):
+            if not item:
+                w = urwid.Divider('─')
+            else:
+                if isinstance(item, tuple):
+                    txt, callback = item
+                else:
+                    txt, callback = (item, None)
+                w = ClickableText(txt)
+                if callback:
+                    urwid.connect_signal(w, 'click', callback)
+                w.set_layout('center', 'clip', None)
+                w = urwid.AttrMap(w, None, focus_map='reversed')
+            lst.append(w)
+
+        urwid.WidgetWrap.__init__(self, urwid.Pile(lst))
+
+
 class Field(urwid.Edit):
     """Edit widget with a limited number of chars.
 
