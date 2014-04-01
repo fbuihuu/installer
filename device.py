@@ -229,7 +229,7 @@ class LoopDevice(DiskDevice):
     def backing_file(self):
         try:
             with open(self.syspath + '/loop/backing_file', 'r') as f:
-                return f.read()
+                return f.read().strip()
         except FileNotFoundError:
             return None
 
