@@ -358,6 +358,7 @@ def __notify_uevent_handlers(action, bdev):
             logger.exception("uevent callback got an unexpected exception")
 
 def __on_add_uevent(gudev):
+    bdev = None
     if gudev.get_devtype() == "partition":
         bdev = PartitionDevice(gudev)
     elif gudev.get_property("MAJOR") == "1":
@@ -367,17 +368,19 @@ def __on_add_uevent(gudev):
     elif gudev.get_property("MAJOR") == "7":
         bdev = LoopDevice(gudev)
         if not bdev.backing_file:
-            return
+            bdev = None
     elif gudev.get_property("MAJOR") == "9":
         bdev = MetadiskDevice(gudev)
     elif gudev.get_property("ID_CDROM_DVD") == "1":
         bdev = CdromDevice(gudev)
     elif gudev.get_property("ID_CDROM") == "1":
         bdev = CdromDevice(gudev)
-    else:
+    elif gudev.get_devtype() == "disk":
         bdev = DiskDevice(gudev)
-    block_devices.append(bdev)
-    __notify_uevent_handlers("add", bdev)
+
+    if bdev:
+        block_devices.append(bdev)
+        __notify_uevent_handlers("add", bdev)
 
 def __on_remove_uevent(gudev):
     for bdev in block_devices:
