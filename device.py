@@ -216,11 +216,19 @@ class DiskDevice(BlockDevice):
 class RamDevice(DiskDevice):
 
     @property
+    def bus(self):
+        return "ram"
+
+    @property
     def model(self):
         return "RAM disk #%d" % (self.minor/16 + 1)
 
 
 class LoopDevice(DiskDevice):
+
+    @property
+    def bus(self):
+        return "loop"
 
     @property
     def model(self):
