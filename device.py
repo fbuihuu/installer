@@ -111,9 +111,7 @@ class BlockDevice(object):
 
     @property
     def size(self):
-        with open(self.syspath + "/size", 'r') as f:
-            size = f.read()
-        return int(size) * 512
+        return self._gudev.get_sysfs_attr_as_int('size') * 512
 
     @property
     def filesystem(self):
@@ -196,8 +194,7 @@ class DiskDevice(BlockDevice):
 
     @property
     def is_removable(self):
-        with open(self.syspath + "/removable", 'r') as f:
-            return f.read().decode() == "1"
+        return self._gudev.get_sysfs_attr_as_boolean('removable')
 
     @property
     def scheme(self):
@@ -232,9 +229,8 @@ class LoopDevice(DiskDevice):
     @property
     def backing_file(self):
         try:
-            with open(self.syspath + '/loop/backing_file', 'r') as f:
-                return f.read().strip()
-        except FileNotFoundError:
+            return gudev.get_sysfs_attr_as_strv('loop/backing_file')[0]
+        except IndexError:
             return None
 
     def __str__(self):
