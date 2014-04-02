@@ -98,6 +98,10 @@ class BlockDevice(object):
         return int(self._gudev.get_property("MAJOR"))
 
     @property
+    def minor(self):
+        return int(self._gudev.get_property("MINOR"))
+
+    @property
     def model(self):
         return self._gudev.get_property("ID_MODEL")
 
@@ -216,14 +220,14 @@ class RamDevice(DiskDevice):
 
     @property
     def model(self):
-        return "RAM disk"
+        return "RAM disk #%d" % (self.minor/16 + 1)
 
 
 class LoopDevice(DiskDevice):
 
     @property
     def model(self):
-        return "loopback device"
+        return "Loopback device #%d" % (self.minor/16 + 1)
 
     @property
     def backing_file(self):
