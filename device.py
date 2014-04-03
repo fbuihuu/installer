@@ -367,23 +367,25 @@ def __notify_uevent_handlers(action, bdev):
 
 def __on_add_uevent(gudev):
     bdev = None
+
+    major = gudev.get_property_as_int("MAJOR")
     if gudev.get_devtype() == "partition":
         bdev = PartitionDevice(gudev)
-    elif gudev.get_property("MAJOR") == "1":
+    elif major == 1:
         bdev = RamDevice(gudev)
-    elif gudev.get_property("MAJOR") == "2":
+    elif major == 2:
         bdev = FloppyDevice(gudev)
-    elif gudev.get_property("MAJOR") == "7":
+    elif major == 7:
         bdev = LoopDevice(gudev)
         if not bdev.backing_file:
             bdev = None
-    elif gudev.get_property("MAJOR") == "9":
+    elif major == 9:
         bdev = MetadiskDevice(gudev)
-    elif gudev.get_property("MAJOR") == "11":
+    elif major == 11:
         bdev = CdromDevice(gudev)
-    elif gudev.get_property("ID_CDROM_DVD") == "1":
+    elif gudev.get_property_as_boolean("ID_CDROM_DVD"):
         bdev = CdromDevice(gudev)
-    elif gudev.get_property("ID_CDROM") == "1":
+    elif gudev.get_property_as_boolean("ID_CDROM"):
         bdev = CdromDevice(gudev)
     elif gudev.get_devtype() == "disk":
         bdev = DiskDevice(gudev)
