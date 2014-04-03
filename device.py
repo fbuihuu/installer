@@ -114,6 +114,10 @@ class BlockDevice(object):
         return self._gudev.get_sysfs_attr_as_int('size') * 512
 
     @property
+    def is_readonly(self):
+        return self._gudev.get_sysfs_attr_as_boolean('ro')
+
+    @property
     def filesystem(self):
         return self._gudev.get_property("ID_FS_TYPE")
 
