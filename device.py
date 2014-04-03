@@ -379,6 +379,8 @@ def __on_add_uevent(gudev):
             bdev = None
     elif gudev.get_property("MAJOR") == "9":
         bdev = MetadiskDevice(gudev)
+    elif gudev.get_property("MAJOR") == "11":
+        bdev = CdromDevice(gudev)
     elif gudev.get_property("ID_CDROM_DVD") == "1":
         bdev = CdromDevice(gudev)
     elif gudev.get_property("ID_CDROM") == "1":
