@@ -201,6 +201,10 @@ class DiskDevice(BlockDevice):
         return self._gudev.get_sysfs_attr_as_boolean('removable')
 
     @property
+    def is_rotational(self):
+        return self._gudev.get_sysfs_attr_as_boolean('queue/rotational')
+
+    @property
     def scheme(self):
         return self._gudev.get_property("ID_PART_TABLE_TYPE")
 
