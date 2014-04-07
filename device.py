@@ -75,15 +75,14 @@ class BlockDevice(object):
         self._mntpoint = None
 
     def __eq__(self, other):
-        return other and \
-               os.path.abspath(other.syspath) == os.path.abspath(self.syspath)
+        return other and other.syspath == self.syspath
 
     def __ne__(self, other):
         return not self.__eq__(other)
 
     @property
     def syspath(self):
-        return self._gudev.get_sysfs_path()
+        return os.path.abspath(self._gudev.get_sysfs_path())
 
     @property
     def devpath(self):
