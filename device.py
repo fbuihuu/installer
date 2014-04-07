@@ -219,6 +219,15 @@ class DiskDevice(BlockDevice):
         """Gives the list of direct parent(s)"""
         return []
 
+    def get_partitions(self):
+        parts = []
+        for dev in block_devices:
+            if dev.devtype != 'partition':
+                continue
+            if dev.syspath.startswith(self.syspath):
+                parts.append(dev)
+        return parts
+
 
 class RamDevice(DiskDevice):
 
