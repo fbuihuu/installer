@@ -213,3 +213,62 @@ class Page(urwid.WidgetWrap):
         if not widget:
             widget = self.empty_text_widget
         self._footer.original_widget = widget
+
+
+class Table(urwid.WidgetWrap):
+
+    class Cell(urwid.WidgetWrap):
+
+        def __init__(self, value, cb=None, data=None):
+            self.callback = cb
+            self.data = data
+            txt = urwid.Text(str(value), wrap='clip')
+            if self.callback:
+                txt = urwid.AttrMap(txt, None, focus_map='reversed')
+            urwid.WidgetWrap.__init__(self, txt)
+
+        def selectable(self):
+            return self.callback is not None
+
+        def keypress(self, size, key):
+            if self._command_map[key] != ACTIVATE:
+                return key
+            if self.callback:
+                self.callback(self.data)
+
+    def __init__(self, columns):
+        self._widths = []
+        self._numsep = 1
+
+        # build the header
+        items = []
+        for name, width in columns:
+            if width < len(name):
+                width = len(name)
+            items.append((width, urwid.Text(name, wrap='clip')))
+            self._widths.append(width)
+
+        header = urwid.Pile([urwid.Columns(items, dividechars=self._numsep),
+                             urwid.Divider('─')])
+
+        # build the body of the table
+        self._walker = urwid.SimpleListWalker([])
+        listbox = urwid.ListBox(self._walker)
+
+        frame_width = (sum(self._widths) + self._numsep * (len(self._widths)-1))
+        frame = urwid.Frame(listbox, header)
+        urwid.WidgetWrap.__init__(self, urwid.Padding(frame, width=frame_width))
+
+    def append_row(self, columns, callbacks=None):
+        """callbacks: list of tuples (col, cb, data)"""
+        items = []
+        for i, v in enumerate(columns):
+            kwargs = {}
+            if callbacks:
+                for col, cb, data in callbacks:
+                    if col == i:
+                        kwargs['cb'] = cb
+                        kwargs['data'] = data
+                        break
+            items.append((self._widths[i], Table.Cell(v, **kwargs)))
+        self._walker.append(urwid.Columns(items, dividechars=self._numsep))
