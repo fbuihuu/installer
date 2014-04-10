@@ -226,6 +226,7 @@ class DiskDevice(BlockDevice):
                 continue
             if dev.syspath.startswith(self.syspath):
                 parts.append(dev)
+        parts.sort(key=lambda part: part.syspath)
         return parts
 
 
