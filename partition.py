@@ -22,7 +22,7 @@ class PartitionError(Exception):
 class BootPartitionError(PartitionError):
 
     def __init__(self):
-        message = _("only disk partition or RAID1 with v0.9 metadata devices are allowed")
+        message = _("only disk partition or RAID1 with 0.9 or 1.0 metadata devices are allowed")
         PartitionError.__init__(self, message)
 
 
@@ -182,7 +182,7 @@ class BootPartition(Partition):
         if dev.devtype != 'partition':
             #
             # For now the only supported case: dev is a disk is when
-            # it's a RAID1 MD device using 0.9 metadata.
+            # it's a RAID1 MD device using 0.9 or 1.0 metadata.
             #
             if type(dev) is not device.MetadiskDevice:
                 raise BootPartitionError()
