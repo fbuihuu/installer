@@ -268,16 +268,16 @@ class _InstallStep(Step):
         #
         # The following copies the gummiboot binary to your EFI System
         # Partition and create a boot entry in the EFI Boot Manager
-        # when '--no-variables' is not passed.
+        # without '--no-variables'.
         #
         # The only case we want to update the EFI Boot Manager entries
         # is when we're doing an installation for *this* UEFI host.
         #
         if is_efi() and settings.Options.hostonly:
-            self._chroot("gummiboot --path=/boot install")
-        else:
-            self._chroot("gummiboot --path=/boot --no-variables install",
+            self._chroot("gummiboot --path=/boot install",
                          bind_mounts=['/sys/firmware/efi/efivars'])
+        else:
+            self._chroot("gummiboot --path=/boot --no-variables install")
 
         # setup the kernel command line
         config = glob.glob(self._root + '/boot/loader/entries/*.conf')[0]
