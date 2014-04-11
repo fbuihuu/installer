@@ -214,6 +214,12 @@ class Page(urwid.WidgetWrap):
             widget = self.empty_text_widget
         self._footer.original_widget = widget
 
+    def set_focus(self, what):
+        if what == 'footer':
+            self._pile.focus_position = 3
+        else:
+            self._pile.focus_position = 2
+
 
 class Table(urwid.WidgetWrap):
 
