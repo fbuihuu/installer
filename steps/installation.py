@@ -252,7 +252,7 @@ class _InstallStep(Step):
         re = 's/([[:space:]]*APPEND[[:space:]]+).*/\\1%s/I' % self._kernel_cmdline
         check_call(["sed", "-ri", re, config])
 
-    def _do_bootloader_on_bios_with_grub(self, grub="grub"):
+    def _do_bootloader_on_bios_with_grub(self, bootable, grub="grub"):
         cmd = "{0}-mkconfig -o /boot/{0}/grub.cfg".format(grub)
         self._chroot(cmd)
 
