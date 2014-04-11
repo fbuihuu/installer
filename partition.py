@@ -160,12 +160,11 @@ class BootPartition(Partition):
 
     def __init__(self):
         Partition.__init__(self, "/boot")
-        if "uefi" in settings.Options.firmware:
-            # EFI specification does not require a min size for ESP
-            # but 512MiB and higher tend to avoid some corner cases.
-            self._minsize = 512 * 1024 * 1024
-        else:
-            self._minsize = 50 * 1000 * 1000
+        #
+        # EFI specification does not require a min size for ESP
+        # although 512MiB and higher tend to avoid some corner cases.
+        #
+        self._minsize = 32 * 1024 * 1024
 
     def is_optional(self):
         if "uefi" in settings.Options.firmware:
