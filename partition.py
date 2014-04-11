@@ -201,8 +201,9 @@ class BootPartition(Partition):
                 raise BootPartitionError()
 
         if "uefi" in settings.Options.firmware:
-            if dev.scheme != 'gpt':
-                raise PartitionError("GPT is required on UEFI systems")
+            for p in dev.get_root_parents():
+                if p.scheme != 'gpt':
+                    raise PartitionError("GPT is required on UEFI systems")
 
         Partition._validate_dev(self, dev)
 
