@@ -190,7 +190,7 @@ class BootPartition(Partition):
             if dev.level != 'raid1':
                 raise BootPartitionError()
 
-            if dev.metadata_version != '0.90':
+            if dev.metadata_version not in ('0.90', '1.0'):
                 raise BootPartitionError()
         else:
             #
