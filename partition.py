@@ -21,9 +21,8 @@ class PartitionError(Exception):
 
 class BootPartitionError(PartitionError):
 
-    def __init__(self):
-        message = _("only disk partition or RAID1 with 0.9 or 1.0 metadata devices are allowed")
-        PartitionError.__init__(self, message)
+    def __init__(self, message):
+        PartitionError.__init__(self, "/boot: " + message)
 
 
 class Partition(object):
@@ -174,35 +173,26 @@ class BootPartition(Partition):
     def _validate_fs(self, fs):
         # ESP partition on UEFI systems should use a FAT32 fs.
         if "uefi" in settings.Options.firmware and fs != "vfat":
-            raise PartitionError("/boot must use vfat FS on UEFI systems")
+            raise BootPartitionError(_("must use vfat on UEFI systems"))
         Partition._validate_fs(self, fs)
 
     def _validate_dev(self, dev):
-        if dev.devtype != 'partition':
+        for p in dev.get_root_parents():
+            # disk(s) containing /boot must have a partition table.
+            if not p.scheme:
+                raise BootPartitionError(_("must be on a disk with a table partition"))
+            if "uefi" in settings.Options.firmware and p.scheme != 'gpt':
+                raise PartitionError("GPT is required on UEFI systems")
+
+        if type(dev) is device.MetadiskDevice:
             #
             # For now the only supported case: dev is a disk is when
             # it's a RAID1 MD device using 0.9 or 1.0 metadata.
             #
-            if type(dev) is not device.MetadiskDevice:
-                raise BootPartitionError()
-
             if dev.level != 'raid1':
-                raise BootPartitionError()
-
+                raise BootPartitionError(_("only RAID level 1 is allowed"))
             if dev.metadata_version not in ('0.90', '1.0'):
-                raise BootPartitionError()
-        else:
-            #
-            # Ok looks a simple case, check that dev is a 'raw' disk
-            # partition.
-            #
-            if dev.is_compound():
-                raise BootPartitionError()
-
-        if "uefi" in settings.Options.firmware:
-            for p in dev.get_root_parents():
-                if p.scheme != 'gpt':
-                    raise PartitionError("GPT is required on UEFI systems")
+                raise BootPartitionError(_("doesn't use metadata 0.9 or 1.0"))
 
         Partition._validate_dev(self, dev)
 
