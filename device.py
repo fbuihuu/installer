@@ -19,7 +19,7 @@ def leaf_block_devices():
     """Returns the list of partition devices or any block devices
     without partitions.
     """
-    leaves = block_devices.copy()
+    leaves = list(block_devices)
     for dev in block_devices:
         for parent in dev.get_parents():
             if parent in leaves:
