@@ -238,7 +238,7 @@ class RamDevice(DiskDevice):
 
     @property
     def model(self):
-        return "RAM disk #%d" % (self.minor/16 + 1)
+        return "RAM disk #%d" % self.minor
 
 
 class LoopDevice(DiskDevice):
