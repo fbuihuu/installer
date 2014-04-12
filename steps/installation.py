@@ -220,28 +220,40 @@ class _InstallStep(Step):
     def _do_bootloader_on_bios_with_syslinux(self, bootable, gpt=True):
         self.logger.info("installing syslinux on a GPT disk layout")
 
+        #
         # This should work even on RAID1 device, since in that case
         # the vbr will be mirrored too.
+        #
         self._chroot('cp /usr/lib/syslinux/bios/*.c32 /boot/syslinux/')
         self._chroot('extlinux --install /boot/syslinux')
 
         bootcode = "gptmbr.bin" if gpt else "mbr.bin"
         bootcode = os.path.join("/usr/lib/syslinux/bios", bootcode)
 
-        for parent in bootable.get_root_parents():
+        if bootable.devtype != 'partition':
+            # /boot is on a RAID array and it's parent are partitions,
+            # it was checked previously.
+            partnums = [p.partnum for p in bootable.get_parents()]
+        else:
+            partnums = [bootable.partnum]
+
+        for i, parent in enumerate(bootable.get_root_parents()):
             # install mbr
             cmd = "dd bs=440 conv=notrunc count=1 if={0} of={1} 2>/dev/null"
             self._chroot(cmd.format(bootcode, parent.devpath))
 
             if gpt:
-                # make sure the attribute legacy BIOS bootable (bit 2) is
-                # set for the /boot partition for GPT.
+                #
+                # make sure the attribute legacy BIOS bootable (bit 2)
+                # is set for the /boot partition for GPT. It's
+                # required by syslinux on BIOS system.
+                #
                 self._chroot("sgdisk %s --attributes=%d:set:2" %
-                             (parent.devpath, bootable.partnum))
+                             (parent.devpath, partnums[i]))
             else:
                 # on MBR, we need to mark the boot partition active.
                 self._chroot("sfdisk --activate=%d %s" %
-                             (bootable.partnum, parent.devpath))
+                             (partnums[i], parent.devpath))
 
         # Setup kernel command line in syslinux.cfg or where appropriate.
         ls = glob.glob(self._root + '/boot/syslinux/entries/*')
