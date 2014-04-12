@@ -127,12 +127,9 @@ class _InstallStep(Step):
             # Find out which partition scheme is used by this
             # device. The device can be a RAID disk based on disk
             # partitions. In that case the RAID device does not have
-            # a partition scheme but its parents have.
+            # a partition scheme but its root parents have.
             #
-            for dev in bootable.iterparents():
-                scheme = dev.scheme
-                if scheme:
-                    break
+            scheme = bootable.get_root_parents()[0].scheme
 
             if scheme == 'dos':
                 self._do_bootloader_on_mbr(bootable)
