@@ -163,7 +163,7 @@ class InstallView(StepView):
         name = part.name if part.name != "/" else "/root"
         if dev:
             settings.set("Partition", name, dev.devpath)
-        else:
+        elif settings.get("Partition", name):
             settings.remove("Partition", name)
 
     def _on_clear_partition(self, part):
