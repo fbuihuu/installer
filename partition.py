@@ -238,6 +238,8 @@ def unmount_rootfs():
         _rootfs_mntpnt = None
 
 def find_partition(name):
+    if name == '/root':
+        name = '/'
     for part in partitions:
         if part.name == name:
             return part
