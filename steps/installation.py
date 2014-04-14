@@ -97,9 +97,9 @@ class _InstallStep(Step):
 
     def _do_bootloader(self):
         #
-        # Several cases to handle:
+        # We support the following cases:
         #
-        #   1/ UEFI (GTP)   =>  gummiboot + EFI System Partiton
+        #   1/ UEFI (GTP)  =>  gummiboot + EFI System Partiton
         #   2/ BIOS + GPT  =>  syslinux  + BIOS Boot Partition
         #   3/ BIOS + MBR  =>  syslinux  + /boot partition      [3]
         #
@@ -107,6 +107,7 @@ class _InstallStep(Step):
         #
         #   - support of disks larger than 2TB
         #   - use of PARTUUID which is stable across partition reformat
+        #   - MBR is basically outdated
         #
         # syslinux cannot access files from partitions other than its
         # own (unlike GRUB). This feature (called multi-fs) is
