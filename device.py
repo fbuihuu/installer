@@ -2,6 +2,7 @@
 #
 
 import os
+import threading
 import logging
 from subprocess import check_output, check_call, CalledProcessError
 from gi.repository import GUdev
@@ -11,38 +12,69 @@ from process import monitor
 
 logger = logging.getLogger(__name__)
 
+#class RLock(object):
+#
+#    def __init__(self):
+#        self._lock = threading.RLock()
+#
+#    def acquire(self):
+#        import inspect
+#        logger.debug("pre-acquire %s %s" % (threading.current_thread().name,
+#                                            inspect.stack()[1][3]))
+#        self._lock.acquire()
+#        logger.debug("acquired %s %s" % (threading.current_thread().name,
+#                                         inspect.stack()[1][3]))
+#
+#    def release(self):
+#        import inspect
+#        logger.debug("pre-release %s %s" % (threading.current_thread().name,
+#                                            inspect.stack()[1][3]))
+#        self._lock.release()
+#        logger.debug("released %s %s" % (threading.current_thread().name,
+#                                      inspect.stack()[1][3]))
+#
+#    def __enter__(self):
+#        self.acquire()
+#
+#    def __exit__(self, type, value, traceback):
+#        self.release()
 
-block_devices = []
+
+_bdev_lock = threading.RLock()
+_block_devices = []
 
 
 def leaf_block_devices():
     """Returns the list of partition devices or any block devices
     without partitions.
     """
-    leaves = list(block_devices)
-    for dev in block_devices:
-        for parent in dev.get_parents():
-            if parent in leaves:
-                leaves.remove(parent)
+    with _bdev_lock:
+        leaves = list(_block_devices)
+        for dev in _block_devices:
+            for parent in dev.get_parents():
+                if parent in leaves:
+                    leaves.remove(parent)
     return leaves
 
 def root_block_devices():
     """Returns the list of root block devices"""
     roots = []
-    for dev in block_devices:
-        if dev.devtype != 'disk':
-            continue
-        if dev.get_parents():
-            continue
-        if dev in roots:
-            continue
-        roots.append(dev)
+    with _bdev_lock:
+        for dev in _block_devices:
+            if dev.devtype != 'disk':
+                continue
+            if dev.get_parents():
+                continue
+            if dev in roots:
+                continue
+            roots.append(dev)
     return roots
 
 def _syspath_to_bdev(syspath):
-    for dev in block_devices:
-        if os.path.samefile(dev.syspath, syspath):
-            return dev
+    with _bdev_lock:
+        for dev in _block_devices:
+            if os.path.samefile(dev.syspath, syspath):
+                return dev
 
 def _format_description(lines):
     width = max([len(line[0]) for line in lines])
@@ -221,11 +253,12 @@ class DiskDevice(BlockDevice):
 
     def get_partitions(self):
         parts = []
-        for dev in block_devices:
-            if dev.devtype != 'partition':
-                continue
-            if dev.syspath.startswith(self.syspath):
-                parts.append(dev)
+        with _bdev_lock:
+            for dev in _block_devices:
+                if dev.devtype != 'partition':
+                    continue
+                if dev.syspath.startswith(self.syspath):
+                    parts.append(dev)
         parts.sort(key=lambda part: part.syspath)
         return parts
 
@@ -296,6 +329,10 @@ class MetadiskDevice(DiskDevice):
     @property
     def metadata_version(self):
         return self._gudev.get_property("MD_METADATA")
+
+    @property
+    def md_devname(self):
+        return self._gudev.get_property("MD_DEVNAME")
 
     def get_parents(self):
         parents = []
@@ -419,20 +456,28 @@ def __on_add_uevent(gudev):
         bdev = DiskDevice(gudev)
 
     if bdev:
-        block_devices.append(bdev)
+        _block_devices.append(bdev) # atomic operation
         __notify_uevent_handlers("add", bdev)
 
 def __on_remove_uevent(gudev):
-    for bdev in block_devices:
+    _bdev_lock.acquire()
+    for bdev in _block_devices:
         if bdev.syspath == gudev.get_sysfs_path():
-            block_devices.remove(bdev)
+            _block_devices.remove(bdev)
+            _bdev_lock.release()
             __notify_uevent_handlers("remove", bdev)
+            _bdev_lock.acquire()
+    _bdev_lock.release()
 
 def __on_change_uevent(gudev):
-    for bdev in block_devices:
+    _bdev_lock.acquire()
+    for bdev in _block_devices:
         if bdev.syspath == gudev.get_sysfs_path():
             bdev._gudev = gudev
+            _bdev_lock.release()
             __notify_uevent_handlers("change", bdev)
+            _bdev_lock.acquire()
+    _bdev_lock.release()
 
 def __on_uevent(client, action, gudev):
     if action == "add":
