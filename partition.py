@@ -71,6 +71,11 @@ class Partition(object):
             dev.validate()  # track any device inconsistencies.
             self._validate_dev(dev)
             self._validate_fs(dev.filesystem)
+            settings.set("Partition", self.name, dev.devpath)
+
+        elif settings.get("Partition", self.name):
+            settings.remove("Partition", self.name)
+
         self._device = dev
 
 

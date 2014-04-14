@@ -159,15 +159,7 @@ class InstallView(StepView):
                 return
         self._partition_page.footer = self._install_button
 
-    def _update_install_data(self, part, dev):
-        name = part.name if part.name != "/" else "/root"
-        if dev:
-            settings.set("Partition", name, dev.devpath)
-        elif settings.get("Partition", name):
-            settings.remove("Partition", name)
-
     def _on_clear_partition(self, part):
-        self._update_install_data(part, None)
         part.device = None
         self._partition_list_widget.refresh()
         self._update_install_button()
@@ -195,8 +187,6 @@ class InstallView(StepView):
             except partition.PartitionError as e:
                 self.logger.error(e)
                 return
-
-            self._update_install_data(part, dev)
 
         #
         # Always refresh the partition list page so any removed
