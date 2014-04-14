@@ -313,7 +313,7 @@ class MetadiskDevice(DiskDevice):
                     parent = _syspath_to_bdev(os.path.join(md_dir, f, 'block'))
                     if parent:
                         parents.append(parent)
-        except FileNotFoundError:
+        except IOError:
             parent = []
         else:
             assert(parents)
