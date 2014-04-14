@@ -135,6 +135,10 @@ class InstallView(StepView):
 
     def redraw(self):
         self._partition_page.title = _("Map partitions to block devices")
+        # When switching to the install view, devices can have been
+        # already assigned to partitions by the partitioning step.
+        self._partition_list_widget.refresh()
+        self._update_install_button()
 
     def _create_device_page(self, part, devices):
         page = widgets.Page()
