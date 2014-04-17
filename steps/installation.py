@@ -232,8 +232,8 @@ class _InstallStep(Step):
         bootcode = os.path.join("/usr/lib/syslinux/bios", bootcode)
 
         if bootable.devtype != 'partition':
-            # /boot is on a RAID array and it's parent are partitions,
-            # it was checked previously.
+            # /boot is a RAID array: its parents are partitions, it
+            # was checked previously.
             partnums = [p.partnum for p in bootable.get_parents()]
         else:
             partnums = [bootable.partnum]
@@ -385,6 +385,25 @@ initrd      /{initrd}
             self._pacstrap(self._extra_packages)
 
     def _do_initramfs(self):
+        hooks = ["base", "udev"]
+
+        if settings.Options.hostonly:
+            # This hook is used to get rid of kernel modules uneeded by
+            # the current system.
+            hooks += ["autodetect"]
+
+        hooks += ["modconf", "block"]
+
+        root = self._fstab['/'].partition.device
+        if root.is_compound():
+            # see https://wiki.archlinux.org/index.php/mkinitcpio#Using_RAID
+            hooks += ["mdadm_udev"]
+
+        hooks += ["filesystems", "keyboard", "fsck"]
+
+        # modify /etc/mkinitcpio.conf
+        re = "s/^HOOKS=.*/HOOKS='{0}'/".format(" ".join(hooks))
+        self._monitor(["sed", "-i", re, self._root+'/etc/mkinitcpio.conf'])
         self._chroot("mkinitcpio -p linux")
 
 
