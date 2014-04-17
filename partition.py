@@ -10,6 +10,7 @@ from settings import settings
 import system
 import device
 import utils
+from utils import MiB
 
 
 logger = logging.getLogger(__name__)
@@ -168,7 +169,7 @@ class BootPartition(Partition):
         # EFI specification does not require a min size for ESP
         # although 512MiB and higher tend to avoid some corner cases.
         #
-        self._minsize = 32 * 1024 * 1024
+        self._minsize = 32 * MiB
 
     def is_optional(self):
         if "uefi" in settings.Options.firmware:

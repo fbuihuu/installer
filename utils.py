@@ -5,6 +5,17 @@ from __future__ import print_function
 import sys
 
 
+KB = 1000
+MB = 1000 * KB
+GB = 1000 * MB
+TB = 1000 * GB
+
+KiB = 1024
+MiB = 1024 * KiB
+GiB = 1024 * MiB
+TiB = 1024 * GiB
+
+
 def die(*args):
     print(*args, end='\n', file=sys.stderr)
     exit(1)
