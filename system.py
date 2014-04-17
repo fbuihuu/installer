@@ -3,6 +3,7 @@
 #
 
 import os
+import re
 from subprocess import check_output
 from systemd import localed
 
@@ -39,6 +40,22 @@ class Distribution(object):
         return self._release
 
 distribution = Distribution()
+
+
+def get_meminfo():
+    """Returns the content of /proc/meminfo through a dict"""
+    meminfo = {}
+    pattern = re.compile(r'^(\w+):\s*(\d+)\s*(\w+)?')
+
+    for line in open('/proc/meminfo'):
+        match = pattern.match(line)
+        if match:
+            key, value, unit = match.groups()
+            value = int(value)
+            if unit == 'kB':
+                value *= 1024
+            meminfo[key] = value
+    return meminfo
 
 
 class Keyboard(object):
