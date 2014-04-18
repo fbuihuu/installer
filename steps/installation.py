@@ -21,10 +21,7 @@ class FStabEntry(object):
         self.fstype = part.device.filesystem
         self.dump   = 0
         self.passno = 1 if self.target == "/" else 2
-
-        devpath = part.device.devpath
-        options = check_output(["findmnt", "-cvuno", "OPTIONS", devpath])
-        self.options = options.split()[0].decode()
+        self.options = part.mount_options
 
         if part.device.partuuid:
             self.source = "PARTUUID=" + part.device.partuuid

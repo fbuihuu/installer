@@ -5,6 +5,7 @@ import os
 import logging
 from operator import attrgetter
 from tempfile import mkdtemp
+from subprocess import check_output
 
 from settings import settings
 import system
@@ -33,6 +34,8 @@ class Partition(object):
         self._is_optional = is_optional
         self._minsize = minsize
         self._device = None
+        self._mnt_target  = None
+        self._mnt_options = []
 
     @property
     def name(self):
@@ -79,11 +82,24 @@ class Partition(object):
 
         self._device = dev
 
-    def mount(self, target):
-        self.device.mount(target)
+    def mount(self, target, options=[]):
+        self.device.mount(target, options)
+        self._mnt_options = options
+        self._mnt_target  = target
 
     def umount(self):
         self.device.umount()
+        self._mnt_options = []
+        self._mnt_target  = None
+
+    @property
+    def mount_options(self):
+        if not self._mnt_options:
+            devpath = self.device.devpath
+            opts = check_output(["findmnt", "-cvuno", "OPTIONS", devpath])
+            opts = opts.split()[0].decode()
+            self._mnt_options = opts.split(',')
+        return self._mnt_options
 
 
 # /boot partition can be:

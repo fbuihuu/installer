@@ -174,18 +174,20 @@ class BlockDevice(object):
                 pass
         return []
 
-    def mount(self, mountpoint):
-        if self._mntpoint:
-            raise Exception()
-        monitor(["mount", self.devpath, mountpoint], logger=logger)
+    def mount(self, mountpoint, options=[]):
+        assert(not self._mntpoint)
+        cmd = ["mount"]
+        if options:
+            cmd += ['-o', ','.join(options)]
+        monitor(cmd + [self.devpath, mountpoint], logger=logger)
         self._mntpoint = mountpoint
 
     def umount(self):
-        if self._mntpoint:
-            monitor(["umount", self._mntpoint], logger)
-            mntpnt = self._mntpoint
-            self._mntpoint = None
-            return mntpnt
+        assert(self._mntpoint)
+        monitor(["umount", self._mntpoint], logger)
+        mntpnt = self._mntpoint
+        self._mntpoint = None
+        return mntpnt
 
     def get_root_parents(self):
         """Give the list of the very first parent(s)"""
