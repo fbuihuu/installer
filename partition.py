@@ -79,6 +79,12 @@ class Partition(object):
 
         self._device = dev
 
+    def mount(self, target):
+        self.device.mount(target)
+
+    def umount(self):
+        self.device.umount()
+
 
 # /boot partition can be:
 #
@@ -228,7 +234,7 @@ def mount_rootfs():
             mntpnt = _rootfs_mntpnt + part.name
             if part.name != "/" and not os.path.exists(mntpnt):
                 os.mkdir(mntpnt)
-            part.device.mount(mntpnt)
+            part.mount(mntpnt)
 
     return _rootfs_mntpnt
 
@@ -237,7 +243,7 @@ def unmount_rootfs():
 
     for part in reversed(partitions):
         if part.device:
-            mntpnt = part.device.umount()
+            mntpnt = part.umount()
     os.rmdir(_rootfs_mntpnt)
     _rootfs_mntpnt = None
 
