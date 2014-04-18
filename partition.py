@@ -3,7 +3,7 @@
 
 import os
 import logging
-from operator import itemgetter
+from operator import attrgetter
 from tempfile import mkdtemp
 
 from settings import settings
@@ -209,39 +209,37 @@ partitions = [
     Partition("/var"),
     BootPartition(),
 ]
+# Sort partitions in order to mount/umount them in order
+partitions.sort(key=attrgetter('name'))
+# For now make it readonly for simplicity.
+partitions = tuple(partitions)
 
 
 _rootfs_mntpnt = None
-mounted_partitions = []
 
 def mount_rootfs():
-    global _rootfs_mntpnt, mounted_partitions
+    global _rootfs_mntpnt
 
-    if _rootfs_mntpnt:
-        return _rootfs_mntpnt
+    assert(not _rootfs_mntpnt)
     _rootfs_mntpnt = mkdtemp()
 
-    lst = [ (p.name, p) for p in partitions if p.device ]
-    lst.sort(key=itemgetter(0))
-
-    for name, part in lst:
-        mntpnt = _rootfs_mntpnt + name
-        if name != "/" and not os.path.exists(mntpnt):
-            os.mkdir(mntpnt)
-        part.device.mount(mntpnt)
-        mounted_partitions.append(part)
+    for part in partitions:
+        if part.device:
+            mntpnt = _rootfs_mntpnt + part.name
+            if part.name != "/" and not os.path.exists(mntpnt):
+                os.mkdir(mntpnt)
+            part.device.mount(mntpnt)
 
     return _rootfs_mntpnt
 
 def unmount_rootfs():
-    global _rootfs_mntpnt, mounted_partitions
+    global _rootfs_mntpnt
 
-    if _rootfs_mntpnt:
-        for part in reversed(mounted_partitions):
+    for part in reversed(partitions):
+        if part.device:
             mntpnt = part.device.umount()
-            mounted_partitions.remove(part)
-        os.rmdir(_rootfs_mntpnt)
-        _rootfs_mntpnt = None
+    os.rmdir(_rootfs_mntpnt)
+    _rootfs_mntpnt = None
 
 def find_partition(name):
     if name == '/root':

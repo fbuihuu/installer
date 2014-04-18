@@ -7,7 +7,7 @@ import re
 import glob
 from subprocess import check_output, check_call
 from steps import Step
-from partition import mount_rootfs, unmount_rootfs, mounted_partitions
+from partition import partitions, mount_rootfs, unmount_rootfs
 from system import distribution, is_efi
 from settings import settings
 from process import monitor, monitor_chroot
@@ -88,8 +88,9 @@ class _InstallStep(Step):
 
     def _do_fstab(self):
         self.logger.info("generating fstab")
-        for part in mounted_partitions:
-            self._fstab[part.name] = FStabEntry(part)
+        for part in partitions:
+            if part.device:
+                self._fstab[part.name] = FStabEntry(part)
 
         with open(os.path.join(self._root, 'etc/fstab'), 'w') as f:
             for entry in self._fstab.values():
