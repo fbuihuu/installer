@@ -52,6 +52,10 @@ class Partition(object):
     def is_optional(self):
         return self._is_optional
 
+    @property
+    def is_swap(self):
+        return False
+
     def _validate_fs(self, fs):
         """Check the passed fs matches this partition requirements"""
         if not fs:
@@ -100,6 +104,24 @@ class Partition(object):
             opts = opts.split()[0].decode()
             self._mnt_options = opts.split(',')
         return self._mnt_options
+
+
+class SwapPartition(Partition):
+
+    counter = 0
+
+    def __init__(self):
+        SwapPartition.counter += 1
+        name = 'swap%d' % SwapPartition.counter
+        Partition.__init__(self, name)
+
+    @property
+    def is_swap(self):
+        return True
+
+    def _validate_fs(self, fs):
+        if fs != 'swap':
+            raise PartitionError(_("not swap formatted"))
 
 
 # /boot partition can be:
@@ -230,6 +252,7 @@ partitions = [
     Partition("/home"),
     Partition("/var"),
     BootPartition(),
+    SwapPartition(),
 ]
 # Sort partitions in order to mount/umount them in order
 partitions.sort(key=attrgetter('name'))
@@ -246,7 +269,7 @@ def mount_rootfs():
     _rootfs_mntpnt = mkdtemp()
 
     for part in partitions:
-        if part.device:
+        if part.device and not part.is_swap:
             mntpnt = _rootfs_mntpnt + part.name
             if part.name != "/" and not os.path.exists(mntpnt):
                 os.mkdir(mntpnt)
@@ -258,7 +281,7 @@ def unmount_rootfs():
     global _rootfs_mntpnt
 
     for part in reversed(partitions):
-        if part.device:
+        if part.device and not part.is_swap:
             mntpnt = part.umount()
     os.rmdir(_rootfs_mntpnt)
     _rootfs_mntpnt = None

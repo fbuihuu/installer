@@ -21,7 +21,13 @@ class FStabEntry(object):
         self.fstype = part.device.filesystem
         self.dump   = 0
         self.passno = 1 if self.target == "/" else 2
-        self.options = part.mount_options
+
+        if self.fstype not in ('swap'):
+            # part is currently mounted, reuse the current options.
+            self.options = part.mount_options
+        else:
+            self.options = "defaults"
+            self.passno  = 0
 
         if part.device.partuuid:
             self.source = "PARTUUID=" + part.device.partuuid

@@ -54,7 +54,9 @@ class PartitionListWidget(urwid.WidgetWrap):
         # contains optional ones.
         items = [urwid.ListBox(urwid.SimpleListWalker([])),
                  ('pack', urwid.Divider(" ")),
-                 urwid.ListBox(urwid.SimpleListWalker([]))]
+                 urwid.ListBox(urwid.SimpleListWalker([])),
+                 ('pack', urwid.Divider(" ")),
+                 urwid.ListBox(urwid.SimpleListWalker([]))] # swaps
         self._pile = urwid.Pile(items)
         linebox = urwid.LineBox(self._pile)
         attrmap = urwid.Padding(linebox, align='center', width=('relative', 70))
@@ -64,7 +66,8 @@ class PartitionListWidget(urwid.WidgetWrap):
 
     @property
     def _walkers(self):
-        return ((0, self._pile[0].body), (2, self._pile[2].body))
+        return ((0, self._pile[0].body), (2, self._pile[2].body),
+                (4, self._pile[4].body))
 
     def get_focus(self):
         return self._pile.focus.get_focus()[0].partition
@@ -84,6 +87,8 @@ class PartitionListWidget(urwid.WidgetWrap):
         for entry in self._entries:
             if not entry.partition.is_optional():
                 self._walkers[0][1].append(entry)
+            elif entry.partition.is_swap:
+                self._walkers[2][1].append(entry)
             else:
                 self._walkers[1][1].append(entry)
             entry.refresh()
