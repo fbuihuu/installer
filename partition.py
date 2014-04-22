@@ -8,10 +8,11 @@ from tempfile import mkdtemp
 from subprocess import check_output
 
 from settings import settings
+from system import distribution
 import system
 import device
 import utils
-from utils import MiB
+from utils import MiB, GiB
 
 
 logger = logging.getLogger(__name__)
@@ -29,8 +30,9 @@ class BootPartitionError(PartitionError):
 
 class Partition(object):
 
-    def __init__(self, name, is_optional=True, minsize=0):
+    def __init__(self, name, label, is_optional=True, minsize=0):
         self._name = name
+        self._label = label
         self._is_optional = is_optional
         self._minsize = minsize
         self._device = None
@@ -40,6 +42,11 @@ class Partition(object):
     @property
     def name(self):
         return self._name
+
+    @property
+    def label(self):
+        """Returns the partition label according to its real name"""
+        return distribution.distributor + '-' + self._label
 
     @property
     def minsize(self):
@@ -112,8 +119,9 @@ class SwapPartition(Partition):
 
     def __init__(self):
         SwapPartition.counter += 1
-        name = 'swap%d' % SwapPartition.counter
-        Partition.__init__(self, name)
+        name  = 'swap%d' % SwapPartition.counter
+        label = 'Swap%d' % SwapPartition.counter
+        Partition.__init__(self, name, label)
 
     @property
     def is_swap(self):
@@ -173,9 +181,8 @@ class SwapPartition(Partition):
 class RootPartition(Partition):
 
     def __init__(self):
-        Partition.__init__(self, "/")
+        Partition.__init__(self, "/", "Root", minsize=256*MiB)
         self._is_optional = False
-        self._minsize = 200 * 1000 * 1000
 
     def _validate_fs(self, fs):
         Partition._validate_fs(self, fs)
@@ -208,12 +215,11 @@ class RootPartition(Partition):
 class BootPartition(Partition):
 
     def __init__(self):
-        Partition.__init__(self, "/boot")
         #
         # EFI specification does not require a min size for ESP
         # although 512MiB and higher tend to avoid some corner cases.
         #
-        self._minsize = 32 * MiB
+        Partition.__init__(self, "/boot", "Boot", minsize=32*MiB)
 
     def is_optional(self):
         if "uefi" in settings.Options.firmware:
@@ -247,10 +253,22 @@ class BootPartition(Partition):
         Partition._validate_dev(self, dev)
 
 
+class HomePartition(Partition):
+
+    def __init__(self):
+        Partition.__init__(self, "/home", "Home", minsize=100*MiB)
+
+
+class VarPartition(Partition):
+
+    def __init__(self):
+        Partition.__init__(self, "/var", "Var", minsize=100*MiB)
+
+
 partitions = [
     RootPartition(),
-    Partition("/home"),
-    Partition("/var"),
+    HomePartition(),
+    VarPartition(),
     BootPartition(),
     SwapPartition(),
 ]
