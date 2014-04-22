@@ -278,16 +278,17 @@ class VarPartition(Partition):
         Partition.__init__(self, "/var", "Var", minsize=100*MiB)
 
 
-partitions = [
-    RootPartition(),
-    HomePartition(),
-    VarPartition(),
-    BootPartition(),
-    SwapPartition(),
-]
-# Sort partitions in order to mount/umount them in order
-partitions.sort(key=attrgetter('name'))
-# For now make it readonly for simplicity.
+root = RootPartition()
+boot = BootPartition()
+home = HomePartition()
+var  = VarPartition()
+swap = SwapPartition()
+
+#
+# Sort partitions in order to mount/umount them in order and make it
+# readonly for simplicity.
+#
+partitions = sorted([root, home, var, boot, swap], key=attrgetter('name'))
 partitions = tuple(partitions)
 
 
