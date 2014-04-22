@@ -28,6 +28,43 @@ class BootPartitionError(PartitionError):
         PartitionError.__init__(self, "/boot: " + message)
 
 
+class PartitionSetupError(Exception):
+    """Base class for exceptions in the partition module"""
+
+
+class PartitionSetup(object):
+    """This class describes partition's configuration. It will be used
+    during its creation on a device.
+    """
+
+    def __init__(self):
+        self.size = 0 # size that will be used to create partition
+        self.fs_hint_size = 0
+        self.fs = None
+        self._raid_level    = None
+        self._raid_metadata = None
+
+    def estimate_size(self, pretty=False):
+        """Returns an estimation of the partition size once the target
+        filesystem will be installed.
+        """
+        # FIXME: give a better approximation for RAID[56]
+        size = max(self.size, self.fs_hint_size)
+        if pretty:
+            return utils.pretty_size(size)
+        return size
+
+    @property
+    def raid_level(self):
+        if self._raid_level:
+            return (self._raid_level, self._raid_metadata)
+
+    def set_raid_level(self, level, metadata=None):
+        self._raid_level = level
+        if metadata:
+            self._raid_metadata = metadata
+
+
 class Partition(object):
 
     def __init__(self, name, label, is_optional=True, minsize=0):
@@ -39,6 +76,7 @@ class Partition(object):
         self._device = None
         self._mnt_target  = None
         self._mnt_options = []
+        self.setup = None
 
     @property
     def name(self):
