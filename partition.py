@@ -33,6 +33,7 @@ class Partition(object):
     def __init__(self, name, label, is_optional=True, minsize=0):
         self._name = name
         self._label = label
+        self._typecode = "8300" # Linux filesystem
         self._is_optional = is_optional
         self._minsize = minsize
         self._device = None
@@ -47,6 +48,10 @@ class Partition(object):
     def label(self):
         """Returns the partition label according to its real name"""
         return distribution.distributor + '-' + self._label
+
+    @property
+    def typecode(self):
+        return self._typecode
 
     @property
     def minsize(self):
@@ -122,6 +127,7 @@ class SwapPartition(Partition):
         name  = 'swap%d' % SwapPartition.counter
         label = 'Swap%d' % SwapPartition.counter
         Partition.__init__(self, name, label)
+        self._typecode = "8200"
 
     @property
     def is_swap(self):
@@ -221,6 +227,12 @@ class BootPartition(Partition):
         #
         Partition.__init__(self, "/boot", "Boot", minsize=32*MiB)
 
+    @property
+    def typecode(self):
+        if 'uefi' in settings.Options.firmware:
+            return "EF00" # EFI system
+        return "8300"
+
     def is_optional(self):
         if "uefi" in settings.Options.firmware:
             return False
@@ -257,6 +269,7 @@ class HomePartition(Partition):
 
     def __init__(self):
         Partition.__init__(self, "/home", "Home", minsize=100*MiB)
+        self._typecode = "8302"
 
 
 class VarPartition(Partition):
