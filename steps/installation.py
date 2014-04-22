@@ -24,7 +24,7 @@ class FStabEntry(object):
 
         if self.fstype not in ('swap'):
             # part is currently mounted, reuse the current options.
-            self.options = part.mount_options
+            self.options = ','.join(part.mount_options)
         else:
             self.options = "defaults"
             self.passno  = 0
