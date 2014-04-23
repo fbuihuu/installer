@@ -396,7 +396,7 @@ class PartitionDevice(BlockDevice):
         # updated their udev rules to create the symlinks in
         # /dev/disk/by-partuuid.
         #
-        # Therefore, we force partuuid to be null for any scheme by
+        # Therefore, we force partuuid to be null for any schemes but
         # GPT.
         #
         if self.scheme == 'gpt':
