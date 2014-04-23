@@ -114,7 +114,7 @@ class BlockDevice(object):
 
     @property
     def syspath(self):
-        return os.path.abspath(self._gudev.get_sysfs_path())
+        return os.path.realpath(self._gudev.get_sysfs_path())
 
     @property
     def devpath(self):
