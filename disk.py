@@ -69,13 +69,30 @@ def get_candidates():
     """
     candidates = []
 
-    for disk in device.root_block_devices():
-        # Disk of that type can't be a good candidate.
-        if type(disk) in (device.CdromDevice, device.FloppyDevice):
-            continue
-        candidates.append(disk)
+    for dev in device.leaf_block_devices():
 
-    return candidates
+        if type(dev) in (device.CdromDevice, device.FloppyDevice):
+            continue
+
+        if type(dev) == device.PartitionDevice:
+            # Any device that can be partitioned is a candidate.
+            candidates += dev.get_parents()
+            continue
+
+        parents = dev.get_parents()
+        if parents:
+            if type(parents[0]) == device.PartitionDevice:
+                # If the device is based on partition devs (such as
+                # MD), use its root parents.
+                candidates += dev.get_root_parents()
+                continue
+
+        # The current device is a disk or is based on a whole disk
+        # (such as MD). Use it as is.
+        #
+        candidates.append(dev)
+
+    return set(candidates)
 
 
 def check_candidate(bdev):
