@@ -71,9 +71,10 @@ def root_block_devices():
     return roots
 
 def _syspath_to_bdev(syspath):
+    syspath = os.path.realpath(syspath)
     with _bdev_lock:
         for dev in _block_devices:
-            if os.path.samefile(dev.syspath, syspath):
+            if dev.syspath == syspath:
                 return dev
 
 def _format_description(lines):
