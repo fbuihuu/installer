@@ -451,7 +451,8 @@ def __on_add_uevent(gudev):
         if not bdev.backing_file:
             bdev = None
     elif major == 9:
-        bdev = MetadiskDevice(gudev)
+        if gudev.get_property("MD_LEVEL") != "container":
+            bdev = MetadiskDevice(gudev)
     elif major == 11:
         bdev = CdromDevice(gudev)
     elif gudev.get_property_as_boolean("ID_CDROM_DVD"):
