@@ -17,8 +17,9 @@ deps:
 ====
 
  - python2.7 or python3.x
+ - python-dbus
  - python-urwid >= 1.2.0 (glib loop event)
- - python-gobject (from gi.repository import GUdev)
+ - python-gobject ou lib64gudev1.0_0 (from gi.repository import GUdev)
  - gdisk
  - syslinux  (BIOS or hybrid systems)
  - gummiboot (EFI)
