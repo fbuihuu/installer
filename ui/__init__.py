@@ -50,7 +50,6 @@ class UI(object):
         trans.install(**kwargs)
 
         self.redraw()
-        logger.debug(_("switch to english language"))
 
     def run(self):
         raise NotImplementedError()
