@@ -257,7 +257,7 @@ class UrwidUI(UI):
             self._top_bar.refresh()
             self._navigator.refresh()
             self._loop.draw_screen()
-            self._select_next_step()
+            self.redraw_view()
 
     @ui_thread
     def redraw_view(self, view=None):
