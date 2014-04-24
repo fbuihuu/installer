@@ -213,7 +213,7 @@ class UrwidUI(UI):
         """Switch the current view to the current step view"""
         UI._select_step(self, step)
         view = self._step_views[self._current_step]
-        view.redraw()
+        self.redraw_view(view)
         self._view.original_widget = view
 
     def _switch_to_summary(self):
@@ -258,6 +258,12 @@ class UrwidUI(UI):
             self._navigator.refresh()
             self._loop.draw_screen()
             self._select_next_step()
+
+    @ui_thread
+    def redraw_view(self, view=None):
+        if not view:
+            view = self._step_views[self._current_step]
+        view.redraw()
 
     @ui_thread
     def _select_step(self, step):

@@ -231,10 +231,9 @@ class InstallView(StepView):
                 self._update_install_button()
         #
         # Triggering widget changes from a gudev event has no visual
-        # effects. For some reason we have to force a redraw of the
-        # whole screen.
+        # effects. We have to do it from the UI thread.
         #
-        self._ui.redraw()
+        self._ui.redraw_view(self)
 
     def do_install(self, widget):
         self.run()
