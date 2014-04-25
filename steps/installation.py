@@ -168,6 +168,7 @@ class _InstallStep(Step):
         locale = settings.I18n.locale
         keymap = settings.I18n.keymap
         tzone  = settings.I18n.timezone
+        charmap = "UTF-8"
 
         self.logger.debug("using locale '%s'", locale)
         with open(self._root + '/etc/locale.conf', 'w') as f:
@@ -175,7 +176,7 @@ class _InstallStep(Step):
 
         self.logger.debug("using keymap '%s'", keymap)
         with open(self._root + '/etc/vconsole.conf', 'w') as f:
-            f.write("KEYMAP=%s\n" % keymap)
+            f.write("KEYMAP=%s.%s\n" % (keymap, charmap))
 
         # Old versions of systemd-nspawn bind mount localtime
         self.logger.debug("selecting timezone '%s'", tzone)
