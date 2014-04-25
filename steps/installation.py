@@ -143,7 +143,7 @@ class _InstallStep(Step):
                 self._do_bootloader_on_gpt(bootable)
                 return
 
-            self._failed("bootable device has unsupported partition scheme '%s'",
+            self._failed("bootable device has unsupported partition scheme '%s'" %
                          scheme)
 
     def _do_initramfs(self):
