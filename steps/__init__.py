@@ -6,6 +6,10 @@ from threading import current_thread, Thread, RLock
 from utils import Signal
 
 
+class StepError(Exception):
+    """Base class for exceptions thrown by steps."""
+
+
 _all_steps = []
 _current_provides = set([])
 _rlock = RLock()
@@ -106,6 +110,8 @@ class Step(object):
     def __process(self):
         try:
             self._process()
+        except StepError as e:
+            self._failed("%s" % e)
         except:
             if not self.__is_cancelled():
                 self._failed(_("failed, see logs for details."), True)

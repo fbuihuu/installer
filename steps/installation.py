@@ -6,7 +6,7 @@ import os
 import re
 import glob
 from subprocess import check_output, check_call
-from steps import Step
+from steps import Step, StepError
 from partition import partitions, mount_rootfs, unmount_rootfs
 from system import distribution, is_efi
 from settings import settings
@@ -143,8 +143,8 @@ class _InstallStep(Step):
                 self._do_bootloader_on_gpt(bootable)
                 return
 
-            self._failed("bootable device has unsupported partition scheme '%s'" %
-                         scheme)
+            raise StepError("bootable device has unsupported partition scheme '%s'" %
+                            scheme)
 
     def _do_initramfs(self):
         raise NotImplementedError()
