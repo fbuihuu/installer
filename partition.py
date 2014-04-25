@@ -293,7 +293,7 @@ class BootPartition(Partition):
             # it's a RAID1 MD device using 0.9 or 1.0 metadata.
             #
             if dev.level != 'raid1':
-                raise BootPartitionError(_("only RAID level 1 is allowed"))
+                raise BootPartitionError(_("only software RAID1 is allowed"))
             if dev.metadata_version not in ('0.90', '1.0'):
                 raise BootPartitionError(_("doesn't use metadata 0.9 or 1.0"))
 
