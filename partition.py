@@ -12,6 +12,7 @@ from system import distribution
 import system
 import device
 import utils
+import disk
 from utils import MiB, GiB
 
 
@@ -280,7 +281,7 @@ class BootPartition(Partition):
         Partition._validate_fs(self, fs)
 
     def _validate_dev(self, dev):
-        for p in dev.get_root_parents():
+        for p in disk.get_candidates(dev):
             # disk(s) containing /boot must have a partition table.
             if not p.scheme:
                 raise BootPartitionError(_("must be on a disk with a table partition"))

@@ -11,6 +11,7 @@ from partition import partitions, mount_rootfs, unmount_rootfs
 from system import distribution, is_efi
 from settings import settings
 from process import monitor, monitor_chroot
+import disk
 
 
 class FStabEntry(object):
@@ -134,7 +135,7 @@ class _InstallStep(Step):
             # partitions. In that case the RAID device does not have
             # a partition scheme but its root parents have.
             #
-            scheme = bootable.get_root_parents()[0].scheme
+            scheme = disk.get_candidates(bootable)[0].scheme
 
             if scheme == 'dos':
                 self._do_bootloader_on_mbr(bootable)
@@ -243,8 +244,9 @@ class _InstallStep(Step):
         else:
             partnums = [bootable.partnum]
 
-        for i, parent in enumerate(bootable.get_root_parents()):
+        for i, parent in enumerate(disk.get_candidates(bootable)):
             # install mbr
+            self.logger.debug("installing bootcode in %s MBR", parent.devpath)
             cmd = "dd bs=440 conv=notrunc count=1 if={0} of={1} 2>/dev/null"
             self._chroot(cmd.format(bootcode, parent.devpath))
 

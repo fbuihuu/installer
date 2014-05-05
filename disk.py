@@ -62,14 +62,17 @@ class DiskRaidBusyError(DiskBusyError):
         DiskBusyError.__init__(self, bdev, message)
 
 
-def get_candidates():
-    """Returns a list of device that could be suitable for an
-    installation. The disk must be validated by check_candidate()
+def get_candidates(bdev=None):
+    """Returns a list of disks that could be suitable for an
+    installation. The disk(s) must be validated by check_candidate()
     before being used.
+
+    If 'bdev' is provided, the device will be used as a starting
+    point otherwise all devices will be considered.
     """
     candidates = []
 
-    for dev in device.leaf_block_devices():
+    for dev in [bdev] if bdev else device.leaf_block_devices():
 
         if type(dev) in (device.CdromDevice, device.FloppyDevice):
             continue
@@ -83,16 +86,17 @@ def get_candidates():
         if parents:
             if type(parents[0]) == device.PartitionDevice:
                 # If the device is based on partition devs (such as
-                # MD), use its root parents.
-                candidates += dev.get_root_parents()
+                # MD), use partition parents.
+                for p in parents:
+                    candidates += p.get_parents()
                 continue
-
-        # The current device is a disk or is based on a whole disk
-        # (such as MD). Use it as is.
         #
+        # The current device is a disk or is based on a whole disk
+        # (common for fake RAID devices) (such as MD). Use it as
+        # is.
         candidates.append(dev)
 
-    return set(candidates)
+    return list(set(candidates))
 
 
 def check_candidate(bdev):
