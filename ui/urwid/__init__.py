@@ -11,6 +11,7 @@ from ui import UI
 from . import widgets
 import steps
 from settings import settings
+import device
 import utils
 
 
@@ -62,6 +63,7 @@ class UrwidUI(UI):
     _echo_area = None
 
     def __init__(self, lang):
+        self._uevent_handlers = []
         self._watch_pipe_fd = None
         self._watch_pipe_queue = collections.deque()
         UI.__init__(self, lang)
@@ -76,6 +78,8 @@ class UrwidUI(UI):
         h.setFormatter(f)
         logger = logging.getLogger()
         logger.addHandler(h)
+
+        device.listen_uevent(self._on_uevent)
 
     def _load_steps(self):
         # FIXME: modules loading should be in abstract class.
@@ -242,6 +246,9 @@ class UrwidUI(UI):
                 keys.remove(key)
         return keys
 
+    def register_uevent_handler(self, handler):
+        self._uevent_handlers.append(handler)
+
     def ui_thread(func):
         """This decorator is used to make sure that decorated
         functions will be executed by the UI thread. Even if the
@@ -290,6 +297,11 @@ class UrwidUI(UI):
     def _on_log(self, lvl, msg):
         self._log_view.append_log(lvl, msg)
         self._echo_area.notify(lvl, msg)
+
+    @ui_thread
+    def _on_uevent(self, action, bdev):
+        for fn in self._uevent_handlers:
+            fn(action, bdev)
 
 
 class StepView(urwid.WidgetWrap):

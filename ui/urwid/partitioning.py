@@ -51,9 +51,9 @@ class DiskListWidget(urwid.WidgetWrap):
 
     signals = ['focus_changed']
 
-    def __init__(self):
+    def __init__(self, ui):
         super(DiskListWidget, self).__init__(self._create_disk_list())
-        device.listen_uevent(self._on_uevent)
+        ui.register_uevent_handler(self._on_uevent)
 
     def __get_bus(self, bdev):
         return bdev.bus.capitalize() if bdev.bus else 'Others'
@@ -169,7 +169,7 @@ class DiskSelectionPage(widgets.Page):
 
     signals = ['done', 'cancel']
 
-    def __init__(self):
+    def __init__(self, ui):
         super(DiskSelectionPage, self).__init__()
         self.title = _("Choose the disk(s) to use\n")
 
@@ -183,7 +183,7 @@ class DiskSelectionPage(widgets.Page):
         pile = urwid.Filler(pile, 'middle')
         pile = urwid.Padding(pile, align='center', width=('relative', 70))
 
-        disks = DiskListWidget()
+        disks = DiskListWidget(ui)
         self._disk_list_w = disks
         disks = urwid.Filler(disks, valign='middle', height=('relative', 70))
         #disks = urwid.Padding(disks, align='center', width=('relative', 80))
@@ -296,7 +296,7 @@ class PartitioningView(StepView):
         self._page1 = PresetPage()
         urwid.connect_signal(self._page1, 'preset', self._on_select_server_type)
 
-        self._page2 = DiskSelectionPage()
+        self._page2 = DiskSelectionPage(ui)
         urwid.connect_signal(self._page2, 'cancel', self._on_page2_cancel)
         urwid.connect_signal(self._page2, 'done', self._on_page2_done)
 

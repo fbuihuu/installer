@@ -136,7 +136,7 @@ class InstallView(StepView):
         self._partition_page.body = self._partition_list_widget
         self.page = self._partition_page
 
-        device.listen_uevent(self._on_uevent)
+        ui.register_uevent_handler(self._on_uevent)
 
     def redraw(self):
         self._partition_page.title = _("Map partitions to block devices")
@@ -229,11 +229,6 @@ class InstallView(StepView):
             if action == "remove" or action == "change":
                 self._partition_list_widget.refresh()
                 self._update_install_button()
-        #
-        # Triggering widget changes from a gudev event has no visual
-        # effects. We have to do it from the UI thread.
-        #
-        self._ui.redraw_view(self)
 
     def do_install(self, widget):
         self.run()
