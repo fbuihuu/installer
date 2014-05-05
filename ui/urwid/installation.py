@@ -170,7 +170,7 @@ class InstallView(StepView):
         self._update_install_button()
 
     def _on_select_partition(self, part):
-        devices = partition.get_installable_devices(part)
+        devices = partition.get_candidates(part)
         if devices:
             self.page = self._create_device_page(part, devices)
         else:

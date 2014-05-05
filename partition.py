@@ -230,9 +230,8 @@ class RootPartition(Partition):
 
     def _validate_fs(self, fs):
         Partition._validate_fs(self, fs)
-
         if fs in ('msdos', 'fat', 'vfat', 'ntfs'):
-            raise PartitionError("come on, %s for your root partition !" % fs)
+            raise PartitionError(_("come on, %s for your root partition !") % fs)
 
     def _validate_dev(self, dev):
         Partition._validate_dev(self, dev)
@@ -251,8 +250,6 @@ class RootPartition(Partition):
             # /boot.
             elif dev.devtype != 'partition' or dev.is_compound():
                 is_optional = False
-
-        boot = find_partition("/boot")
         boot._is_optional = is_optional
 
 
@@ -363,7 +360,7 @@ def find_partition(name):
         if part.name == name:
             return part
 
-def get_installable_devices(part, all=False):
+def get_candidates(part, all=False):
     candidates = []
 
     #
@@ -412,7 +409,7 @@ def __uevent_callback(action, bdev):
         for part in partitions:
             if part.device == bdev:
                 part.device = None
-                if bdev in get_installable_devices(part):
+                if bdev in get_candidates(part):
                     part.device = bdev
                 else:
                     logger.warn("incompatible changes in device %s for %s",
