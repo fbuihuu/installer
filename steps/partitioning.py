@@ -333,12 +333,19 @@ class PartitioningStep(Step):
 
     def _do_mkfs(self):
         for bdev, part in zip(self._devices, self._setup.partitions):
-            if not part.setup.fs:
+            fs = part.setup.fs
+            if not fs:
                 continue
-            if part.setup.fs == 'swap':
+            if fs == 'swap':
                 self._monitor(['mkswap', bdev.devpath])
             else:
-                self._monitor(['mkfs', '-t', part.setup.fs, bdev.devpath])
+                opts = []
+                if fs == 'vfat':
+                    # Needed when the partition is actually a MD device.
+                    opts = ['-I']
+                if fs.startswith('ext'):
+                    opts = ['-q']
+                self._monitor(['mkfs', '-t', fs] + opts + [bdev.devpath])
             # make sure GUdev catch up
             while not bdev.filesystem:
                 sleep(0.1)
