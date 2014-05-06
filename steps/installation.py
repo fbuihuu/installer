@@ -418,8 +418,8 @@ initrd      /{initrd}
         hooks = ["base", "udev"]
 
         if settings.Options.hostonly:
-            # This hook is used to get rid of kernel modules uneeded by
-            # the current system.
+            # This hook is used to get rid of kernel modules uneeded to
+            # boot the current system.
             hooks += ["autodetect"]
 
         hooks += ["modconf", "block"]
