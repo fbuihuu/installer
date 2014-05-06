@@ -29,17 +29,40 @@ class FStabEntry(object):
         else:
             self.options = "defaults"
             self.passno  = 0
+        #
+        # Make sure the corresponding devlink exists in /dev/disk/
+        # before using ID=xxx notation. Indeed for certain type of
+        # devices such as MD, 'by-partuuid' devlinks are not created
+        # even if the MD device has PARTUUID prop defined. See
+        # /lib/udev/rules.d/60-persistent-storage.rules
+        #
+        for ident in ("partuuid", "partlabel", "uuid", "label", "id"):
+            devlinks = part.device.devlinks(ident)
+            if devlinks:
+                devlink = devlinks[0]
+                break
+        else:
+            # This shouldn't happen.
+            raise StepError("no devlink found for %s !" % part.device.devpath)
 
-        if part.device.partuuid:
+        if ident == "partuuid":
             self.source = "PARTUUID=" + part.device.partuuid
-        elif part.device.partlabel:
+        elif ident == "partlabel":
             self.source = "PARTLABEL=" + part.device.partlabel
-        elif part.device.fsuuid:
+        elif ident == "uuid":
             self.source = "UUID=" + part.device.fsuuid
-        elif part.device.fslabel:
+        elif ident == "label":
             self.source = "LABEL=" + part.device.fslabel
         else:
-            self.source = part.device.devpath
+            if not settings.Options.hostonly:
+                # We're probabling generating a generic image that
+                # should be transparently used on any devices.
+                raise StepError(_("Failed to generate fstab for a portable image."))
+            #
+            # For some reasons ID=xxx notation isn't supported by
+            # systemd, libmount, blkid...
+            #
+            self.source = devlink
 
     def format(self):
         return "%-20s\t%-10s %-10s %-10s\t%d %d" % (self.source, self.target,
