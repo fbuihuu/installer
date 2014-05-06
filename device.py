@@ -164,10 +164,6 @@ class BlockDevice(object):
     def fslabel(self):
         return self._gudev.get_property("ID_FS_LABEL")
 
-    def validate(self):
-        if self.devtype == 'disk' and self.scheme and self.filesystem:
-            raise SignatureDeviceError(self)
-
     @property
     def mountpoints(self):
         if self.filesystem:
@@ -177,6 +173,16 @@ class BlockDevice(object):
             except CalledProcessError:
                 pass
         return []
+
+    def devlinks(self, ident=None):
+        links = self._gudev.get_property("DEVLINKS").split()
+        if ident:
+            links = [l for l in links if l.startswith("/dev/disk/by-" + ident)]
+        return links
+
+    def validate(self):
+        if self.devtype == 'disk' and self.scheme and self.filesystem:
+            raise SignatureDeviceError(self)
 
     def mount(self, mountpoint, options=[]):
         assert(not self._mntpoint)
