@@ -123,6 +123,24 @@ class _InstallStep(Step):
             for entry in self._fstab.values():
                 print(entry.format(), file=f)
 
+        # hallelujah: distros seem to agree on package names
+        # containing fsck tools.
+        pkgs = set()
+        for entry in [ e for e in self._fstab.values() if e.passno > 0]:
+            if entry.fstype in ('fat', 'vfat', 'msdos'):
+                pkgs.add('dosfstools')
+            elif entry.fstype.startswith('ext'):
+                pkgs.add('e2fsprogs')
+            elif entry.fstype in ('xfs'):
+                pkgs.add('xfsprogs')
+            elif entry.fstype in ('jfs'):
+                pkgs.add('jfsutils')
+            elif entry.fstype in ('btrfs'):
+                pkgs.add('btrfs-progs')
+            else:
+                raise StepError(_("don't know how to check fs coherency"))
+        self._extra_packages.extend(pkgs)
+
     def _do_bootloader(self):
         #
         # We support the following cases:
