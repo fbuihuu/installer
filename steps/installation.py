@@ -180,13 +180,24 @@ class _InstallStep(Step):
 
             if scheme == 'dos':
                 self._do_bootloader_on_mbr(bootable)
-                return
-            if scheme == 'gpt':
+            elif scheme == 'gpt':
                 self._do_bootloader_on_gpt(bootable)
-                return
+            else:
+                raise StepError("bootable device has unsupported "
+                                "partition scheme '%s'" % scheme)
 
-            raise StepError("bootable device has unsupported partition scheme '%s'" %
-                            scheme)
+        self._do_bootloader_finish()
+
+        # Fix the kernel command line in syslinux config file.
+        for cfg in glob.glob(self._root + self._syslinux_cfg):
+            re = 's/([[:space:]]*APPEND[[:space:]]+).*/\\1%s/I' % self._kernel_cmdline
+            self._monitor(["sed", "-ri", re, cfg])
+
+        # Fix the kernel command line in gummiboot config file.
+        options = "options     %s" % self._kernel_cmdline
+        for cfg in glob.glob(self._root + '/boot/loader/entries/*.conf'):
+            self._monitor(["sed", "-i", "/^options/d", cfg])
+            self._monitor(["sed", "-i", "$a%s" % options, cfg])
 
     def _do_initramfs(self):
         raise NotImplementedError()
@@ -198,6 +209,9 @@ class _InstallStep(Step):
         raise NotImplementedError()
 
     def _do_bootloader_on_gpt(self, bootable):
+        raise NotImplementedError()
+
+    def _do_bootloader_finish(self):
         raise NotImplementedError()
 
     def _do_extra_packages(self):
@@ -304,12 +318,6 @@ class _InstallStep(Step):
                 self._chroot("sfdisk --activate=%d %s" %
                              (partnums[i], parent.devpath))
 
-        # Setup kernel command line in syslinux.cfg or where appropriate.
-        ls = glob.glob(self._root + '/boot/syslinux/entries/*')
-        config = ls[0] if ls else self._root + '/boot/syslinux/syslinux.cfg'
-        re = 's/([[:space:]]*APPEND[[:space:]]+).*/\\1%s/I' % self._kernel_cmdline
-        check_call(["sed", "-ri", re, config])
-
     def _do_bootloader_on_bios_with_grub(self, bootable, grub="grub"):
         cmd = "{0}-mkconfig -o /boot/{0}/grub.cfg".format(grub)
         self._chroot(cmd)
@@ -337,18 +345,13 @@ class _InstallStep(Step):
         else:
             self._chroot("gummiboot --path=/boot --no-variables install")
 
-        # setup the kernel command line
-        config = glob.glob(self._root + '/boot/loader/entries/*.conf')[0]
-        config = config[len(self._root):]
-        self._chroot("sed -i /^options/d %s" % config)
-        self._chroot("echo 'options     %s' >>%s" % (self._kernel_cmdline, config))
-
 
 class ArchInstallStep(_InstallStep):
 
     def __init__(self, ui):
         _InstallStep.__init__(self, ui)
         self._pacstrap = None
+        self._syslinux_cfg = '/boot/syslinux/syslinux.cfg'
 
     def _cancel(self):
         if self._pacstrap:
@@ -428,6 +431,9 @@ initrd      /{initrd}
         self._do_pacstrap(['syslinux', 'gptfdisk'])
         self._do_bootloader_on_bios_with_syslinux(bootable, gpt=True)
 
+    def _do_bootloader_finish(self):
+        pass
+
     def _do_extra_packages(self):
         if self._extra_packages:
             self._pacstrap(self._extra_packages)
@@ -462,6 +468,7 @@ class MandrivaInstallStep(_InstallStep):
         self._urpmi = None
         self._uname_r = None
         self._urpmi_installed = False
+        self._syslinux_cfg = '/boot/syslinux/entries/*'
 
     def _cancel(self):
         if self._urpmi:
@@ -526,18 +533,20 @@ class MandrivaInstallStep(_InstallStep):
 
     def _do_bootloader_on_efi(self):
         self._do_urpmi(['gummiboot'], 70)
-        self._do_urpmi(['kernel'], 80)
         self._do_bootloader_on_efi_with_gummiboot()
 
     def _do_bootloader_on_gpt(self, bootable):
         self._do_urpmi(['syslinux', 'extlinux', 'gdisk'], 70)
-        self._do_urpmi(['kernel'], 80)
         self._do_bootloader_on_bios_with_syslinux(bootable, gpt=True)
 
     def _do_bootloader_on_mbr(self, bootable):
         self._do_urpmi(['syslinux', 'extlinux', 'util-linux'], 70)
-        self._do_urpmi(['kernel'], 80)
         self._do_bootloader_on_bios_with_syslinux(bootable, gpt=False)
+
+    def _do_bootloader_finish(self):
+        #  This going to create config files for all previously
+        #  installed bootloaders.
+        self._do_urpmi(['kernel'], 80)
 
     def _do_extra_packages(self):
         if self._extra_packages:
