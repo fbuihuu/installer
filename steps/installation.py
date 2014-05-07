@@ -436,7 +436,7 @@ initrd      /{initrd}
 
     def _do_extra_packages(self):
         if self._extra_packages:
-            self._pacstrap(self._extra_packages)
+            self._do_pacstrap(self._extra_packages)
 
     def _do_initramfs(self):
         hooks = ["base", "udev"]
