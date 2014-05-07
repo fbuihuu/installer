@@ -252,14 +252,23 @@ class RootPartition(Partition):
 
         is_optional = True
         if dev:
-            # for any other fancy FS not supported by syslinux, we
-            # request a separate /boot.
             if dev.filesystem not in ('ext2', 'ext3', 'ext4', 'btrfs'):
+                #
+                # for any other fancy FS not supported by syslinux, we
+                # request a separate /boot.
+                #
                 is_optional = False
 
-            # For any fancy devices (RAID, etc...), we request a separate
-            # /boot.
-            elif dev.devtype != 'partition' or dev.is_compound():
+            elif dev.devtype != 'partition':
+                #
+                # If / is using a whole disk, we request a separate
+                # /boot since the firmware needs a partition table.
+                #
+                # if / is a MD device, we should check that the disk
+                # container is partitioned and MD is using RAID1
+                # metadata 0.9 or 1.0 but for simplicity's sake we
+                # ignore that rare case.
+                #
                 is_optional = False
         boot._is_optional = is_optional
 
