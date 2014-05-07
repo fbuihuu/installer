@@ -153,7 +153,16 @@ class Partition(object):
             devpath = self.device.devpath
             opts = check_output(["findmnt", "-cvuno", "OPTIONS", devpath])
             opts = opts.split()[0].decode()
-            self._mnt_options = opts.split(',')
+            opts = opts.split(',')
+
+            # Before kernels 3.8, codepage option in fat filesystems
+            # was stored by the kernel with the 'cp' prefix making the
+            # display in /proc/mounts invalid. Fix it, so we can reuse
+            # the options later. This has been fixed by commmit:
+            # c6c20372bbb2f70d2757eed0a8d6860884bae11f
+            opts = [opt.replace("codepage=cp", "codepage=") for opt in opts]
+
+            self._mnt_options = opts
         return self._mnt_options
 
 
