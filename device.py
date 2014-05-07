@@ -294,12 +294,12 @@ class LoopDevice(DiskDevice):
 
     @property
     def model(self):
-        return "Loopback device #%d" % (self.minor/16 + 1)
+        return "Loopback device #%d" % (self.minor/16)
 
     @property
     def backing_file(self):
         try:
-            return gudev.get_sysfs_attr_as_strv('loop/backing_file')[0]
+            return self._gudev.get_sysfs_attr_as_strv('loop/backing_file')[0]
         except IndexError:
             return None
 
