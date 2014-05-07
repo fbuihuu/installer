@@ -252,7 +252,8 @@ class RootPartition(Partition):
 
         is_optional = True
         if dev:
-            # for any other fancy FS, we request a separate /boot.
+            # for any other fancy FS not supported by syslinux, we
+            # request a separate /boot.
             if dev.filesystem not in ('ext2', 'ext3', 'ext4', 'btrfs'):
                 is_optional = False
 
