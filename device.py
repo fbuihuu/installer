@@ -337,6 +337,10 @@ class CdromDevice(DiskDevice):
 class MetadiskDevice(DiskDevice):
 
     @property
+    def bus(self):
+        return "MD"
+
+    @property
     def model(self):
         return "MD %s" % self.level
 
