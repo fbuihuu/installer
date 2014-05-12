@@ -339,7 +339,7 @@ class MetadiskDevice(DiskDevice):
         return self._gudev.get_property("MD_LEVEL")
 
     @property
-    def metadata_version(self):
+    def metadata(self):
         return self._gudev.get_property("MD_METADATA")
 
     @property
@@ -370,7 +370,7 @@ class MetadiskDevice(DiskDevice):
 
     def __str__(self):
         lines = [(_("Model"),      self.model),
-                 (_("Metadata"),   self.metadata_version),
+                 (_("Metadata"),   self.metadata),
                  (_("Filesystem"), self.filesystem),
                  (_("Size"),       utils.pretty_size(self.size)),
                  (_("Scheme"),     self.scheme)]

@@ -314,7 +314,7 @@ class BootPartition(Partition):
             #
             if dev.level != 'raid1':
                 raise BootPartitionError(_("only software RAID1 is allowed"))
-            if dev.metadata_version not in ('0.90', '1.0'):
+            if dev.metadata not in ('0.90', '1.0'):
                 raise BootPartitionError(_("doesn't use metadata 0.9 or 1.0"))
 
         Partition._validate_dev(self, dev)
