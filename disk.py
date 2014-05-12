@@ -77,6 +77,9 @@ def get_candidates(bdev=None):
         if type(dev) in (device.CdromDevice, device.FloppyDevice):
             continue
 
+        if type(dev) == device.MetadiskDevice and dev.is_md_container:
+            continue
+
         if type(dev) == device.PartitionDevice:
             # Any device that can be partitioned is a candidate.
             candidates += dev.get_parents()
