@@ -9,13 +9,13 @@ import logging
 import gettext
 import argparse
 
+from installer import get_version
 from installer.system import is_efi
 from installer.ui.urwid import UrwidUI
 from installer.settings import settings, load_config_file
 from installer.utils import die
 
 
-VERSION='0.1'
 CONFIG_FILE='/etc/installer/installer.conf'
 
 
@@ -41,7 +41,7 @@ def parse_cmdline():
                         help="do a generic installation")
     parser.add_argument("--version",
                         action='version',
-                        version=VERSION)
+                        version=get_version())
 
     return parser.parse_args()
 

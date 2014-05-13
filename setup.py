@@ -1,4 +1,5 @@
 from setuptools import setup, find_packages
+from installer import get_version
 
 install_requires = [
     'urwid',
@@ -6,7 +7,7 @@ install_requires = [
 
 setup(
     name="installer",
-    version="0.1",
+    version=get_version(),
     description="A multi-frontend installer",
     license="GPLv2",
     author="Franck Bui",
