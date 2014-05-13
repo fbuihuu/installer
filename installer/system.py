@@ -5,7 +5,7 @@
 import os
 import re
 from subprocess import check_output
-from systemd import localed
+from .systemd import localed
 
 
 def reboot():

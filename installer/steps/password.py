@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 #
 
-from steps import Step
-from partition import mount_rootfs, unmount_rootfs
-from settings import settings
-from process import monitor_chroot
+from . import Step
+from installer.partition import mount_rootfs, unmount_rootfs
+from installer.settings import settings
+from installer.process import monitor_chroot
 
 
 class PasswordStep(Step):

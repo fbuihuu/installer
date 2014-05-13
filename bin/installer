@@ -8,13 +8,14 @@ import locale
 import logging
 import gettext
 import argparse
-import system
-from ui.urwid import UrwidUI
-from settings import settings, load_config_file
-from utils import die
+
+from installer.system import is_efi
+from installer.ui.urwid import UrwidUI
+from installer.settings import settings, load_config_file
+from installer.utils import die
 
 
-VERSION='0.0'
+VERSION='0.1'
 CONFIG_FILE='/etc/installer/installer.conf'
 
 
@@ -92,7 +93,7 @@ def main():
     elif settings.Options.firmware:
         fw = settings.Options.firmware.split()
     else:
-        fw = ['uefi' if system.is_efi() else 'bios']
+        fw = ['uefi' if is_efi() else 'bios']
     settings.Options.firmware = set(fw)
 
     #

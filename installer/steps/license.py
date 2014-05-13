@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 #
 
-from settings import settings
-from steps import Step
+from installer.settings import settings
+from . import Step
 
 
 class LicenseStep(Step):

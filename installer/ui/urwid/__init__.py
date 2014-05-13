@@ -7,12 +7,13 @@ import time
 import collections
 import logging
 import urwid
-from ui import UI
+
+from installer.settings import settings
+from installer import steps
+from installer import device
+from installer import utils
+from .. import UI
 from . import widgets
-import steps
-from settings import settings
-import device
-import utils
 
 
 palette = [
@@ -90,12 +91,12 @@ class UrwidUI(UI):
         from .password import PasswordView
         from .exit import ExitView
 
-        from steps.welcome import WelcomeStep
-        from steps.license import LicenseStep
-        from steps.partitioning import PartitioningStep
-        from steps.installation import InstallStep
-        from steps.password import PasswordStep
-        from steps.exit import ExitStep
+        from installer.steps.welcome import WelcomeStep
+        from installer.steps.license import LicenseStep
+        from installer.steps.partitioning import PartitioningStep
+        from installer.steps.installation import InstallStep
+        from installer.steps.password import PasswordStep
+        from installer.steps.exit import ExitStep
 
         step = WelcomeStep(self)
         view = WelcomeView(self, step)

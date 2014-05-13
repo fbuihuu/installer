@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 #
 
-from ui.urwid import StepView
 import urwid
+
+from . import StepView
 from . import widgets
-import utils
-import partition
-import device
-from settings import settings
+from installer import utils
+from installer import partition
+from installer import device
+from installer.settings import settings
 
 
 class PartitionEntryWidget(urwid.WidgetWrap):

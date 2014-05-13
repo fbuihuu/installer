@@ -4,15 +4,12 @@
 from time import sleep
 import logging
 
-import device
-import partition
-import disk
-import utils
-from system import distribution, get_meminfo
-from process import monitor
-from steps import Step
-from settings import settings
-from utils import MiB, GiB
+from installer import device, partition, disk
+from installer.system import distribution, get_meminfo
+from installer.process import monitor
+from installer.settings import settings
+from installer.utils import MiB, GiB
+from . import Step
 
 
 DEFAULT_FILESYSTEM = "ext4"

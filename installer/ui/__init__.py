@@ -6,7 +6,8 @@ import sys
 import locale
 import gettext
 import logging
-import steps
+
+from installer import steps
 
 
 logger = logging.getLogger(__name__)

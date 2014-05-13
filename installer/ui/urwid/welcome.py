@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 #
 
-from ui.urwid import StepView
 import urwid
-from settings import settings
+
+from . import StepView
 from . import widgets
-from l10n import country_dict
+from installer.settings import settings
+from installer.l10n import country_dict
 
 
 #

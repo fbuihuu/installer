@@ -6,13 +6,13 @@ import os
 import re
 import glob
 from subprocess import check_output, check_call
-from steps import Step, StepError
-from partition import partitions, mount_rootfs, unmount_rootfs
-from system import distribution, is_efi
-from settings import settings
-from process import monitor, monitor_chroot
-import disk
 
+from installer import disk
+from installer.partition import partitions, mount_rootfs, unmount_rootfs
+from installer.system import distribution, is_efi
+from installer.settings import settings
+from installer.process import monitor, monitor_chroot
+from . import Step, StepError
 
 class FStabEntry(object):
 

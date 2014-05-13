@@ -7,13 +7,11 @@ from operator import attrgetter
 from tempfile import mkdtemp
 from subprocess import check_output
 
-from settings import settings
-from system import distribution
-import system
-import device
-import utils
-import disk
-from utils import MiB, GiB
+from .settings import settings
+from .system import distribution
+from .utils import pretty_size, MiB, GiB
+from . import device
+from . import disk
 
 
 logger = logging.getLogger(__name__)
@@ -52,7 +50,7 @@ class PartitionSetup(object):
         # FIXME: give a better approximation for RAID[56]
         size = max(self.size, self.fs_hint_size)
         if pretty:
-            return utils.pretty_size(size)
+            return pretty_size(size)
         return size
 
     @property
@@ -117,7 +115,7 @@ class Partition(object):
     def _validate_dev(self, dev):
         """Check the passed device matches partition requirements"""
         if dev.size < self._minsize:
-            minsize = utils.pretty_size(self._minsize, KiB=False)
+            minsize = pretty_size(self._minsize, KiB=False)
             raise PartitionError("you need at least %s" % minsize)
 
     @property

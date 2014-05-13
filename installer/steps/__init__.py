@@ -3,7 +3,7 @@
 
 import logging
 from threading import current_thread, Thread, RLock
-from utils import Signal
+from installer.utils import Signal
 
 
 class StepError(Exception):

@@ -2,9 +2,10 @@
 #
 
 import urwid
-from ui.urwid import StepView
+
+from . import StepView
 from . import widgets
-from settings import settings
+from installer.settings import settings
 
 
 class PasswordView(StepView):

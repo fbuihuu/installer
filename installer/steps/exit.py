@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 #
 
-from steps import Step
-import partition
 from subprocess import check_call
-from settings import settings
+
+from . import Step
+from installer import partition
+from installer.settings import settings
 
 
 class ExitStep(Step):

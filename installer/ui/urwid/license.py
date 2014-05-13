@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 #
 
-from ui.urwid import StepView
 import urwid
+
+from . import StepView
 from . import widgets
-from settings import settings
+from installer.settings import settings
 
 
 class LicenseView(StepView):

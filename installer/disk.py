@@ -2,8 +2,8 @@
 #
 
 import logging
-import device
-from utils import MiB, GiB
+from . import device
+from .utils import MiB, GiB
 
 
 DISK_MINSIZE = 1 * MiB

@@ -6,8 +6,8 @@ import threading
 import logging
 from subprocess import check_output, check_call, CalledProcessError
 from gi.repository import GUdev
-import utils
-from process import monitor
+from .utils import pretty_size
+from .process import monitor
 
 
 logger = logging.getLogger(__name__)
@@ -235,7 +235,7 @@ class BlockDevice(object):
         lines = [(_("Model"),      self.model),
                  (_("Bus"),        self.bus),
                  (_("Filesystem"), self.filesystem),
-                 (_("Size"),       utils.pretty_size(self.size)),
+                 (_("Size"),       pretty_size(self.size)),
                  (_("Scheme"),     self.scheme)]
         return _format_description(lines)
 
@@ -313,7 +313,7 @@ class LoopDevice(DiskDevice):
         lines = [(_("Model"),          self.model),
                  (_("Backing File"),   self.backing_file),
                  (_("Filesystem"),     self.filesystem),
-                 (_("Size"),           utils.pretty_size(self.size)),
+                 (_("Size"),           pretty_size(self.size)),
                  (_("Scheme"),         self.scheme)]
         return _format_description(lines)
 
@@ -396,7 +396,7 @@ class MetadiskDevice(DiskDevice):
         lines = [(_("Model"),      self.model),
                  (_("Metadata"),   self.metadata),
                  (_("Filesystem"), self.filesystem),
-                 (_("Size"),       utils.pretty_size(self.size)),
+                 (_("Size"),       pretty_size(self.size)),
                  (_("Scheme"),     self.scheme)]
         return _format_description(lines)
 

@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 #
 
-from ui.urwid import StepView
 import urwid
+
+from . import StepView
 from . import widgets
-import utils
-import disk
-import device
-import partition
-from settings import settings
+from installer import disk
+from installer import device
+from installer import partition
+from installer.settings import settings
+from installer.utils import pretty_size
 
 
 logger=None
@@ -243,7 +244,7 @@ class ReviewPage(widgets.Page):
                             (_("Size"),    15)])
 
         for i, drive in enumerate(setup.disks, 1):
-            t1.append_row([i, drive.model, utils.pretty_size(drive.size)])
+            t1.append_row([i, drive.model, pretty_size(drive.size)])
 
         #
         # Partition Table
