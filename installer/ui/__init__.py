@@ -2,12 +2,9 @@
 #
 
 import os
-import sys
-import locale
-import gettext
 import logging
 
-from installer import steps
+from installer import steps, l10n
 
 
 logger = logging.getLogger(__name__)
@@ -34,29 +31,8 @@ class UI(object):
     @language.setter
     def language(self, lang):
         self._language = lang
-        try:
-            locale.setlocale(locale.LC_ALL, lang)
-        except locale.Error:
-            logger.warn("failed to set current locale to %s", lang)
-
-        try:
-            trans = gettext.translation('installer', languages=[lang], localedir='build/mo')
-        except FileNotFoundError:
-            logger.warn("failed to find translation for %s", lang)
-        else:
-            #
-            # In Python 2, ensure that the _() that gets installed
-            # into built-ins always returns unicodes.  This matches
-            # the default behavior under Python 3, although that
-            # keyword argument is not present in the Python 3 API.
-            #
-            # http://www.wefearchange.org/2012/06/the-right-way-to-internationalize-your.html
-            #
-            kwargs = {}
-            if sys.version_info[0] < 3:
-                kwargs['unicode'] = True
-            trans.install(**kwargs)
-
+        l10n.set_locale(lang)
+        l10n.set_translation(lang)
         self.redraw()
 
     def run(self):
