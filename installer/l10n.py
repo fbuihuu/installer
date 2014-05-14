@@ -1,10 +1,13 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 #
+import os
 import sys
 import logging
 import locale
 import gettext
+
+from . import get_topdir
 
 logger = logging.getLogger(__name__)
 
@@ -29,8 +32,12 @@ def set_locale(lang):
 
 
 def set_translation(lang):
+    localedir = None
+    if get_topdir():
+        localedir = os.path.join(get_topdir(), 'build/mo')
+
     trans = gettext.translation('installer', languages=[lang],
-                                localedir='build/mo', fallback=True)
+                                localedir=localedir, fallback=True)
 
     #
     # If no translation was found then use the default language which
