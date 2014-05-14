@@ -36,7 +36,7 @@ class UI(object):
         self._language = lang
         locale.setlocale(locale.LC_ALL, lang)
 
-        trans = gettext.translation('installer', languages=[lang], localedir='po')
+        trans = gettext.translation('installer', languages=[lang], localedir='build/mo')
         #
         # In Python 2, ensure that the _() that gets installed into
         # built-ins always returns unicodes.  This matches the default

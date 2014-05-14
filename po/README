@@ -1,12 +1,8 @@
-git ls-files \*.py | xargs python2.7 /usr/lib/python2.7/Tools/i18n/pygettext.py -d installer -p po/
-git ls-files \*.py | xargs xgettext --language=Python --keyword=_ --output=po/installer.pot --from-code=UTF-8
+To build all *.po into *.mo, use 'python setup build_i18n'. That will
+build and put all mo files in build/mo directory inside the project
+topdir.
 
-# creation
-msginit --input=installer.pot --locale=fr
-
-# update
-msgmerge -o fr.po fr.po installer.pot
-
-# compile into fr.mo
-msgfmt -o fr/LC_MESSAGES/installer.mo fr.po
-msgfmt -o en/LC_MESSAGES/installer.mo installer.pot
+If you need to update the translation (*.po), first generate the pot
+file, 'python setup build_i18n' should care of that. Then update po
+file with: 'intltool-update --dist fr -g installer' for the french
+translation for example.
