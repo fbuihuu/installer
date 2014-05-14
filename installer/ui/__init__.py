@@ -34,7 +34,10 @@ class UI(object):
     @language.setter
     def language(self, lang):
         self._language = lang
-        locale.setlocale(locale.LC_ALL, lang)
+        try:
+            locale.setlocale(locale.LC_ALL, lang)
+        except locale.Error:
+            logger.warn("failed to set current locale to %s", lang)
 
         trans = gettext.translation('installer', languages=[lang], localedir='build/mo')
         #
