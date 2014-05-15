@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 #
 
+from installer.system import is_efi
+
 
 try:
     from configparser import ConfigParser # py3k
@@ -51,6 +53,17 @@ class Kernel(Section):
 class Options(Section):
     logfile  = '/tmp/installer.log'
     hostonly = True
+    _firmware = None
+
+    @property
+    def firmware(self):
+        if self._firmware:
+            return self._firmware.split()
+        return ['uefi' if is_efi() else 'bios']
+
+    @firmware.setter
+    def firmware(self, fw):
+        self._firmware = fw
 
 class Steps(Section):
     _default = True

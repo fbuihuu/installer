@@ -10,7 +10,6 @@ import gettext
 import argparse
 
 from installer import get_version
-from installer.system import is_efi
 from installer.ui.urwid import UrwidUI
 from installer.settings import settings, load_config_file
 from installer.utils import die
@@ -89,12 +88,7 @@ def main():
     # Set firmware.
     #
     if args.firmware:
-        fw = args.firmware
-    elif settings.Options.firmware:
-        fw = settings.Options.firmware.split()
-    else:
-        fw = ['uefi' if is_efi() else 'bios']
-    settings.Options.firmware = set(fw)
+        settings.Options.firmware = " ".join(args.firmware)
 
     #
     # check the extra package list now to catch any errors early.
