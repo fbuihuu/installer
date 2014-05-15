@@ -96,10 +96,10 @@ class _InstallStep(Step):
     def _extra_packages(self):
         if self.__extra_packages is None:
             self.__extra_packages = []
-            if settings.Packages.list:
+            for pkgfile in settings.Packages.extras:
                 self.logger.info("importing extra packages file")
                 try:
-                    with open(settings.Packages.list, 'r') as f:
+                    with open(pkgfile, 'r') as f:
                         for line in f:
                             line = line.partition('#')[0]
                             line = line.strip()

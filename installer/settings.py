@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 
+import os
 from installer.system import is_efi
 
 
@@ -8,6 +9,10 @@ try:
     from configparser import ConfigParser # py3k
 except ImportError:
     from ConfigParser import ConfigParser
+
+
+class SettingsError(Exception):
+    """Base class for exceptions for the settings module."""
 
 
 class Section(object):
@@ -47,8 +52,10 @@ class I18n(Section):
     keymap   = 'fr'
     locale   = 'fr_FR'
 
+
 class Kernel(Section):
     cmdline  = 'rw quiet'
+
 
 class Options(Section):
     logfile  = '/tmp/installer.log'
@@ -65,8 +72,29 @@ class Options(Section):
     def firmware(self, fw):
         self._firmware = fw
 
+
+class Packages(Section):
+    _extras = []
+
+    @property
+    def extras(self):
+        return self._extras
+
+    @extras.setter
+    def extras(self, pkgfile):
+        #
+        # Relative path is relative to the directory
+        # containing the config file.
+        #
+        pkgfile = os.path.join(os.path.dirname(configuration_file), pkgfile)
+        if not os.path.exists(pkgfile):
+            raise SettingsError("Can't find package list file %s" % pkgfile)
+        self._extra.append(pkgfile)
+
+
 class Steps(Section):
     _default = True
+
 
 class Urpmi(Section):
     options  = ''
@@ -79,6 +107,7 @@ class _Settings(object):
             'I18n'       : I18n(),
             'Kernel'     : Kernel(),
             'Options'    : Options(),
+            'Packages'   : Packages(),
             'Steps'      : Steps(),
             'Urpmi'      : Urpmi(),
         }
@@ -104,9 +133,14 @@ class _Settings(object):
             del self._sections[section]
 
 
+configuration_file = None
+
 def load_config_file(config_file):
+    global configuration_file
+
+    configuration_file = os.path.realpath(config_file)
     config = ConfigParser()
-    config.read(config_file)
+    config.read(configuration_file)
 
     for section in config.sections():
         for entry, value in config.items(section):

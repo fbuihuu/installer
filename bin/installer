@@ -65,7 +65,7 @@ def main():
 
     #
     # Setting up the default logging facility: it uses a log file. If
-    # the user wants to disable this it can pass '--log=/dev/null'.
+    # the user wants to disable this he can pass '--log=/dev/null'.
     #
     # Each frontend can add additional handlers to meet its specific
     # needs.
@@ -89,17 +89,6 @@ def main():
     #
     if args.firmware:
         settings.Options.firmware = " ".join(args.firmware)
-
-    #
-    # check the extra package list now to catch any errors early.
-    #
-    if settings.Packages.list:
-        # ok this means that a config file has been read.
-        pkgfile = settings.Packages.list
-        pkgfile = os.path.join(os.path.dirname(config_file), pkgfile)
-        if not os.path.exists(pkgfile):
-            die("Can't find package list file")
-        settings.Packages.list = pkgfile
 
     #
     # Start the frontend interface.
