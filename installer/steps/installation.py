@@ -502,10 +502,11 @@ class MandrivaInstallStep(_InstallStep):
         # will use a proper environment inside the chroot.
         if 'urpmi' in args:
             if not os.path.exists(os.path.join(self._root, 'etc/urpmi/urpmi.cfg')):
+                self.logger.info("missing urpmi.cfg, importing host one")
                 self._monitor(["cp", "/etc/urpmi/urpmi.cfg",
                                os.path.join(self._root, 'etc/urpmi')])
-                self._chroot("urpmi.update -a -q")
-                self._urpmi_installed = True
+            self._chroot("urpmi.update -a -q")
+            self._urpmi_installed = True
 
         # If the kernel has been installed, it's time to setup
         # self._uname_r.
