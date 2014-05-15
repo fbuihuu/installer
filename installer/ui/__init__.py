@@ -79,7 +79,7 @@ class UI(object):
         self._select_step(self._steps[0])
 
     def _select_next_step(self):
-        for step in self._steps:
+        for step in self._steps[self._steps.index(self._current_step):]:
             if step.is_enabled() and not step.is_done():
                 self._select_step(step)
                 return
