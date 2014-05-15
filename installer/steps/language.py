@@ -7,7 +7,7 @@ from installer.settings import settings
 import installer.system
 
 
-class WelcomeStep(Step):
+class LanguageStep(Step):
 
     provides = ["language"]
 

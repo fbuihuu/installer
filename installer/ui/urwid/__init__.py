@@ -84,22 +84,22 @@ class UrwidUI(UI):
 
     def _load_steps(self):
         # FIXME: modules loading should be in abstract class.
-        from .welcome import WelcomeView
+        from .language import LanguageView
         from .license import LicenseView
         from .partitioning import PartitioningView
         from .installation import InstallView
         from .password import PasswordView
         from .exit import ExitView
 
-        from installer.steps.welcome import WelcomeStep
+        from installer.steps.language import LanguageStep
         from installer.steps.license import LicenseStep
         from installer.steps.partitioning import PartitioningStep
         from installer.steps.installation import InstallStep
         from installer.steps.password import PasswordStep
         from installer.steps.exit import ExitStep
 
-        step = WelcomeStep(self)
-        view = WelcomeView(self, step)
+        step = LanguageStep(self)
+        view = LanguageView(self, step)
         self._steps.append(step)
         self._step_views[step] = view
 

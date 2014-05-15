@@ -13,7 +13,7 @@ installer/steps/installation.py
 installer/steps/license.py
 installer/steps/partitioning.py
 installer/steps/password.py
-installer/steps/welcome.py
+installer/steps/language.py
 installer/system.py
 installer/systemd/__init__.py
 installer/systemd/localed.py
@@ -21,10 +21,10 @@ installer/ui/__init__.py
 installer/ui/urwid/__init__.py
 installer/ui/urwid/exit.py
 installer/ui/urwid/installation.py
+installer/ui/urwid/language.py
 installer/ui/urwid/license.py
 installer/ui/urwid/partitioning.py
 installer/ui/urwid/password.py
-installer/ui/urwid/welcome.py
 installer/ui/urwid/widgets.py
 installer/utils.py
 setup.py

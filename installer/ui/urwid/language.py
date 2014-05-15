@@ -16,7 +16,7 @@ from installer.l10n import country_dict
 # later (root password setup for example).
 #
 
-class WelcomeView(StepView):
+class LanguageView(StepView):
 
     def __init__(self, ui, step):
         StepView.__init__(self, ui, step)
