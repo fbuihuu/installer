@@ -138,14 +138,6 @@ class UrwidUI(UI):
 
         self._watch_pipe_fd = self._loop.watch_pipe(watch_pipe_cb)
 
-    def __call(self, func):
-        if self._watch_pipe_fd:
-            self._watch_pipe_queue.appendleft(func)
-            os.write(self._watch_pipe_fd, b'ping')
-        else:
-            # Used only during initialisation.
-            func()
-
     def suspend(self):
         raise NotImplementedError()
 
@@ -224,6 +216,14 @@ class UrwidUI(UI):
 
     def register_uevent_handler(self, handler):
         self._uevent_handlers.append(handler)
+
+    def __call(self, func):
+        if self._watch_pipe_fd:
+            self._watch_pipe_queue.appendleft(func)
+            os.write(self._watch_pipe_fd, b'ping')
+        else:
+            # Used only during initialisation.
+            func()
 
     def ui_thread(func):
         """This decorator is used to make sure that decorated
