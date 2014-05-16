@@ -65,6 +65,8 @@ class Step(object):
 
     def __init__(self, ui):
         self._ui = ui
+        self._exit = False # system wide exit
+        self._exit_delay = 0
         self._thread = None
         self.requires = set(self.requires)
         self.provides = set(self.provides)
@@ -113,6 +115,9 @@ class Step(object):
             self._state = self._STATE_FAILED
 
     def __process(self):
+        quit = False
+        delay = 0
+
         try:
             self._process()
         except StepError as e:
@@ -124,7 +129,7 @@ class Step(object):
             if self.__is_in_progress():
                 self._done()
         finally:
-            finished_signal.emit(self)
+            finished_signal.emit(self, self._exit, self._exit_delay)
 
     def process(self):
         assert(not self.__is_in_progress())

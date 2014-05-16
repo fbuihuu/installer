@@ -27,7 +27,7 @@ class ExitStep(Step):
         action = settings.exit.action
         if action == "Quit":
             self._done("quitting...")
-            self._ui.quit()
+            self._exit = True
         elif action == "Reboot":
             self._done("rebooting...")
             # check_call(["systemctl", "reboot"])

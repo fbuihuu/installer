@@ -25,4 +25,5 @@ class LicenseStep(Step):
             self._done(_("you accepted the terms of the license"))
         else:
             self._failed(_("you rejected the terms of the license, aborting"))
-            self._ui.quit(3)
+            self._exit = True
+            self._exit_delay = 3
