@@ -5,6 +5,12 @@ import os
 import logging
 
 from installer import steps, l10n
+from installer.steps.language import LanguageStep
+from installer.steps.license import LicenseStep
+from installer.steps.partitioning import PartitioningStep
+from installer.steps.installation import InstallStep
+from installer.steps.password import PasswordStep
+from installer.steps.exit import ExitStep
 
 
 logger = logging.getLogger(__name__)
@@ -19,8 +25,17 @@ class UI(object):
 
     def __init__(self, lang):
         self._current_step = None
+        self._language = None
         self.language = lang
-        self._load_steps()
+
+        # This requires working translation.
+        self._steps.append(LanguageStep(self))
+        self._steps.append(LicenseStep(self))
+        self._steps.append(PartitioningStep(self))
+        self._steps.append(InstallStep(self))
+        self._steps.append(PasswordStep(self))
+        self._steps.append(ExitStep(self))
+
         steps.finished_signal.connect(self._on_step_finished)
         steps.completion_signal.connect(self._on_step_completion)
 

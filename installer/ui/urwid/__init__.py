@@ -7,6 +7,7 @@ import time
 import collections
 import logging
 import urwid
+from importlib import import_module
 
 from installer.settings import settings
 from installer import steps
@@ -75,51 +76,22 @@ class UrwidUI(UI):
 
         device.listen_uevent(self._on_uevent)
 
-    def _load_steps(self):
-        # FIXME: modules loading should be in abstract class.
-        from .language import LanguageView
-        from .license import LicenseView
-        from .partitioning import PartitioningView
-        from .installation import InstallView
-        from .password import PasswordView
-        from .exit import ExitView
+    def _create_step_views(self):
+        #
+        # Dynamic loading of view modules is based on the english name
+        # of the step.
+        #
+        lang = self.language
+        self.language = 'en_US'
 
-        from installer.steps.language import LanguageStep
-        from installer.steps.license import LicenseStep
-        from installer.steps.partitioning import PartitioningStep
-        from installer.steps.installation import InstallStep
-        from installer.steps.password import PasswordStep
-        from installer.steps.exit import ExitStep
+        for step in self._steps:
+            # Import view's module.
+            mod = import_module('.' + step.name.lower(), 'installer.ui.urwid')
+            # Retrieve view's class and instantiate it.
+            view = getattr(mod, step.name + 'View')(self, step)
+            self._step_views[step] = view
 
-        step = LanguageStep(self)
-        view = LanguageView(self, step)
-        self._steps.append(step)
-        self._step_views[step] = view
-
-        step = LicenseStep(self)
-        view = LicenseView(self, step)
-        self._steps.append(step)
-        self._step_views[step] = view
-
-        step = PartitioningStep(self)
-        view = PartitioningView(self, step)
-        self._steps.append(step)
-        self._step_views[step] = view
-
-        step = InstallStep(self)
-        view = InstallView(self, step)
-        self._steps.append(step)
-        self._step_views[step] = view
-
-        step = PasswordStep(self)
-        view = PasswordView(self, step)
-        self._steps.append(step)
-        self._step_views[step] = view
-
-        step = ExitStep(self)
-        view = ExitView(self, step)
-        self._steps.append(step)
-        self._step_views[step] = view
+        self.language = lang
 
     def __create_main_view(self):
         self._view = urwid.WidgetPlaceholder(urwid.Text(""))
@@ -182,6 +154,7 @@ class UrwidUI(UI):
         self.__create_log_view()
         self.__create_echo_area()
         self._init_logging()
+        self._create_step_views()
         self.__create_navigator()
         self.__create_main_view()
         self.__create_top_bar()
