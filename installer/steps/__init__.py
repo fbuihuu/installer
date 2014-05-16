@@ -63,6 +63,7 @@ class Step(object):
         self.requires = set(self.requires)
         self.provides = set(self.provides)
         self._completion = 0
+        self.view_data = None # should be used by step's view only
 
         if len(self.requires) == 0:
             self.__state = self._STATE_INIT

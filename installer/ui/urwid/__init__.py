@@ -59,7 +59,6 @@ class UrwidUI(UI):
     _loop = None
     _main_frame = None
     _view  = None
-    _step_views = {}
     _navigator = None
     _top_bar = None
     _echo_area = None
@@ -89,7 +88,7 @@ class UrwidUI(UI):
             mod = import_module('.' + step.name.lower(), 'installer.ui.urwid')
             # Retrieve view's class and instantiate it.
             view = getattr(mod, step.name + 'View')(self, step)
-            self._step_views[step] = view
+            step.view_data = view
 
         self.language = lang
 
@@ -200,7 +199,7 @@ class UrwidUI(UI):
     def _switch_to_step(self, step=None):
         """Switch the current view to the current step view"""
         UI._select_step(self, step)
-        view = self._step_views[self._current_step]
+        view = self._current_step.view_data
         self.redraw_view(view)
         self._view.original_widget = view
 
@@ -253,7 +252,7 @@ class UrwidUI(UI):
     @ui_thread
     def redraw_view(self, view=None):
         if not view:
-            view = self._step_views[self._current_step]
+            view = self._current_step.view_data
         view.redraw()
 
     @ui_thread
@@ -267,7 +266,7 @@ class UrwidUI(UI):
 
     @ui_thread
     def _on_step_completion(self, step, percent):
-        view = self._step_views[step]
+        view = step.view_data
         view.set_completion(percent)
 
     @ui_thread
