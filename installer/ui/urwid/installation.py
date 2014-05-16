@@ -125,7 +125,7 @@ class DeviceListWidget(widgets.ClickableTextList):
         return self._devices[idx]
 
 
-class InstallView(StepView):
+class InstallationView(StepView):
 
     def __init__(self, ui, step):
         StepView.__init__(self, ui, step)
