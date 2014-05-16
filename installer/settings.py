@@ -60,12 +60,12 @@ class Kernel(Section):
 class Options(Section):
     logfile  = '/tmp/installer.log'
     hostonly = True
-    _firmware = None
+    _firmware = []
 
     @property
     def firmware(self):
         if self._firmware:
-            return self._firmware.split()
+            return self._firmware
         return ['uefi' if is_efi() else 'bios']
 
     @firmware.setter
@@ -143,7 +143,23 @@ def load_config_file(config_file):
     config.read(configuration_file)
 
     for section in config.sections():
-        for entry, value in config.items(section):
+        for entry in config.options(section):
+
+            default = settings.get(section, entry)
+            if type(default) == int:
+                getter = config.getint
+            elif type(default) == bool:
+                getter = config.getboolean
+            elif type(default) == float:
+                getter = config.getfloat
+            else:
+                getter = config.get
+
+            value = getter(section, entry)
+
+            if type(default) == list:
+                value = value.split()
+
             settings.set(section, entry, value)
 
 

@@ -88,7 +88,7 @@ def main():
     # Set firmware.
     #
     if args.firmware:
-        settings.Options.firmware = " ".join(args.firmware)
+        settings.Options.firmware = args.firmware
 
     #
     # Start the frontend interface.
