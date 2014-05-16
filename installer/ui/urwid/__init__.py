@@ -73,13 +73,6 @@ class UrwidUI(UI):
         if not sys.stdout.isatty():
             utils.die(_("urwid frontend requires a tty"))
 
-        h = LogHandler(self)
-        h.setLevel(logging.DEBUG)
-        f = logging.Formatter('[%(asctime)s] %(name)s: %(message)s','%H:%M:%S')
-        h.setFormatter(f)
-        logger = logging.getLogger()
-        logger.addHandler(h)
-
         device.listen_uevent(self._on_uevent)
 
     def _load_steps(self):
@@ -154,6 +147,15 @@ class UrwidUI(UI):
     def __create_log_view(self):
         self._log_view = LogView()
 
+    def _init_logging(self):
+        h = LogHandler(self)
+        h.setLevel(logging.DEBUG)
+        f = logging.Formatter('[%(asctime)s] %(name)s: %(message)s','%H:%M:%S')
+        h.setFormatter(f)
+        logger = logging.getLogger()
+        logger.addHandler(h)
+        logger.debug("starting logging facility.")
+
     def __init_watch_pipe(self):
 
         def watch_pipe_cb(unused):
@@ -177,12 +179,13 @@ class UrwidUI(UI):
         raise NotImplementedError()
 
     def run(self):
+        self.__create_log_view()
+        self.__create_echo_area()
+        self._init_logging()
         self.__create_navigator()
         self.__create_main_view()
         self.__create_top_bar()
-        self.__create_echo_area()
         self.__create_main_frame()
-        self.__create_log_view()
 
         def toggle_navigator_focus():
             self._main_frame.body.focus_position ^= 1
