@@ -188,6 +188,18 @@ class UrwidUI(UI):
         self.__init_watch_pipe()
         self._loop.run()
 
+    def _redraw_view(self, view=None):
+        if not view:
+            view = self._current_step.view_data
+        view.redraw()
+
+    def _redraw(self):
+        if self._loop:
+            self._top_bar.refresh()
+            self._navigator.refresh()
+            self._loop.draw_screen()
+            self._redraw_view()
+
     def _switch_to_step(self, step=None):
         """Switch the current view to the current step view"""
         UI._select_step(self, step)
@@ -237,23 +249,18 @@ class UrwidUI(UI):
 
     @ui_thread
     def quit(self, delay=0):
+        self._redraw()   # Make sure that any pending gfx changes are redrawn.
         UI._quit(self)
         time.sleep(delay)
         raise urwid.ExitMainLoop()
 
     @ui_thread
     def redraw(self):
-        if self._loop:
-            self._top_bar.refresh()
-            self._navigator.refresh()
-            self._loop.draw_screen()
-            self.redraw_view()
+        self._redraw()
 
     @ui_thread
     def redraw_view(self, view=None):
-        if not view:
-            view = self._current_step.view_data
-        view.redraw()
+        self._redraw_view(view)
 
     @ui_thread
     def _select_step(self, step):
