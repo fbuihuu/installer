@@ -93,30 +93,30 @@ class UrwidUI(UI):
 
         self.language = lang
 
-    def __create_main_view(self):
+    def _create_main_view(self):
         self._view = urwid.WidgetPlaceholder(urwid.Text(""))
 
-    def __create_navigator(self):
+    def _create_navigator(self):
         self._navigator = Navigator(self._steps)
 
         def on_focus_changed(step):
             self._switch_to_step(step)
         urwid.connect_signal(self._navigator, 'focus_changed', on_focus_changed)
 
-    def __create_main_frame(self):
+    def _create_main_frame(self):
         cols  = [("weight", 0.2, self._navigator)]
         cols += [urwid.LineBox(self._view)]
         cols  = urwid.Columns(cols, dividechars=1, focus_column=1)
 
         self._main_frame = urwid.Frame(cols, self._top_bar, self._echo_area)
 
-    def __create_echo_area(self):
+    def _create_echo_area(self):
         self._echo_area = EchoArea()
 
-    def __create_top_bar(self):
+    def _create_top_bar(self):
         self._top_bar = TopBar()
 
-    def __create_log_view(self):
+    def _create_log_view(self):
         self._log_view = LogView()
 
     def _init_logging(self):
@@ -151,14 +151,14 @@ class UrwidUI(UI):
         raise NotImplementedError()
 
     def run(self):
-        self.__create_log_view()
-        self.__create_echo_area()
+        self._create_log_view()
+        self._create_echo_area()
         self._init_logging()
         self._create_step_views()
-        self.__create_navigator()
-        self.__create_main_view()
-        self.__create_top_bar()
-        self.__create_main_frame()
+        self._create_navigator()
+        self._create_main_view()
+        self._create_top_bar()
+        self._create_main_frame()
 
         def toggle_navigator_focus():
             self._main_frame.body.focus_position ^= 1
