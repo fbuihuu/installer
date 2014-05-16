@@ -75,8 +75,8 @@ class _InstallStep(Step):
     requires = ["license"]
     provides = ["rootfs"]
 
-    def __init__(self, ui):
-        Step.__init__(self, ui)
+    def __init__(self):
+        Step.__init__(self)
         self._root = None
         self._fstab = {}
         self.__extra_packages = None
@@ -356,8 +356,8 @@ class _InstallStep(Step):
 
 class ArchInstallStep(_InstallStep):
 
-    def __init__(self, ui):
-        _InstallStep.__init__(self, ui)
+    def __init__(self):
+        _InstallStep.__init__(self)
         self._pacstrap = None
         self._syslinux_cfg = '/boot/syslinux/syslinux.cfg'
 
@@ -471,8 +471,8 @@ initrd      /{initrd}
 
 class MandrivaInstallStep(_InstallStep):
 
-    def __init__(self, ui):
-        _InstallStep.__init__(self, ui)
+    def __init__(self):
+        _InstallStep.__init__(self)
         self._urpmi = None
         self._uname_r = None
         self._urpmi_installed = False
@@ -574,12 +574,12 @@ class MandrivaInstallStep(_InstallStep):
         self.set_completion(98)
 
 
-def InstallStep(ui):
+def InstallStep():
     if distribution.distributor == 'Mandriva':
-        return MandrivaInstallStep(ui)
+        return MandrivaInstallStep()
 
     elif distribution.distributor == 'Arch':
-        return ArchInstallStep(ui)
+        return ArchInstallStep()
 
     raise NotImplementedError()
 

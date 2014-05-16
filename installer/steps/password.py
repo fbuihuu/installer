@@ -12,9 +12,6 @@ class PasswordStep(Step):
     requires = ["rootfs"]
     provides = ["password"]
 
-    def __init__(self, ui):
-        Step.__init__(self, ui)
-
     @property
     def name(self):
         return _("Password")

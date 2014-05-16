@@ -184,8 +184,8 @@ class PartitioningStep(Step):
     requires = ["license"]
     provides = ["partitioning"]
 
-    def __init__(self, ui):
-        Step.__init__(self, ui)
+    def __init__(self):
+        Step.__init__(self)
         global logger
         logger = self.logger
         self._setup = None

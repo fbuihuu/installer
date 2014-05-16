@@ -63,8 +63,7 @@ class Step(object):
     _STATE_FAILED      = 3
     _STATE_CANCELLED   = 4
 
-    def __init__(self, ui):
-        self._ui = ui
+    def __init__(self):
         self._exit = False # system wide exit
         self._exit_delay = 0
         self._thread = None
@@ -211,31 +210,28 @@ class Step(object):
 #
 # Step instantiations requires working translation.
 #
-# FIXME: we should require ui. It's currently needed because of
-# License and Exit steps which do ui.quit().
-#
-def initialize(ui):
+def initialize():
     if settings.Steps.language:
         from .language import LanguageStep
-        _all_steps.append(LanguageStep(ui))
+        _all_steps.append(LanguageStep())
 
     if settings.Steps.license:
         from .license import LicenseStep
-        _all_steps.append(LicenseStep(ui))
+        _all_steps.append(LicenseStep())
 
     if settings.Steps.partitioning:
         from .partitioning import PartitioningStep
-        _all_steps.append(PartitioningStep(ui))
+        _all_steps.append(PartitioningStep())
 
     # Installation step is mandatory
     from .installation import InstallStep
-    _all_steps.append(InstallStep(ui))
+    _all_steps.append(InstallStep())
 
     if settings.Steps.password:
         from .password import PasswordStep
-        _all_steps.append(PasswordStep(ui))
+        _all_steps.append(PasswordStep())
 
     if settings.Steps.exit:
         from .exit import ExitStep
-        _all_steps.append(ExitStep(ui))
+        _all_steps.append(ExitStep())
 

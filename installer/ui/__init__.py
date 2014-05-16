@@ -20,7 +20,7 @@ class UI(object):
         self._language = None
         self.language = lang
 
-        steps.initialize(self)
+        steps.initialize()
         steps.finished_signal.connect(self._on_step_finished)
         steps.completion_signal.connect(self._on_step_completion)
 

@@ -13,9 +13,6 @@ class ExitStep(Step):
     # FIXME: this should depends on all existing provides.
     requires = ["password"]
 
-    def __init__(self, ui):
-        Step.__init__(self, ui)
-
     @property
     def name(self):
         return _("Exit")
