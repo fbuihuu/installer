@@ -43,7 +43,7 @@ def set_translation(lang):
     # If no translation was found then use the default language which
     # is en_US.
     #
-    if lang != "en_US" and isinstance(trans, gettext.NullTranslations):
+    if lang != "en_US" and type(trans) == gettext.NullTranslations:
         logger.warn("failed to find translation for %s", lang)
 
     #
