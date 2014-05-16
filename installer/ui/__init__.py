@@ -21,7 +21,6 @@ class UI(object):
     _steps = []
     _keys = {}
     _hotkeys = {}
-    _installer = None
 
     def __init__(self, lang):
         self._current_step = None
