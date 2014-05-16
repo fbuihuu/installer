@@ -4,6 +4,7 @@
 import logging
 from threading import current_thread, Thread, RLock
 from installer.utils import Signal
+from installer.settings import settings
 
 
 class StepError(Exception):
@@ -11,6 +12,11 @@ class StepError(Exception):
 
 
 _all_steps = []
+
+def get_steps():
+    return _all_steps
+
+
 _current_provides = set([])
 _rlock = RLock()
 
@@ -69,8 +75,6 @@ class Step(object):
             self.__state = self._STATE_INIT
         else:
             self.__state = self._STATE_DISABLED
-
-        _all_steps.append(self)
 
     @property
     def name(self):
@@ -197,3 +201,36 @@ class Step(object):
         if percent != self._completion:
             self._completion = percent
             completion_signal.emit(self, percent)
+
+
+#
+# Step instantiations requires working translation.
+#
+# FIXME: we should require ui. It's currently needed because of
+# License and Exit steps which do ui.quit().
+#
+def initialize(ui):
+    if settings.Steps.language:
+        from .language import LanguageStep
+        _all_steps.append(LanguageStep(ui))
+
+    if settings.Steps.license:
+        from .license import LicenseStep
+        _all_steps.append(LicenseStep(ui))
+
+    if settings.Steps.partitioning:
+        from .partitioning import PartitioningStep
+        _all_steps.append(PartitioningStep(ui))
+
+    # Installation step is mandatory
+    from .installation import InstallStep
+    _all_steps.append(InstallStep(ui))
+
+    if settings.Steps.password:
+        from .password import PasswordStep
+        _all_steps.append(PasswordStep(ui))
+
+    if settings.Steps.exit:
+        from .exit import ExitStep
+        _all_steps.append(ExitStep(ui))
+

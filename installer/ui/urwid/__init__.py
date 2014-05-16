@@ -83,7 +83,7 @@ class UrwidUI(UI):
         lang = self.language
         self.language = 'en_US'
 
-        for step in self._steps:
+        for step in steps.get_steps():
             # Import view's module.
             mod = import_module('.' + step.name.lower(), 'installer.ui.urwid')
             # Retrieve view's class and instantiate it.
@@ -96,7 +96,7 @@ class UrwidUI(UI):
         self._view = urwid.WidgetPlaceholder(urwid.Text(""))
 
     def _create_navigator(self):
-        self._navigator = Navigator(self._steps)
+        self._navigator = Navigator()
 
         def on_focus_changed(step):
             self._switch_to_step(step)
@@ -397,11 +397,9 @@ class Navigator(urwid.WidgetWrap):
 
     signals = ['focus_changed']
 
-    def __init__(self, steps):
-        self._steps = steps
-
+    def __init__(self):
         items = []
-        for step in self._steps:
+        for step in steps.get_steps():
             items.append(NavigatorEntry(step))
         walker = urwid.SimpleListWalker(items)
         self._walker = walker
@@ -414,12 +412,12 @@ class Navigator(urwid.WidgetWrap):
         urwid.emit_signal(self, "focus_changed", self.get_focus())
 
     def get_focus(self):
-        return self._steps[self._list.get_focus()[1]]
+        return steps.get_steps()[self._list.get_focus()[1]]
 
     def set_focus(self, step):
         if step.is_disabled():
             raise IndexValueError
-        self._list.set_focus(self._steps.index(step))
+        self._list.set_focus(steps.get_steps().index(step))
 
     def keypress(self, size, key):
         return super(Navigator, self).keypress(size, key)

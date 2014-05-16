@@ -5,12 +5,6 @@ import os
 import logging
 
 from installer import steps, l10n
-from installer.steps.language import LanguageStep
-from installer.steps.license import LicenseStep
-from installer.steps.partitioning import PartitioningStep
-from installer.steps.installation import InstallStep
-from installer.steps.password import PasswordStep
-from installer.steps.exit import ExitStep
 
 
 logger = logging.getLogger(__name__)
@@ -18,7 +12,6 @@ logger = logging.getLogger(__name__)
 
 class UI(object):
 
-    _steps = []
     _keys = {}
     _hotkeys = {}
 
@@ -27,14 +20,7 @@ class UI(object):
         self._language = None
         self.language = lang
 
-        # This requires working translation.
-        self._steps.append(LanguageStep(self))
-        self._steps.append(LicenseStep(self))
-        self._steps.append(PartitioningStep(self))
-        self._steps.append(InstallStep(self))
-        self._steps.append(PasswordStep(self))
-        self._steps.append(ExitStep(self))
-
+        steps.initialize(self)
         steps.finished_signal.connect(self._on_step_finished)
         steps.completion_signal.connect(self._on_step_completion)
 
@@ -53,7 +39,7 @@ class UI(object):
         raise NotImplementedError()
 
     def _quit(self):
-        for m in self._steps:
+        for m in steps.get_steps():
             m.reset()
         logger.info(_("exiting..."))
 
@@ -90,10 +76,11 @@ class UI(object):
         self._current_step = step
 
     def _select_first_step(self):
-        self._select_step(self._steps[0])
+        self._select_step(steps.get_steps()[0])
 
     def _select_next_step(self):
-        for step in self._steps[self._steps.index(self._current_step):]:
+        start = steps.get_steps().index(self._current_step)
+        for step in steps.get_steps()[start:]:
             if step.is_enabled() and not step.is_done():
                 self._select_step(step)
                 return
