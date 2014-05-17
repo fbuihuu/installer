@@ -425,8 +425,7 @@ class Navigator(urwid.WidgetWrap):
         return steps.get_steps()[self._list.get_focus()[1]]
 
     def set_focus(self, step):
-        if step.is_disabled():
-            raise IndexValueError
+        assert(not step.is_disabled())
         self._list.set_focus(steps.get_steps().index(step))
 
     def keypress(self, size, key):
