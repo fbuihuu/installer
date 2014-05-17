@@ -4,7 +4,7 @@
 import logging
 from threading import current_thread, Thread, RLock
 from installer.utils import Signal
-from installer.settings import settings
+from installer.settings import settings, SettingsError
 
 
 class StepError(Exception):
@@ -14,7 +14,7 @@ class StepError(Exception):
 _all_steps = []
 
 def get_steps():
-    return _all_steps
+    return [ s for s in _all_steps if not s._skip]
 
 
 _current_provides = set([])
@@ -64,6 +64,7 @@ class Step(object):
     _STATE_CANCELLED   = 4
 
     def __init__(self):
+        self._skip = False
         self._exit = False # system wide exit
         self._exit_delay = 0
         self._thread = None
@@ -71,11 +72,7 @@ class Step(object):
         self.provides = set(self.provides)
         self._completion = 0
         self.view_data = None # should be used by step's view only
-
-        if len(self.requires) == 0:
-            self.__state = self._STATE_INIT
-        else:
-            self.__state = self._STATE_DISABLED
+        self.__state = self._STATE_DISABLED
 
     @property
     def name(self):
@@ -137,7 +134,9 @@ class Step(object):
         self._thread.start()
 
     def enable(self):
-        if self.is_disabled():
+        if self._skip:
+            self._state = self._STATE_DONE
+        elif self.is_disabled():
             self._state = self._STATE_INIT
 
     def disable(self):
@@ -210,28 +209,28 @@ class Step(object):
 #
 # Step instantiations requires working translation.
 #
+from .language import LanguageStep
+from .license import LicenseStep
+from .partitioning import PartitioningStep
+from .installation import InstallStep
+from .password import PasswordStep
+from .exit import ExitStep
+
+def _initialize_one_step(step, no_skip):
+    step._skip = not no_skip
+    _all_steps.append(step)
+
 def initialize():
-    if settings.Steps.language:
-        from .language import LanguageStep
-        _all_steps.append(LanguageStep())
+    if not settings.Steps.installation:
+        raise SettingsError(_("installation step can't be disabled !"))
 
-    if settings.Steps.license:
-        from .license import LicenseStep
-        _all_steps.append(LicenseStep())
+    _initialize_one_step(LanguageStep(), settings.Steps.language)
+    _initialize_one_step(LicenseStep(), settings.Steps.license)
+    _initialize_one_step(PartitioningStep(), settings.Steps.partitioning)
+    _initialize_one_step(InstallStep(), True)
+    _initialize_one_step(PasswordStep(), settings.Steps.password)
+    _initialize_one_step(ExitStep(), settings.Steps.exit)
 
-    if settings.Steps.partitioning:
-        from .partitioning import PartitioningStep
-        _all_steps.append(PartitioningStep())
-
-    # Installation step is mandatory
-    from .installation import InstallStep
-    _all_steps.append(InstallStep())
-
-    if settings.Steps.password:
-        from .password import PasswordStep
-        _all_steps.append(PasswordStep())
-
-    if settings.Steps.exit:
-        from .exit import ExitStep
-        _all_steps.append(ExitStep())
-
+    assert(get_steps())
+    assert(not _all_steps[0].requires)
+    _all_steps[0].enable()
