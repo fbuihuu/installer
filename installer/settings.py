@@ -99,15 +99,6 @@ class Steps(Section):
 
 class Urpmi(Section):
     options  = ''
-    _enable_medias = []
-
-    @property
-    def enable_medias(self):
-        return self._enable_medias
-
-    @enable_medias.setter
-    def enable_medias(self, medias):
-        self._enable_medias.extend(medias)
 
 
 class _Settings(object):

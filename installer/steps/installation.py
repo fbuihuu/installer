@@ -511,8 +511,6 @@ class MandrivaInstallStep(_InstallStep):
         if 'urpmi' in args:
             if not os.path.exists(os.path.join(self._root, 'etc/urpmi/urpmi.cfg')):
                 self._chroot_cp('/etc/urpmi/urpmi.cfg')
-            for media in settings.Urpmi.enable_medias:
-                self._chroot("urpmi.update --no-ignore '%s'" % media)
             self._chroot("urpmi.update -a -q")
             self._urpmi_installed = True
 
