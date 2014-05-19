@@ -81,15 +81,16 @@ class Packages(Section):
         return self._extras
 
     @extras.setter
-    def extras(self, pkgfile):
+    def extras(self, pkgfiles):
         #
         # Relative path is relative to the directory
         # containing the config file.
         #
-        pkgfile = os.path.join(os.path.dirname(configuration_file), pkgfile)
-        if not os.path.exists(pkgfile):
-            raise SettingsError("Can't find package list file %s" % pkgfile)
-        self._extra.append(pkgfile)
+        for f in pkgfiles:
+            f = os.path.join(os.path.dirname(configuration_file), f)
+            if not os.path.exists(f):
+                raise SettingsError("Can't find package list file %s" % f)
+            self._extras.append(f)
 
 
 class Steps(Section):
