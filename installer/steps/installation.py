@@ -249,13 +249,15 @@ class _InstallStep(Step):
             kwargs["logger"] = self.logger
         monitor_chroot(self._root, args, **kwargs)
 
-    def _chroot_cp(self, src):
+    def _chroot_cp(self, src, overwrite=True):
         """Copy a file from the host into the chroot using the same
         path. 'src' must be an absolute path.
         """
         assert(src[0] == "/")
-        self.logger.info("importing %s", src)
-        self._monitor(["cp", src, os.path.join(self._root, '.' + src)])
+        dst = os.path.join(self._root, '.' + src)
+        if not os.path.exists(dst) or overwrite:
+            self.logger.info("importing from host: %s", src)
+            self._monitor(["cp", src, dst])
 
     def _cancel(self):
         raise NotImplementedError()
@@ -509,8 +511,8 @@ class MandrivaInstallStep(_InstallStep):
         # Switch to urpmi from rootfs, so all packages installed later
         # will use a proper environment inside the chroot.
         if 'urpmi' in args:
-            if not os.path.exists(os.path.join(self._root, 'etc/urpmi/urpmi.cfg')):
-                self._chroot_cp('/etc/urpmi/urpmi.cfg')
+            self._chroot_cp('/etc/urpmi/urpmi.cfg',
+                            overwrite=settings.Urpmi.use_host_config)
             self._chroot("urpmi.update -a -q")
             self._urpmi_installed = True
 
