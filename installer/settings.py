@@ -159,7 +159,7 @@ def load_config_file(config_file):
             value = getter(section, entry)
 
             if type(default) == list:
-                value = value.split()
+                value = value.split(',')
 
             settings.set(section, entry, value)
 
