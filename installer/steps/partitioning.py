@@ -245,7 +245,7 @@ class PartitioningStep(Step):
             #
             args  = ['--new=0:0:+%dK' % (p.setup.size / 1024)]
             args += ['--change-name=0:%s' % p.label]
-            args += ['--typecode=0:%s' % p.typecode]
+            args += ['--typecode=0:%s' % p.typecode(uuid=True)]
             for d in setup.disks:
                 self._monitor(cmd + args + [d.devpath])
         self.set_completion(50)

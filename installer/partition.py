@@ -8,7 +8,7 @@ from tempfile import mkdtemp
 from subprocess import check_output
 
 from .settings import settings
-from .system import distribution
+from .system import distribution, get_arch
 from .utils import pretty_size, MiB, GiB
 from . import device
 from . import disk
@@ -63,13 +63,22 @@ class PartitionSetup(object):
         if metadata:
             self._raid_metadata = metadata
 
-
+#
+# Note: we follow the "The Discoverable Partitions Specification":
+#
+# http://www.freedesktop.org/wiki/Specifications/DiscoverablePartitionsSpec/
+#
+# MBR type code (_typecode) is not currently used since we support
+# only GPT scheme which uses guids for partition types. We'll remove
+# typecode if no MBR scheme support is not needed.
+#
 class Partition(object):
 
     def __init__(self, name, label, is_optional=True, minsize=0):
         self._name = name
         self._label = label
         self._typecode = "8300" # Linux filesystem
+        self._typeuuid = "0fc63daf-8483-4772-8e79-3d69d8477de4"
         self._is_optional = is_optional
         self._minsize = minsize
         self._device = None
@@ -86,8 +95,9 @@ class Partition(object):
         """Returns the partition label according to its real name"""
         return distribution.distributor + '-' + self._label
 
-    @property
-    def typecode(self):
+    def typecode(self, uuid=True):
+        if uuid:
+            return self._typeuuid
         return self._typecode
 
     @property
@@ -174,6 +184,7 @@ class SwapPartition(Partition):
         label = 'Swap%d' % SwapPartition.counter
         Partition.__init__(self, name, label)
         self._typecode = "8200"
+        self._typeuuid = "0657fd6d-a4ab-43c4-84e5-0933c84b4f4f"
 
     @property
     def is_swap(self):
@@ -236,6 +247,16 @@ class RootPartition(Partition):
         Partition.__init__(self, "/", "Root", minsize=256*MiB)
         self._is_optional = False
 
+    def typecode(self, uuid=True):
+        if not uuid:
+            return self._typecode
+        arch = get_arch()
+        if arch == "x86_64":
+            return "4f68bce3-e8cd-4db1-96e7-fbcaf984b709"
+        if arch == "x86_32":
+            return "44479540-f297-41b2-9af7-d131d5f0458a"
+        raise PartitionError("not yet supported architecture %s" % arch)
+
     def _validate_fs(self, fs):
         Partition._validate_fs(self, fs)
         if fs in ('msdos', 'fat', 'vfat', 'ntfs'):
@@ -279,12 +300,8 @@ class BootPartition(Partition):
         # although 512MiB and higher tend to avoid some corner cases.
         #
         Partition.__init__(self, "/boot", "Boot", minsize=32*MiB)
-
-    @property
-    def typecode(self):
-        if 'uefi' in settings.Options.firmware:
-            return "EF00" # EFI system
-        return "8300"
+        self._typecode = "8300"
+        self._typeuuid = "c12a7328-f81f-11d2-ba4b-00a0c93ec93b"
 
     def is_optional(self):
         if "uefi" in settings.Options.firmware:
@@ -323,6 +340,7 @@ class HomePartition(Partition):
     def __init__(self):
         Partition.__init__(self, "/home", "Home", minsize=100*MiB)
         self._typecode = "8302"
+        self._typeuuid = "933ac7e1-2eb4-4f13-b844-0e14e2aef915"
 
 
 class VarPartition(Partition):
