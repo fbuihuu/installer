@@ -58,6 +58,13 @@ def get_meminfo():
     return meminfo
 
 
+def get_arch():
+    arch = check_output(["uname", "-m"]).decode().rstrip()
+    if arch in ("i686", "i586", "i486", "i386"):
+        arch = "x86_32"
+    return arch
+
+
 class Keyboard(object):
     """Configure keyboard layout of the virtual console"""
 
