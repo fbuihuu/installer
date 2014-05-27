@@ -91,7 +91,7 @@ class DiskSetup(object):
         if with_swap:
             free = self._create_swap_partition(free, total)
         free = self._create_root_partition(free)
-        free = self._create_misc_partition(free)
+        free = self._create_data_partition(free)
 
     def _create_boot_partition(self, free):
         if self.RAID or "uefi" in settings.Options.firmware:
@@ -150,7 +150,7 @@ class DiskSetup(object):
         self._partitions.append(partition.root)
         return free
 
-    def _create_misc_partition(self, free):
+    def _create_data_partition(self, free):
         if self.preset in ('mail', 'web'):
             if self.preset == 'mail':
                 part = partition.home
