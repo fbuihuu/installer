@@ -349,6 +349,14 @@ class VarPartition(Partition):
         Partition.__init__(self, "/var", "Var", minsize=100*MiB)
 
 
+# currently not used
+class SrvPartition(Partition):
+
+    def __init__(self):
+        Partition.__init__(self, "/srv", "Server-Data", minsize=100*MiB)
+        self._typeuuid = "3b8f8425-20e0-4f3b-907f-1a25a76f98e8"
+
+
 root = RootPartition()
 boot = BootPartition()
 home = HomePartition()
