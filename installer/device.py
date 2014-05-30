@@ -440,6 +440,14 @@ class PartitionDevice(BlockDevice):
         return self._gudev.get_property("ID_PART_ENTRY_SCHEME")
 
     @property
+    def model(self):
+        return self.get_parents()[0].model
+
+    @property
+    def bus(self):
+        return self.get_parents()[0].bus
+
+    @property
     def partuuid(self):
         #
         # partuuid is normally GPT only, but newer versions of libblkid
