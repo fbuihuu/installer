@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 #
+# More information on GUdev can be found here:
+# http://www.freedesktop.org/software/systemd/gudev/
+#
+
 
 import os
 import threading
@@ -334,6 +338,27 @@ class CdromDevice(DiskDevice):
         return "SCSI CDROM"
 
 
+class VirtualDevice(DiskDevice):
+
+    @property
+    def bus(self):
+        return "Virtual"
+
+
+class VirtioVirtualDevice(VirtualDevice):
+
+    @property
+    def model(self):
+        return "Virtio Disk #%d" % (self.minor/16)
+
+
+class XenVirtualDevice(VirtualDevice):
+
+    @property
+    def model(self):
+        return "Xen Virtual Disk #%d" % (self.minor/16)
+
+
 class MetadiskDevice(DiskDevice):
 
     @property
@@ -468,8 +493,8 @@ def __notify_uevent_handlers(action, bdev):
 
 def __on_add_uevent(gudev):
     bdev = None
-
     major = gudev.get_property_as_int("MAJOR")
+
     if gudev.get_devtype() == "partition":
         bdev = PartitionDevice(gudev)
     elif major == 1:
@@ -484,6 +509,10 @@ def __on_add_uevent(gudev):
         bdev = MetadiskDevice(gudev)
     elif major == 11:
         bdev = CdromDevice(gudev)
+    elif major == 202:
+        bdev = XenVirtualDevice(gudev)
+    elif gudev.get_name().startswith("vd"):
+        bdev = VirtioVirtualDevice(gudev)
     elif gudev.get_property_as_boolean("ID_CDROM_DVD"):
         bdev = CdromDevice(gudev)
     elif gudev.get_property_as_boolean("ID_CDROM"):
