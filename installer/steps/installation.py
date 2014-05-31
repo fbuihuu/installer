@@ -513,7 +513,7 @@ class MandrivaInstallStep(_InstallStep):
         if 'urpmi' in args:
             self._chroot_cp('/etc/urpmi/urpmi.cfg',
                             overwrite=settings.Urpmi.use_host_config)
-            self._chroot("urpmi.update -a -q")
+            self._chroot("urpmi.update -a --force-key -q")
             self._urpmi_installed = True
 
         # If the kernel has been installed, it's time to setup
