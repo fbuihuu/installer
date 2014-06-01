@@ -270,8 +270,8 @@ class ReviewPage(widgets.Page):
         # Buttons
         #
         self.footer = urwid.Columns([
-            urwid.Button("Cancel", on_press=self._on_cancel),
-            urwid.Button("Create", on_press=self._on_create)])
+            widgets.Button(_("Cancel"), on_press=self._on_cancel),
+            widgets.Button(_("Create"), on_press=self._on_create)])
         self.set_focus('footer')
 
     def _on_create(self, widget):

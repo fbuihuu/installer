@@ -33,8 +33,8 @@ class LicenseView(StepView):
         del walker[:]
         walker.append(urwid.Padding(content, "center", ('relative', 90)))
         walker.append(urwid.Divider())
-        walker.append(urwid.Button(_("Accept"), on_press=self.on_accepted))
-        walker.append(urwid.Button(_("Refuse"), on_press=self.on_disagreed))
+        walker.append(widgets.Button(_("Accept"), on_press=self.on_accepted))
+        walker.append(widgets.Button(_("Refuse"), on_press=self.on_disagreed))
 
     def on_accepted(self, button):
         settings.License.status = "accepted"

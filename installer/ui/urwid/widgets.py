@@ -14,6 +14,15 @@ class Title1(urwid.WidgetWrap):
         self._text.set_text(txt)
 
 
+class Button(urwid.WidgetWrap):
+    """A plain button but with reverse focus attribute by default."""
+
+    def __init__(self, *args, **kwargs):
+        b = urwid.Button(*args, **kwargs)
+        m = urwid.AttrMap(b, None, focus_map='reversed')
+        urwid.WidgetWrap.__init__(self, m)
+
+
 class ClickableText(urwid.SelectableIcon):
 
     signals = ["click"]

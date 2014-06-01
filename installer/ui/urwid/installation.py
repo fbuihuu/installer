@@ -130,7 +130,7 @@ class InstallationView(StepView):
     def __init__(self, ui, step):
         StepView.__init__(self, ui, step)
 
-        self._install_button = urwid.Button("Install", on_press=self.do_install)
+        self._install_button = widgets.Button(_("Install"), on_press=self.do_install)
         self._partition_list_widget = PartitionListWidget(self._on_select_partition,
                                                           self._on_clear_partition)
         self._partition_page = widgets.Page()
