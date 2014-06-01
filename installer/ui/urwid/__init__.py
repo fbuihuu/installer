@@ -103,7 +103,7 @@ class UrwidUI(UI):
         urwid.connect_signal(self._navigator, 'focus_changed', on_focus_changed)
 
     def _create_main_frame(self):
-        cols  = [("weight", 0.2, self._navigator)]
+        cols  = [("weight", 0.25, self._navigator)]
         cols += [urwid.LineBox(self._view)]
         cols  = urwid.Columns(cols, dividechars=1, focus_column=1)
 
