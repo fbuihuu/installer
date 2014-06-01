@@ -23,14 +23,24 @@ class Button(urwid.WidgetWrap):
         urwid.WidgetWrap.__init__(self, m)
 
 
-class ClickableText(urwid.SelectableIcon):
+class ClickableText(urwid.WidgetWrap):
+    """A button that doesn't have the marks around the label, doesn't show
+    the cursor.
+    """
 
     signals = ["click"]
 
-    def __init__(self, txt=None):
-        if not txt:
-            txt = ""
-        urwid.SelectableIcon.__init__(self, txt, -1)
+    def __init__(self, txt=""):
+        self._text = urwid.Text(txt)
+        attrmap = urwid.AttrMap(self._text, None, focus_map='reversed')
+        urwid.WidgetWrap.__init__(self, attrmap)
+
+    @property
+    def text(self):
+        return self._text.text
+
+    def selectable(self):
+        return True
 
     def keypress(self, size, key):
         if self._command_map[key] != ACTIVATE:
@@ -40,6 +50,12 @@ class ClickableText(urwid.SelectableIcon):
     def get_cursor_coords(self, size):
         # Disable cursor.
         return None
+
+    def set_text(self, *args, **kwargs):
+        self._text.set_text(*args, **kwargs)
+
+    def set_layout(self, *args, **kwargs):
+        self._text.set_layout(*args, **kwargs)
 
 
 class ClickableTextList(urwid.WidgetWrap):
@@ -52,7 +68,7 @@ class ClickableTextList(urwid.WidgetWrap):
             txt.set_layout('center', 'clip', None)
             if on_click:
                 urwid.connect_signal(txt, 'click', on_click)
-            lst.append(urwid.AttrMap(txt, None, focus_map='reversed'))
+            lst.append(txt)
 
         self._walker = urwid.SimpleListWalker(lst)
         urwid.WidgetWrap.__init__(self, urwid.ListBox(self._walker))

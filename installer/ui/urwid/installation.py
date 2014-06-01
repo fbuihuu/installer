@@ -19,11 +19,10 @@ class PartitionEntryWidget(urwid.WidgetWrap):
         self.partition = part
         widget1 = urwid.Text(part.name, layout=widgets.FillRightLayout(b'.'))
         self._devpath = widgets.ClickableText()
-        widget2 = urwid.AttrMap(self._devpath, None, focus_map='reversed')
 
         columns = urwid.Columns([('weight', 0.9, widget1),
                                  ('pack', urwid.Text(" : ")),
-                                 widget2])
+                                 self._devpath])
         super(PartitionEntryWidget, self).__init__(columns)
         self.refresh()
 
