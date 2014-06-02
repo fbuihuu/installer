@@ -438,8 +438,8 @@ class Navigator(urwid.WidgetWrap):
 
 class NavigatorEntry(urwid.WidgetWrap):
 
-    check_mark_markup = ('side.bar.mark.check', u'\u2714')
-    cross_mark_markup = ('side.bar.mark.cross', u'\u2718')
+    check_mark_markup = ('side.bar.mark.check', u'\N{BULLET}')
+    cross_mark_markup = ('side.bar.mark.cross', u'\N{BULLET}')
 
     def __init__(self, step):
         self._step  = step
