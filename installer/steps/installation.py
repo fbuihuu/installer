@@ -228,7 +228,7 @@ class _InstallStep(Step):
 
         self.logger.debug("using locale '%s'", locale)
         with open(self._root + '/etc/locale.conf', 'w') as f:
-            f.write("LANG=%s\n" % locale)
+            f.write("LANG=%s.%s\n" % (locale, charmap))
 
         self.logger.debug("using keymap '%s'", keymap)
         with open(self._root + '/etc/vconsole.conf', 'w') as f:
