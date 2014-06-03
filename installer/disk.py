@@ -25,7 +25,10 @@ class DiskError(Exception):
 
 class DiskRaidError(DiskError):
     """Base class for exceptions specific to RAID error"""
-    pass
+
+    def __init__(self, msg):
+        msg = _("RAID error, ") + msg
+        DiskError.__init__(self, message=msg)
 
 
 class DiskTooSmallError(DiskError):
@@ -33,10 +36,6 @@ class DiskTooSmallError(DiskError):
     def __init__(self, bdev):
         message = _("disk is too small (< %d") % DISK_MINSIZE
         DiskError.__init__(self, bdev, message)
-
-
-class DiskHasDataError(DiskError):
-    pass
 
 
 class DiskReadOnlyError(DiskError):
