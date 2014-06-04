@@ -414,11 +414,11 @@ class Navigator(urwid.WidgetWrap):
         walker = urwid.SimpleListWalker(items)
         self._walker = walker
 
-        urwid.connect_signal(walker, 'modified', self.__on_focus_changed)
+        urwid.connect_signal(walker, 'modified', self._on_focus_changed)
         listbox = urwid.ListBox(walker)
         super(Navigator, self).__init__(urwid.LineBox(listbox))
 
-    def __on_focus_changed(self):
+    def _on_focus_changed(self):
         urwid.emit_signal(self, "focus_changed", self.get_focus())
 
     def get_focus(self):
