@@ -70,7 +70,7 @@ def _sort_and_group_bdevs(bdevs):
     groups = []
 
     bdevs.sort(key=lambda bdev: bdev.priority, reverse=True)
-    for k, g in groupby(bdevs, lambda bdev: bdev.bus):
+    for k, g in groupby(bdevs, lambda d: "%s-%d" % (d.bus, d.priority)):
         groups.append(list(g))
 
     return groups
