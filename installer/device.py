@@ -16,6 +16,15 @@ from .process import monitor
 
 logger = logging.getLogger(__name__)
 
+
+# Device priorities: higher is better. Negative priority means that
+# the device shouldn't be considered at all.
+PRIORITY_DISABLE = -1
+PRIORITY_LOW     = 20
+PRIORITY_DEFAULT = 50
+PRIORITY_HIGH    = 70
+
+
 #class RLock(object):
 #
 #    def __init__(self):
@@ -250,6 +259,11 @@ class DiskDevice(BlockDevice):
         super(DiskDevice, self).__init__(gudev)
 
     @property
+    def priority(self):
+        """Usage preference for this disk: higher is better."""
+        return PRIORITY_DEFAULT
+
+    @property
     def is_removable(self):
         return self._gudev.get_sysfs_attr_as_boolean('removable')
 
@@ -288,6 +302,10 @@ class DiskDevice(BlockDevice):
 class RamDevice(DiskDevice):
 
     @property
+    def priority(self):
+        return PRIORITY_LOW
+
+    @property
     def bus(self):
         return "ram"
 
@@ -297,6 +315,10 @@ class RamDevice(DiskDevice):
 
 
 class LoopDevice(DiskDevice):
+
+    @property
+    def priority(self):
+        return PRIORITY_LOW + 10
 
     @property
     def bus(self):
@@ -325,11 +347,19 @@ class LoopDevice(DiskDevice):
 class FloppyDevice(DiskDevice):
 
     @property
+    def priority(self):
+        return PRIORITY_DISABLE
+
+    @property
     def model(self):
         return "floppy disk"
 
 
 class CdromDevice(DiskDevice):
+
+    @property
+    def priority(self):
+        return PRIORITY_DISABLE
 
     @property
     def model(self):
@@ -339,6 +369,10 @@ class CdromDevice(DiskDevice):
 
 
 class VirtualDevice(DiskDevice):
+
+    @property
+    def priority(self):
+        return PRIORITY_HIGH
 
     @property
     def bus(self):

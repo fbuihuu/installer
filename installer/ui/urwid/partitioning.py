@@ -159,7 +159,7 @@ class DiskListWidget(urwid.WidgetWrap):
         if candidates:
             self.set_selected(candidates)
         else:
-            logger.info(_("can't find drive for installation"))
+            logger.info(_("Automatic drive(s) selection failed, choose drive(s) manually"))
 
     def unselect_all(self):
         # Unselecting items doesn't modify the focus.

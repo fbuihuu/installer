@@ -2,6 +2,8 @@
 #
 
 import logging
+from itertools import groupby
+
 from . import device
 from .utils import MiB, GiB
 
@@ -73,15 +75,15 @@ def get_candidates(bdev=None):
 
     for dev in [bdev] if bdev else device.leaf_block_devices():
 
-        if type(dev) in (device.CdromDevice, device.FloppyDevice):
+        if type(dev) == device.PartitionDevice:
+            # Any device that can be partitioned is a candidate.
+            candidates += dev.get_parents()
             continue
 
         if type(dev) == device.MetadiskDevice and dev.is_md_container:
             continue
 
-        if type(dev) == device.PartitionDevice:
-            # Any device that can be partitioned is a candidate.
-            candidates += dev.get_parents()
+        if dev.priority == device.PRIORITY_DISABLE:
             continue
 
         parents = dev.get_parents()
@@ -166,31 +168,25 @@ def select_candidates(bdevs):
     """Given a list of disks, select the best candidates for a installation.
     Multiple disks can be returned meaning the proposed setup will use RAID.
     """
-    buses = {}
+    #
+    # Several devices can be considered to build a RAID array but they
+    # must be part of the same bus and have the same prio. Device with
+    # an unknown bus are ignored.
+    #
+    bdevs  = [bdev for bdev in bdevs if bdev.bus]
+    bdevs.sort(key=lambda bdev: bdev.priority, reverse=True)
 
-    # sorts device by bus
-    for d in bdevs:
-        bus = d.bus
-        if not bus:
-            bus = 'misc'
-        if not buses.get(bus):
-            buses[bus] = []
-        buses[bus].append(d)
+    groups = []
+    for k, g in groupby(bdevs, lambda bdev: bdev.bus):
+        groups.append(list(g))
 
-    # Give priority to SATA disks. Disks with unknown buses are
-    # treated at last.
-    ata = buses.pop("ata", [])
-    misc = buses.pop("misc", [])
-    others = list(buses.values())
-
-    for bdevs in [ata] + others + [misc]:
+    for bdevs in groups:
         candidates = []
         for bdev in bdevs:
             try:
                 check_candidate(bdev)
             except DiskError as e:
                 logger.debug("skipping %s: %s", bdev.devpath, e)
-                continue
             else:
                 candidates.append(bdev)
 
@@ -203,13 +199,12 @@ def select_candidates(bdevs):
         # try to build a RAID array
         try:
             check_candidates(candidates)
-        except DiskRaidError:
+        except DiskRaidError as e:
             #
             # several disks are good candidates but can't be combined into
             # a RAID array, let the user choose the good one.
             #
-            logger.error("skipping %s: multiple choices possible" %
-                         [d.devpath for d in candidates])
+            logger.error("%s: %s" % ([d.devpath for d in candidates], e))
             return []
         return candidates
 
