@@ -63,6 +63,19 @@ class DiskRaidBusyError(DiskBusyError):
         DiskBusyError.__init__(self, bdev, message)
 
 
+def _sort_and_group_bdevs(bdevs):
+    """Group block devices by bus and priority: devices on the same
+    bus but having a different prio won't be part of the same group.
+    """
+    groups = []
+
+    bdevs.sort(key=lambda bdev: bdev.priority, reverse=True)
+    for k, g in groupby(bdevs, lambda bdev: bdev.bus):
+        groups.append(list(g))
+
+    return groups
+
+
 def get_candidates(bdev=None):
     """Returns a list of disks that could be suitable for an
     installation. The disk(s) must be validated by check_candidate()
@@ -100,7 +113,16 @@ def get_candidates(bdev=None):
         # is.
         candidates.append(dev)
 
-    return list(set(candidates))
+    groups = _sort_and_group_bdevs(list(set(candidates)))
+
+    # If 'bdev' was passed, make sure that the parent devices are part
+    # of the same bus. In that case simply returns the list of the
+    # parents.
+    if bdev:
+        assert(len(groups) == 1)
+        groups = groups[0]
+
+    return groups
 
 
 def check_candidate(bdev):
@@ -174,11 +196,7 @@ def select_candidates(bdevs):
     # an unknown bus are ignored.
     #
     bdevs  = [bdev for bdev in bdevs if bdev.bus]
-    bdevs.sort(key=lambda bdev: bdev.priority, reverse=True)
-
-    groups = []
-    for k, g in groupby(bdevs, lambda bdev: bdev.bus):
-        groups.append(list(g))
+    groups = _sort_and_group_bdevs(bdevs)
 
     for bdevs in groups:
         candidates = []

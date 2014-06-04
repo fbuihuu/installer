@@ -53,6 +53,7 @@ class DiskListWidget(urwid.WidgetWrap):
     signals = ['focus_changed']
 
     def __init__(self, ui):
+        self._entries = []
         super(DiskListWidget, self).__init__(self._create_disk_list())
         ui.register_uevent_handler(self._on_uevent)
 
@@ -60,31 +61,29 @@ class DiskListWidget(urwid.WidgetWrap):
         return bdev.bus.capitalize() if bdev.bus else 'Others'
 
     def _create_disk_list(self, selected=[], focus=None):
-        self._buses = {}
+        self._entries = []
         self._walker = urwid.SimpleListWalker([])
 
         force_bus = None
         if selected:
             force_bus = self.__get_bus(selected[0])
 
-        for bdev in disk.get_candidates():
-            bus = self.__get_bus(bdev)
+        # candidates are sorted by prio and grouped by bus already.
+        for groups in disk.get_candidates():
+
+            bus = self.__get_bus(groups[0])
             if force_bus and bus != force_bus:
+                # skip this group
                 continue
 
-            if not self._buses.get(bus):
-                self._buses[bus] = []
-
-            entry = DiskEntryWidget(bdev)
-            entry.state = bdev in selected
-            self._buses[bus].append(entry)
-
-        for bus in sorted(self._buses):
             self._walker.append(urwid.Divider(" "))
             self._walker.append(urwid.Text(('sum.section', bus)))
             self._walker.append(urwid.Divider(" "))
 
-            for entry in self._buses[bus]:
+            for bdev in groups:
+                entry = DiskEntryWidget(bdev)
+                entry.state = bdev in selected
+                self._entries.append(entry)
                 self._walker.append(entry)
                 #
                 # Make sure to set the focus on a device item:
@@ -141,21 +140,13 @@ class DiskListWidget(urwid.WidgetWrap):
                     return
 
     def get_selected(self):
-        lst = []
-        for bus in self._buses:
-            for entry in self._buses[bus]:
-                if entry.state == True:
-                    lst.append(entry.bdev)
-        return lst
+        return [e.bdev for e in self._entries if e.state == True]
 
     def set_selected(self, selected):
         self._w = self._create_disk_list(selected, focus=self.get_focus())
 
     def auto_select(self):
-        all = []
-        for entries in self._buses.values():
-            all.extend(map(lambda e: e.bdev, entries))
-        candidates = disk.select_candidates(all)
+        candidates = disk.select_candidates(map(lambda e: e.bdev, self._entries))
         if candidates:
             self.set_selected(candidates)
         else:
