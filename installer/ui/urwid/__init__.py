@@ -25,6 +25,7 @@ palette = [
     ('focus heading',         'white',             'dark red'),
     ('focus line',            'black',             'dark red'),
     ('focus options',         'black',             'light gray'),
+    ('list.entry.active',     'bold',              ''),
     ('list.entry.disabled',   'dark blue',         ''),
     ('side.bar.mark.cross',   'light red',         ''),
     ('side.bar.mark.check',   'dark green',        ''),
@@ -413,6 +414,7 @@ class Navigator(urwid.WidgetWrap):
             items.append(NavigatorEntry(step))
         walker = urwid.SimpleListWalker(items)
         self._walker = walker
+        self._active_entry = self._walker.get_focus()[0]
 
         urwid.connect_signal(walker, 'modified', self._on_focus_changed)
         listbox = urwid.ListBox(walker)
@@ -420,6 +422,9 @@ class Navigator(urwid.WidgetWrap):
 
     def _on_focus_changed(self):
         urwid.emit_signal(self, "focus_changed", self.get_focus())
+        self._active_entry.active = False
+        self._active_entry = self._walker.get_focus()[0]
+        self._active_entry.active = True
 
     def get_focus(self):
         return steps.get_steps()[self._walker.get_focus()[1]]
@@ -445,11 +450,21 @@ class NavigatorEntry(urwid.WidgetWrap):
         self._step  = step
         self._title = urwid.Text("", align="left")
         self._mark  = urwid.Text("", align="right")
+        self._active = False
         self.refresh()
 
         columns = urwid.Columns([self._title, (1, self._mark)])
         columns = urwid.AttrMap(columns, None, focus_map='reversed')
         super(NavigatorEntry, self).__init__(columns)
+
+    @property
+    def active(self):
+        return self._active
+
+    @active.setter
+    def active(self, v):
+        self._active = v
+        self.refresh()
 
     def selectable(self):
         return self._step.is_enabled()
@@ -465,6 +480,8 @@ class NavigatorEntry(urwid.WidgetWrap):
                 mark = self.check_mark_markup
             elif self._step.is_failed():
                 mark = self.cross_mark_markup
+            if self.active:
+                title = ('list.entry.active', title)
         else:
             title = ('list.entry.disabled', title)
 
