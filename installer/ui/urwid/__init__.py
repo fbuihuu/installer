@@ -415,18 +415,18 @@ class Navigator(urwid.WidgetWrap):
         self._walker = walker
 
         urwid.connect_signal(walker, 'modified', self.__on_focus_changed)
-        self._list = urwid.ListBox(walker)
-        super(Navigator, self).__init__(urwid.LineBox(self._list))
+        listbox = urwid.ListBox(walker)
+        super(Navigator, self).__init__(urwid.LineBox(listbox))
 
     def __on_focus_changed(self):
         urwid.emit_signal(self, "focus_changed", self.get_focus())
 
     def get_focus(self):
-        return steps.get_steps()[self._list.get_focus()[1]]
+        return steps.get_steps()[self._walker.get_focus()[1]]
 
     def set_focus(self, step):
         assert(not step.is_disabled())
-        self._list.set_focus(steps.get_steps().index(step))
+        self._walker.set_focus(steps.get_steps().index(step))
 
     def keypress(self, size, key):
         return super(Navigator, self).keypress(size, key)
