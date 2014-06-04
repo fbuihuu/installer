@@ -25,6 +25,7 @@ palette = [
     ('focus heading',         'white',             'dark red'),
     ('focus line',            'black',             'dark red'),
     ('focus options',         'black',             'light gray'),
+    ('button.active',         'bold',              ''),
     ('list.entry.active',     'bold',              ''),
     ('list.entry.disabled',   'dark blue',         ''),
     ('side.bar.mark.cross',   'light red',         ''),

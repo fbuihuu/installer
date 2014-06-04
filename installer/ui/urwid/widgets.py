@@ -19,7 +19,7 @@ class Button(urwid.WidgetWrap):
 
     def __init__(self, *args, **kwargs):
         b = urwid.Button(*args, **kwargs)
-        m = urwid.AttrMap(b, None, focus_map='reversed')
+        m = urwid.AttrMap(b, None, focus_map='button.active')
         urwid.WidgetWrap.__init__(self, m)
 
 
