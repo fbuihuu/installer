@@ -33,6 +33,8 @@ palette = [
     ('top.bar.label',         'black',             'light gray'),
     ('top.bar.hotkey',        'dark blue',         'light gray'),
     ('sum.section',           'underline',         ''),
+    ('page.title',            'bold',              ''),
+    ('page.legend',           'dark blue',         ''),
     ('progress.bar',          'black',             'dark green'),
     ('log.warn',              'light red',         ''),
     ('log.info',              'light green',       ''),
@@ -298,8 +300,14 @@ class StepView(urwid.WidgetWrap):
         self._ui = ui
         self._step = step
         self._page = urwid.WidgetPlaceholder(urwid.Text(""))
-        self._progressbar = widgets.ProgressBar(0, 100)
-        self._overlay = urwid.Overlay(self._progressbar, self._page,
+
+        self._progress_bar  = widgets.ProgressBar(0, 100)
+        self._progress_page = widgets.Page()
+        self._progress_page.footer = urwid.Text(('page.legend',
+                                                 _("Press <F3> to see logs")))
+
+        self._overlay = urwid.Overlay(self._progress_bar,
+                                      self._progress_page,
                                       'center', ('relative', 55),
                                       'middle', 'pack')
 
@@ -316,9 +324,11 @@ class StepView(urwid.WidgetWrap):
     @page.setter
     def page(self, page):
         self._page.original_widget = page
+        self._progress_page.title = page.title
 
     def redraw(self):
         self._redraw()
+        self._progress_page.title = self._page.original_widget.title
 
     def run(self):
         self._step.process()
@@ -338,7 +348,7 @@ class StepView(urwid.WidgetWrap):
         if self._w.original_widget == self._page:
             self._w.original_widget = self._overlay
 
-        self._progressbar.set_completion(percent)
+        self._progress_bar.set_completion(percent)
 
 
 class LogView(urwid.WidgetWrap):
