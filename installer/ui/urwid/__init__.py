@@ -18,7 +18,7 @@ from . import widgets
 
 
 palette = [
-#    (None,                    'light gray',        'black'),
+    ('default',               'default',           'default'),
     ('line',                  'black',             'light gray'),
     ('title1',                'bold',              ''),
     ('options',               'light red',         'black'),
@@ -108,7 +108,7 @@ class UrwidUI(UI):
 
     def _create_main_frame(self):
         cols  = [("weight", 0.25, self._navigator)]
-        cols += [urwid.LineBox(self._view)]
+        cols += [self._view]
         cols  = urwid.Columns(cols, dividechars=1, focus_column=1)
 
         self._main_frame = urwid.Frame(cols, self._top_bar, self._echo_area)
@@ -294,7 +294,15 @@ class UrwidUI(UI):
             fn(action, bdev)
 
 
-class StepView(urwid.WidgetWrap):
+class View(urwid.WidgetWrap):
+
+    def __init__(self, w, title=""):
+        linebox = urwid.LineBox(urwid.AttrMap(w, 'default'), title)
+        attrmap = urwid.AttrMap(linebox, 'default', 'button.active')
+        urwid.WidgetWrap.__init__(self, attrmap)
+
+
+class StepView(View):
 
     def __init__(self, ui, step):
         self._ui = ui
@@ -311,7 +319,7 @@ class StepView(urwid.WidgetWrap):
                                       'center', ('relative', 55),
                                       'middle', 'pack')
 
-        urwid.WidgetWrap.__init__(self, urwid.WidgetPlaceholder(self._page))
+        View.__init__(self, urwid.WidgetPlaceholder(self._page))
 
     @property
     def logger(self):
@@ -351,11 +359,11 @@ class StepView(urwid.WidgetWrap):
         self._progress_bar.set_completion(percent)
 
 
-class LogView(urwid.WidgetWrap):
+class LogView(View):
 
     def __init__(self):
         self._walker = urwid.SimpleFocusListWalker([])
-        urwid.WidgetWrap.__init__(self, urwid.ListBox(self._walker))
+        View.__init__(self, urwid.ListBox(self._walker), _("Logs"))
 
     def append_log(self, lvl, msg):
         txt = urwid.Text(msg)
@@ -365,7 +373,7 @@ class LogView(urwid.WidgetWrap):
         self._walker.set_focus(len(self._walker) - 1)
 
 
-class SummaryView(urwid.WidgetWrap):
+class SummaryView(View):
 
     def __init__(self):
         items = []
@@ -383,15 +391,15 @@ class SummaryView(urwid.WidgetWrap):
             items.append(urwid.Divider(" "))
 
         walker = urwid.SimpleListWalker(items)
-        super(SummaryView, self).__init__(urwid.ListBox(walker))
+        super(SummaryView, self).__init__(urwid.ListBox(walker), _("Summary"))
 
 
-class HelpView(urwid.WidgetWrap):
+class HelpView(View):
 
     def __init__(self):
         txt = urwid.Text("Not Yet Implemented", align='center')
         txt = urwid.Filler(txt)
-        super(HelpView, self).__init__(txt)
+        super(HelpView, self).__init__(txt, _("Help"))
 
 
 class EchoArea(urwid.Text):
@@ -428,8 +436,10 @@ class Navigator(urwid.WidgetWrap):
         self._active_entry = self._walker.get_focus()[0]
 
         urwid.connect_signal(walker, 'modified', self._on_focus_changed)
-        listbox = urwid.ListBox(walker)
-        super(Navigator, self).__init__(urwid.LineBox(listbox))
+
+        linebox = urwid.LineBox(urwid.ListBox(walker))
+        linebox = urwid.AttrMap(linebox, 'default', 'button.active')
+        super(Navigator, self).__init__(linebox)
 
     def _on_focus_changed(self):
         urwid.emit_signal(self, "focus_changed", self.get_focus())
@@ -465,7 +475,7 @@ class NavigatorEntry(urwid.WidgetWrap):
         self.refresh()
 
         columns = urwid.Columns([self._title, (1, self._mark)])
-        columns = urwid.AttrMap(columns, None, focus_map='reversed')
+        columns = urwid.AttrMap(columns, 'default')
         super(NavigatorEntry, self).__init__(columns)
 
     @property
