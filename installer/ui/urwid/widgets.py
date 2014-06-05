@@ -13,6 +13,9 @@ class Title1(urwid.WidgetWrap):
     def set_text(self, txt):
         self._text.set_text(txt)
 
+    def get_text(self):
+        return self._text.text
+
 
 class Button(urwid.WidgetWrap):
     """A plain button but with reverse focus attribute by default."""
@@ -209,7 +212,7 @@ class Page(urwid.WidgetWrap):
 
     @property
     def title(self):
-        return title.text
+        return self._title.get_text()
 
     @title.setter
     def title(self, txt):
