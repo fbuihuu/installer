@@ -297,9 +297,13 @@ class UrwidUI(UI):
 class View(urwid.WidgetWrap):
 
     def __init__(self, w, title=""):
-        linebox = urwid.LineBox(urwid.AttrMap(w, 'default'), title)
-        attrmap = urwid.AttrMap(linebox, 'default', 'button.active')
+        self._linebox = urwid.LineBox(urwid.AttrMap(w, 'default'), title)
+        attrmap = urwid.AttrMap(self._linebox, 'default', 'button.active')
         urwid.WidgetWrap.__init__(self, attrmap)
+
+    # FIXME: should be removed once the redraw() method will be removed.
+    def set_title(self, title):
+        return self._linebox.set_title(title)
 
 
 class StepView(View):
@@ -332,11 +336,11 @@ class StepView(View):
     @page.setter
     def page(self, page):
         self._page.original_widget = page
-        self._progress_page.title = page.title
+        self.set_title(page.title)
 
     def redraw(self):
         self._redraw()
-        self._progress_page.title = self._page.original_widget.title
+        self.set_title(self._page.original_widget.title)
 
     def run(self):
         self._step.process()

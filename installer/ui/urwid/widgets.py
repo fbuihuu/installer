@@ -4,19 +4,6 @@ import urwid
 from urwid.command_map import ACTIVATE
 
 
-class Title1(urwid.WidgetWrap):
-
-    def __init__(self, title="", align='center'):
-        self._text = urwid.Text(title, align=align)
-        urwid.WidgetWrap.__init__(self, urwid.AttrMap(self._text, 'title1'))
-
-    def set_text(self, txt):
-        self._text.set_text(txt)
-
-    def get_text(self):
-        return self._text.text
-
-
 class Button(urwid.WidgetWrap):
     """A plain button but with reverse focus attribute by default."""
 
@@ -209,26 +196,17 @@ class Page(urwid.WidgetWrap):
     should be flow widgets.
     """
     def __init__(self):
-        self._title  = Title1()
+        self.title   = ""
         self._body   = urwid.WidgetPlaceholder(urwid.Filler(NullWidget()))
         self._footer = urwid.WidgetPlaceholder(NullWidget())
 
         items = [
-            ('pack', self._title),
             ('pack', urwid.Divider(" ")),
             ('weight', 1, self._body),
             ('pack', self._footer)
         ]
-        self._pile = urwid.Pile(items, focus_item=2)
+        self._pile = urwid.Pile(items, focus_item=1)
         urwid.WidgetWrap.__init__(self, urwid.WidgetPlaceholder(self._pile))
-
-    @property
-    def title(self):
-        return self._title.get_text()
-
-    @title.setter
-    def title(self, txt):
-        self._title.set_text(txt)
 
     @property
     def body(self):
@@ -254,9 +232,9 @@ class Page(urwid.WidgetWrap):
 
     def set_focus(self, what):
         if what == 'footer':
-            self._pile.focus_position = 3
-        else:
             self._pile.focus_position = 2
+        else:
+            self._pile.focus_position = 1
 
 
 class Table(urwid.WidgetWrap):
