@@ -147,7 +147,7 @@ class InstallationView(StepView):
 
     def _create_device_page(self, part, devices):
         page = widgets.Page()
-        page.title  = _("Choose device to use for %s\n") % part.name
+        page.title  = _("Choose device to use for %s") % part.name
         page.body   = DeviceListWidget(part, devices)
         footer      = urwid.Text(str(page.body.get_focus()))
         page.footer = urwid.LineBox(footer)

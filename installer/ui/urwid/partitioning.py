@@ -163,7 +163,7 @@ class DiskSelectionPage(widgets.Page):
 
     def __init__(self, ui):
         super(DiskSelectionPage, self).__init__()
-        self.title = _("Choose the disk(s) to use\n")
+        self.title = _("Choose the disk(s) to use")
 
         # Body
         pile = widgets.ClickableTextPile([(_("Auto"), self._on_detect),
