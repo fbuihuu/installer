@@ -217,9 +217,8 @@ class Page(urwid.WidgetWrap):
 
     @property
     def body(self):
-        if self._body.original_widget == self.empty_text_widget:
-            return None
-        return self._body.original_widget
+        if self._body.original_widget != self.empty_text_widget:
+            return self._body.original_widget
 
     @body.setter
     def body(self, widget=None):
@@ -229,9 +228,8 @@ class Page(urwid.WidgetWrap):
 
     @property
     def footer(self):
-        if self._footer.original_widget == self.empty_text_widget:
-            return None
-        return self._footer.original_widget
+        if self._footer.original_widget != self.empty_text_widget:
+            return self._footer.original_widget
 
     @footer.setter
     def footer(self, widget=None):
