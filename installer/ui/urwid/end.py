@@ -8,7 +8,7 @@ from . import widgets
 from installer.settings import settings
 
 
-class ExitView(StepView):
+class EndView(StepView):
 
     def __init__(self, ui, step):
         StepView.__init__(self, ui, step)

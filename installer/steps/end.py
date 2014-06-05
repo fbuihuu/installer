@@ -8,14 +8,14 @@ from installer import partition
 from installer.settings import settings
 
 
-class ExitStep(Step):
+class EndStep(Step):
 
     # FIXME: this should depends on all existing provides.
     requires = ["password"]
 
     @property
     def name(self):
-        return _("Exit")
+        return _("End")
 
     def _cancel(self):
         return

@@ -214,7 +214,7 @@ from .license import LicenseStep
 from .partitioning import PartitioningStep
 from .installation import InstallStep
 from .password import PasswordStep
-from .exit import ExitStep
+from .end import EndStep
 
 def _initialize_one_step(step, no_skip):
     step._skip = not no_skip
@@ -229,7 +229,7 @@ def initialize():
     _initialize_one_step(PartitioningStep(), settings.Steps.partitioning)
     _initialize_one_step(InstallStep(), True)
     _initialize_one_step(PasswordStep(), settings.Steps.password)
-    _initialize_one_step(ExitStep(), settings.Steps.exit)
+    _initialize_one_step(EndStep(), settings.Steps.exit)
 
     assert(get_steps())
     assert(not _all_steps[0].requires)
