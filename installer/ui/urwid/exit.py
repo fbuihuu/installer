@@ -22,7 +22,7 @@ class ExitView(StepView):
         body = urwid.Padding(body, align='center', width=('relative', 60))
         self.page.body = body
 
-    def redraw(self):
+    def _redraw(self):
         self.page.title = _("Your system is ready to be used")
 
     def on_quit(self, widget):

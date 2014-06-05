@@ -16,7 +16,7 @@ class LicenseView(StepView):
         self.page = widgets.Page()
         self.page.body = urwid.ListBox(urwid.SimpleListWalker([]))
 
-    def redraw(self):
+    def _redraw(self):
         if self._locale == self._ui.language:
             return
         self._locale = self._ui.language

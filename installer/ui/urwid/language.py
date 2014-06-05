@@ -29,7 +29,7 @@ class LanguageView(StepView):
         body = urwid.Padding(body, align='center', width=('relative', 60))
         self.page.body = body
 
-    def redraw(self):
+    def _redraw(self):
         self.page.title = _("Select your location")
 
     def on_click(self, entry):

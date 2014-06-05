@@ -138,7 +138,7 @@ class InstallationView(StepView):
 
         ui.register_uevent_handler(self._on_uevent)
 
-    def redraw(self):
+    def _redraw(self):
         self._partition_page.title = _("Map partitions to block devices")
         # When switching to the install view, devices can have been
         # already assigned to partitions by the partitioning step.

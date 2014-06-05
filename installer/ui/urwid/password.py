@@ -28,7 +28,7 @@ class PasswordView(StepView):
         urwid.connect_signal(self._passwd1, 'validated', self._on_validated)
         urwid.connect_signal(self._passwd2, 'validated', self._on_validated)
 
-    def redraw(self):
+    def _redraw(self):
         self.page.title = _("Enter the root password")
 
         if self._masked:

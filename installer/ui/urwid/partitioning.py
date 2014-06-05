@@ -294,6 +294,12 @@ class PartitioningView(StepView):
 
         self.page = self._page1
 
+    def _redraw(self):
+        # FIXME translation is not supported, but I think the
+        # _redraw() method should be removed and all views should be
+        # recreated from scratch.
+        return
+
     def _on_select_server_type(self, preset):
         self.logger.debug("using %s preset" % preset)
         self.page = self._page2

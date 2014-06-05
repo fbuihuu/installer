@@ -318,7 +318,7 @@ class StepView(urwid.WidgetWrap):
         self._page.original_widget = page
 
     def redraw(self):
-        return
+        self._redraw()
 
     def run(self):
         self._step.process()
