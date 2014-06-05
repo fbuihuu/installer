@@ -166,7 +166,7 @@ class DiskSelectionPage(widgets.Page):
         self.title = _("Choose the disk(s) to use\n")
 
         # Body
-        pile = widgets.ClickableTextPile([(_("Detect"), self._on_detect),
+        pile = widgets.ClickableTextPile([(_("Auto"), self._on_detect),
                                           (_("Clear"),  self._on_clear),
                                           None,
                                           (_("Cancel"), self._on_cancel),
