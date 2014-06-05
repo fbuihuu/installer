@@ -192,16 +192,26 @@ class ProgressBar(urwid.WidgetWrap):
         self._progressbar.set_completion(current)
 
 
+class _NullWidget(urwid.WidgetWrap):
+    """A dummy widget that does nothing."""
+
+    def __init__(self):
+        urwid.WidgetWrap.__init__(self, urwid.Text(""))
+
+
+_null_widget = _NullWidget()
+def NullWidget():
+    return _null_widget
+
+
 class Page(urwid.WidgetWrap):
     """Page's body must be a box widget whereas footer and title
     should be flow widgets.
     """
-    empty_text_widget = urwid.Text("")
-
     def __init__(self):
         self._title  = Title1()
-        self._body   = urwid.WidgetPlaceholder(urwid.Filler(self.empty_text_widget))
-        self._footer = urwid.WidgetPlaceholder(self.empty_text_widget)
+        self._body   = urwid.WidgetPlaceholder(urwid.Filler(NullWidget()))
+        self._footer = urwid.WidgetPlaceholder(NullWidget())
 
         items = [
             ('pack', self._title),
@@ -222,24 +232,24 @@ class Page(urwid.WidgetWrap):
 
     @property
     def body(self):
-        if self._body.original_widget != self.empty_text_widget:
+        if self._body.original_widget != NullWidget():
             return self._body.original_widget
 
     @body.setter
     def body(self, widget=None):
         if not widget:
-            widget = self.empty_text_widget
+            widget = NullWidget()
         self._body.original_widget = widget
 
     @property
     def footer(self):
-        if self._footer.original_widget != self.empty_text_widget:
+        if self._footer.original_widget != NullWidget():
             return self._footer.original_widget
 
     @footer.setter
     def footer(self, widget=None):
         if not widget:
-            widget = self.empty_text_widget
+            widget = NullWidget()
         self._footer.original_widget = widget
 
     def set_focus(self, what):
