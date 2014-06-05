@@ -193,12 +193,14 @@ class ProgressBar(urwid.WidgetWrap):
 
 
 class Page(urwid.WidgetWrap):
-
+    """Page's body must be a box widget whereas footer and title
+    should be flow widgets.
+    """
     empty_text_widget = urwid.Text("")
 
     def __init__(self):
         self._title  = Title1()
-        self._body   = urwid.WidgetPlaceholder(self.empty_text_widget)
+        self._body   = urwid.WidgetPlaceholder(urwid.Filler(self.empty_text_widget))
         self._footer = urwid.WidgetPlaceholder(self.empty_text_widget)
 
         items = [
