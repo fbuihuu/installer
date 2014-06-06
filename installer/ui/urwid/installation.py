@@ -142,7 +142,7 @@ class InstallationView(StepView):
         # When switching to the install view, devices can have been
         # already assigned to partitions by the partitioning step.
         self._partition_list_widget.refresh()
-        self._update_install_button()
+        self._update_install_button(focus=True)
 
     def _create_device_page(self, part, devices):
         page = widgets.Page(_("Choose device to use for %s") % part.name)
@@ -155,12 +155,14 @@ class InstallationView(StepView):
                              lambda dev: footer.set_text(str(dev)))
         return page
 
-    def _update_install_button(self):
+    def _update_install_button(self, focus=False):
         for part in partition.partitions:
             if not part.is_optional() and part.device is None:
                 self._partition_page.footer = None
                 return
         self._partition_page.footer = self._install_button
+        if focus:
+            self._partition_page.set_focus('footer')
 
     def _on_clear_partition(self, part):
         part.device = None
