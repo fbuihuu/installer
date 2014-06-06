@@ -309,7 +309,7 @@ class PartitioningView(StepView):
         try:
             setup = self._step.initialize(disks, self.preset)
         except partition.PartitionSetupError:
-            logger.critical(_("disk(s) too small for this preset"))
+            logger.critical(_("disk(s) too small for a %s server setup") % self.preset)
             return
 
         page3 = ReviewPage(setup)
