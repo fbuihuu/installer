@@ -7,12 +7,12 @@ import time
 import collections
 import logging
 import urwid
-from importlib import import_module
 
 from installer.settings import settings
 from installer import steps
 from installer import device
 from installer import utils
+from installer import l10n
 from .. import UI
 from . import widgets
 
@@ -79,22 +79,15 @@ class UrwidUI(UI):
 
         device.listen_uevent(self._on_uevent)
 
-    def _create_step_views(self):
-        #
-        # Dynamic loading of view modules is based on the english name
-        # of the step.
-        #
-        lang = self.language
-        self.language = 'en_US'
-
-        for step in steps.get_steps():
-            # Import view's module.
-            mod = import_module('.' + step.name.lower(), 'installer.ui.urwid')
-            # Retrieve view's class and instantiate it.
-            view = getattr(mod, step.name + 'View')(self, step)
-            step.view_data = view
-
-        self.language = lang
+    @UI.language.setter
+    def language(self, lang):
+        if self._language != lang:
+            UI.language.fset(self, lang)
+            if self._loop:
+                # Urwid frontend needs to recreate all step views.
+                self._load_step_views()
+                self._top_bar.refresh()
+                self._navigator.refresh()
 
     def _create_main_view(self):
         self._view = urwid.WidgetPlaceholder(urwid.Text(""))
@@ -149,7 +142,6 @@ class UrwidUI(UI):
         self._create_log_view()
         self._create_echo_area()
         self._init_logging()
-        self._create_step_views()
         self._create_navigator()
         self._create_main_view()
         self._create_top_bar()
@@ -199,8 +191,6 @@ class UrwidUI(UI):
 
     def _redraw(self):
         if self._loop:
-            self._top_bar.refresh()
-            self._navigator.refresh()
             self._loop.draw_screen()
             self._redraw_view()
 

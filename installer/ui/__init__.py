@@ -3,6 +3,7 @@
 
 import os
 import logging
+from importlib import import_module
 
 from installer import steps, l10n
 
@@ -16,13 +17,14 @@ class UI(object):
     _hotkeys = {}
 
     def __init__(self, lang):
-        self._current_step = None
-        self._language = None
-        self.language = lang
-
         steps.initialize()
         steps.finished_signal.connect(self._on_step_finished)
         steps.completion_signal.connect(self._on_step_completion)
+
+        self._current_step = None
+        self._language = None
+        self.language = lang
+        self._load_step_views()
 
     @property
     def language(self):
@@ -33,7 +35,21 @@ class UI(object):
         self._language = lang
         l10n.set_locale(lang)
         l10n.set_translation(lang)
-        self.redraw()
+
+    def _load_step_views(self):
+        for step in steps.get_steps():
+            # Dynamic loading of view modules is based on the english name
+            # of the step.
+            l10n.set_translation('en_US')
+            name = step.name
+            l10n.set_translation(self._language)
+
+            # Import view's module.
+            mod = import_module('.' + name.lower(), 'installer.ui.urwid')
+
+            # Retrieve view's class and instantiate it.
+            view = getattr(mod, name + 'View')(self, step)
+            step.view_data = view
 
     def run(self):
         raise NotImplementedError()
