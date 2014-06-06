@@ -296,8 +296,13 @@ class UrwidUI(UI):
 
 class View(urwid.WidgetWrap):
 
-    def __init__(self, w, title=""):
-        self._linebox = urwid.LineBox(urwid.AttrMap(w, 'default'), title)
+    def __init__(self, page=None, title=""):
+        if not page:
+            page = widgets.Page()
+        elif not title:
+            title = page.title
+        self._page    = urwid.WidgetPlaceholder(page)
+        self._linebox = urwid.LineBox(urwid.AttrMap(self._page, 'default'), title)
         attrmap = urwid.AttrMap(self._linebox, 'default', 'button.active')
         urwid.WidgetWrap.__init__(self, attrmap)
 
@@ -305,29 +310,9 @@ class View(urwid.WidgetWrap):
     def set_title(self, title):
         return self._linebox.set_title(title)
 
-
-class StepView(View):
-
-    def __init__(self, ui, step):
-        self._ui = ui
-        self._step = step
-        self._page = urwid.WidgetPlaceholder(urwid.Text(""))
-
-        self._progress_bar  = widgets.ProgressBar(0, 100)
-        self._progress_page = widgets.Page()
-        self._progress_page.footer = urwid.Text(('page.legend',
-                                                 _("Press <F3> to see logs")))
-
-        self._overlay = urwid.Overlay(self._progress_bar,
-                                      self._progress_page,
-                                      'center', ('relative', 55),
-                                      'middle', 'pack')
-
-        View.__init__(self, urwid.WidgetPlaceholder(self._page))
-
-    @property
-    def logger(self):
-        return logging.getLogger(self._step.name)
+    def redraw(self):
+        self._redraw()
+        self.set_title(self.page.title) # FIXME: only for translation support to be removed
 
     @property
     def page(self):
@@ -338,9 +323,27 @@ class StepView(View):
         self._page.original_widget = page
         self.set_title(page.title)
 
-    def redraw(self):
-        self._redraw()
-        self.set_title(self._page.original_widget.title)
+
+class StepView(View):
+
+    def __init__(self, ui, step):
+        self._ui = ui
+        self._step = step
+        self._step_page = None
+        View.__init__(self)
+
+        self._progress_bar  = widgets.ProgressBar(0, 100)
+        # center the progress bar inside the body page.
+        body = urwid.Padding(self._progress_bar, 'center', ('relative', 70))
+        body = urwid.Filler(body)
+        self._progress_page = widgets.Page()
+        self._progress_page.body   = body
+        self._progress_page.footer = urwid.Text(('page.legend',
+                                                 _("Press <F3> to see logs")))
+
+    @property
+    def logger(self):
+        return logging.getLogger(self._step.name)
 
     def run(self):
         self._step.process()
@@ -351,14 +354,17 @@ class StepView(View):
         # is finished.
         #
         if percent < 1 or percent > 99:
-            self._w.original_widget = self._page
+            if self.page == self._progress_page:
+                self.page = self._step_page
             return
         #
         # Create an overlay to show a progress bar on top if it
         # doesn't exist yet.
         #
-        if self._w.original_widget == self._page:
-            self._w.original_widget = self._overlay
+        if self.page != self._progress_page:
+            self._step_page = self.page
+            self._progress_page.title = self.page.title
+            self.page = self._progress_page
 
         self._progress_bar.set_completion(percent)
 
@@ -366,8 +372,10 @@ class StepView(View):
 class LogView(View):
 
     def __init__(self):
+        page = widgets.Page(_("Logs"))
         self._walker = urwid.SimpleFocusListWalker([])
-        View.__init__(self, urwid.ListBox(self._walker), _("Logs"))
+        page.body = urwid.ListBox(self._walker)
+        View.__init__(self, page)
 
     def append_log(self, lvl, msg):
         txt = urwid.Text(msg)
@@ -380,6 +388,7 @@ class LogView(View):
 class SummaryView(View):
 
     def __init__(self):
+        page = widgets.Page(_("Summary"))
         items = []
 
         for section in settings.sections:
@@ -394,16 +403,17 @@ class SummaryView(View):
                 items.append(col)
             items.append(urwid.Divider(" "))
 
-        walker = urwid.SimpleListWalker(items)
-        super(SummaryView, self).__init__(urwid.ListBox(walker), _("Summary"))
+        page.body = urwid.ListBox(urwid.SimpleListWalker(items))
+        super(SummaryView, self).__init__(page)
 
 
 class HelpView(View):
 
     def __init__(self):
-        txt = urwid.Text("Not Yet Implemented", align='center')
-        txt = urwid.Filler(txt)
-        super(HelpView, self).__init__(txt, _("Help"))
+        page      = widgets.Page(_("Help"))
+        txt       = urwid.Text("Not Yet Implemented", align='center')
+        page.body = urwid.Filler(txt)
+        super(HelpView, self).__init__(page)
 
 
 class EchoArea(urwid.Text):
