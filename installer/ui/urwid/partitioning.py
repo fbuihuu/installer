@@ -19,8 +19,7 @@ class PresetPage(widgets.Page):
     signals = ['preset']
 
     def __init__(self):
-        super(PresetPage, self).__init__()
-        self.title = _("Type of server")
+        super(PresetPage, self).__init__(_("Type of server"))
 
         items = [(_("Small/Basic server"),  self._on_small_server),
                  (_("File/Mail server"),    self._on_mail_server),
@@ -162,8 +161,7 @@ class DiskSelectionPage(widgets.Page):
     signals = ['done', 'cancel']
 
     def __init__(self, ui):
-        super(DiskSelectionPage, self).__init__()
-        self.title = _("Choose the disk(s) to use")
+        super(DiskSelectionPage, self).__init__(_("Choose the disk(s) to use"))
 
         # Body
         pile = widgets.ClickableTextPile([(_("Auto"), self._on_detect),
@@ -221,8 +219,7 @@ class ReviewPage(widgets.Page):
     signals = ['create', 'cancel']
 
     def __init__(self, setup):
-        super(ReviewPage, self).__init__()
-        self.title = _("Disk Review")
+        super(ReviewPage, self).__init__(_("Disk Review"))
         has_raid = len(setup.disks) > 1
 
         #
@@ -293,12 +290,6 @@ class PartitioningView(StepView):
         urwid.connect_signal(self._page2, 'done', self._on_page2_done)
 
         self.page = self._page1
-
-    def _redraw(self):
-        # FIXME translation is not supported, but I think the
-        # _redraw() method should be removed and all views should be
-        # recreated from scratch.
-        return
 
     def _on_select_server_type(self, preset):
         self.logger.debug("using %s preset" % preset)

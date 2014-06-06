@@ -22,15 +22,12 @@ class LanguageView(StepView):
         StepView.__init__(self, ui, step)
         self._zone = None
 
-        self.page = widgets.Page()
+        self.page = widgets.Page(_("Select your location"))
         # Make the list centered inside its container
         body = widgets.ClickableTextList(country_dict.keys(), self.on_click)
         body = urwid.Filler(body, 'middle', height=('relative', 40))
         body = urwid.Padding(body, align='center', width=('relative', 60))
         self.page.body = body
-
-    def _redraw(self):
-        self.page.title = _("Select your location")
 
     def on_click(self, entry):
         zone = entry.text

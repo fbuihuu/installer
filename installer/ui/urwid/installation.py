@@ -132,22 +132,20 @@ class InstallationView(StepView):
         self._install_button = widgets.Button(_("Install"), on_press=self.do_install)
         self._partition_list_widget = PartitionListWidget(self._on_select_partition,
                                                           self._on_clear_partition)
-        self._partition_page = widgets.Page()
+        self._partition_page = widgets.Page(_("Map partitions to block devices"))
         self._partition_page.body = self._partition_list_widget
         self.page = self._partition_page
 
         ui.register_uevent_handler(self._on_uevent)
 
     def _redraw(self):
-        self._partition_page.title = _("Map partitions to block devices")
         # When switching to the install view, devices can have been
         # already assigned to partitions by the partitioning step.
         self._partition_list_widget.refresh()
         self._update_install_button()
 
     def _create_device_page(self, part, devices):
-        page = widgets.Page()
-        page.title  = _("Choose device to use for %s") % part.name
+        page = widgets.Page(_("Choose device to use for %s") % part.name)
         page.body   = DeviceListWidget(part, devices)
         footer      = urwid.Text(str(page.body.get_focus()))
         page.footer = urwid.LineBox(footer)

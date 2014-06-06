@@ -306,13 +306,15 @@ class View(urwid.WidgetWrap):
         attrmap = urwid.AttrMap(self._linebox, 'default', 'button.active')
         urwid.WidgetWrap.__init__(self, attrmap)
 
-    # FIXME: should be removed once the redraw() method will be removed.
-    def set_title(self, title):
+    def __set_title(self, title):
         return self._linebox.set_title(title)
+
+    def _redraw(self):
+        pass
 
     def redraw(self):
         self._redraw()
-        self.set_title(self.page.title) # FIXME: only for translation support to be removed
+        self.__set_title(self.page.title)
 
     @property
     def page(self):
@@ -321,7 +323,7 @@ class View(urwid.WidgetWrap):
     @page.setter
     def page(self, page):
         self._page.original_widget = page
-        self.set_title(page.title)
+        self.__set_title(page.title)
 
 
 class StepView(View):

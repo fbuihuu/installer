@@ -14,29 +14,25 @@ class PasswordView(StepView):
         StepView.__init__(self, ui, step)
         self._masked = False
 
-        self.page = widgets.Page()
+        self.page = widgets.Page(_("Enter the root password"))
 
         self._passwd1 = widgets.Password(_("Password : "))
         self._passwd2 = widgets.Password(_("Confirm  : "))
         self._pile = urwid.Pile([self._passwd1, self._passwd2])
         attrmap = urwid.Padding(self._pile, align='center', width=('relative', 70))
         self.page.body = urwid.Filler(attrmap, 'middle')
-
-        footer = urwid.Text("")
-        self.page.footer = urwid.AttrMap(footer, 'list.entry.disabled')
+        self.page.footer = urwid.AttrMap(urwid.Text(""), 'page.legend')
+        self._update_footer()
 
         urwid.connect_signal(self._passwd1, 'validated', self._on_validated)
         urwid.connect_signal(self._passwd2, 'validated', self._on_validated)
 
-    def _redraw(self):
-        self.page.title = _("Enter the root password")
-
+    def _update_footer(self):
         if self._masked:
             txt = _("Press <alt>-v to hide password")
         else:
             txt = _("Press <alt>-v to show password")
         self.page.footer.original_widget.set_text(txt)
-
 
     def _on_validated(self):
         p1 = self._passwd1.edit_text
@@ -57,6 +53,6 @@ class PasswordView(StepView):
             self._masked = not self._masked
             self._passwd1.set_masked(self._masked)
             self._passwd2.set_masked(self._masked)
-            self.redraw() # update the footer message
+            self._update_footer()
             return None
         return super(PasswordView, self).keypress(size, key)
