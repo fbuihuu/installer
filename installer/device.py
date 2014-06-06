@@ -261,7 +261,7 @@ class DiskDevice(BlockDevice):
     @property
     def priority(self):
         """Usage preference for this disk: higher is better."""
-        return PRIORITY_DEFAULT
+        return PRIORITY_DEFAULT if self.bus else PRIORITY_LOW + 5
 
     @property
     def is_removable(self):
