@@ -69,8 +69,11 @@ def _sort_and_group_bdevs(bdevs):
     """
     groups = []
 
-    bdevs.sort(key=lambda bdev: bdev.priority, reverse=True)
-    for k, g in groupby(bdevs, lambda d: "%s-%d" % (d.bus, d.priority)):
+    def keyfunc(d):
+        return "%d-%s" % (d.priority, d.bus)
+
+    bdevs.sort(key=keyfunc, reverse=True)
+    for k, g in groupby(bdevs, keyfunc):
         groups.append(list(g))
 
     return groups
