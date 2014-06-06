@@ -195,8 +195,8 @@ class Page(urwid.WidgetWrap):
     """Page's body must be a box widget whereas footer and title
     should be flow widgets.
     """
-    def __init__(self):
-        self.title   = ""
+    def __init__(self, title=""):
+        self.title   = title
         self._body   = urwid.WidgetPlaceholder(urwid.Filler(NullWidget()))
         self._footer = urwid.WidgetPlaceholder(NullWidget())
 
