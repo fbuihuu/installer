@@ -229,7 +229,7 @@ def initialize():
     _initialize_one_step(PartitioningStep(), settings.Steps.partitioning)
     _initialize_one_step(InstallStep(), True)
     _initialize_one_step(PasswordStep(), settings.Steps.password)
-    _initialize_one_step(EndStep(), settings.Steps.exit)
+    _initialize_one_step(EndStep(), settings.Steps.end)
 
     assert(get_steps())
     assert(not _all_steps[0].requires)
