@@ -227,30 +227,34 @@ class ReviewPage(widgets.Page):
         #
         # FIXME: show somehow if the disks contains data
         #
-        t1 = widgets.Table([(_("Disk. #"), 10),
-                            (_("Model"),   30),
-                            (_("Size"),    15)])
+        t1 = widgets.Table([(_("Disk. #"), 'center', 10),
+                            (_("Model"),   'center', 30),
+                            (_("Size"),    'right',   9)])
 
         for i, drive in enumerate(setup.disks, 1):
-            t1.append_row([i, drive.model, pretty_size(drive.size)])
+            t1.append_row([urwid.Text(str(i)), urwid.Text(drive.model),
+                           urwid.Text(pretty_size(drive.size))])
 
         #
         # Partition Table
         #
-        fields = [(_("Part. #"), 10),
-                  (_("Name"),    10),
-                  (_("Size"),    15),
-                  (_("FS"),      10)]
+        fields = [(_("Part. #"), 'center', 10),
+                  (_("Name"),    'left',   10),
+                  (_("Size"),    'right',   9),
+                  (_("FS"),      'right',  10)]
         if has_raid:
-            fields.append((_("RAID"), 15))
+            fields.append((_("RAID"), 'right', 15))
         t2 = widgets.Table(fields)
 
         for i, part in enumerate(setup.partitions, 1):
-            fields = [i, part.name, part.setup.estimate_size(pretty=True),
-                      part.setup.fs]
+            fs = widgets.ClickableText(part.setup.fs)
+            urwid.connect_signal(fs, 'click', self._on_modify_fs, part)
+
+            fields = [urwid.Text(str(i)), urwid.Text(part.name),
+                      urwid.Text(part.setup.estimate_size(pretty=True)), fs]
             if has_raid:
-                fields.append(part.setup.raid_level[0])
-            t2.append_row(fields, [(3, self._on_modify_fs, part)])
+                fields.append(urwid.Text(part.setup.raid_level[0]))
+            t2.append_row(fields)
 
         self.body = urwid.Pile([t1, t2, urwid.Filler(urwid.Divider(" "), 'top')])
 
@@ -268,7 +272,7 @@ class ReviewPage(widgets.Page):
     def _on_cancel(self, widget):
         urwid.emit_signal(self, "cancel")
 
-    def _on_modify_fs(self, part):
+    def _on_modify_fs(self, widget, part):
         # FIXME: not yet implemented
         pass
 

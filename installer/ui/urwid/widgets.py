@@ -239,37 +239,21 @@ class Page(urwid.WidgetWrap):
 
 class Table(urwid.WidgetWrap):
 
-    class Cell(urwid.WidgetWrap):
-
-        def __init__(self, value, cb=None, data=None):
-            self.callback = cb
-            self.data = data
-            txt = urwid.Text(str(value), wrap='clip')
-            if self.callback:
-                txt = urwid.AttrMap(txt, None, focus_map='reversed')
-            urwid.WidgetWrap.__init__(self, txt)
-
-        def selectable(self):
-            return self.callback is not None
-
-        def keypress(self, size, key):
-            if self._command_map[key] != ACTIVATE:
-                return key
-            if self.callback:
-                self.callback(self.data)
-
     def __init__(self, columns):
+        """columns : (widget, alignment, width) """
         self._widths = []
+        self._alignments = []
         self._numsep = 1
         self._walker = urwid.SimpleListWalker([])
 
         # build the table header
         items = []
-        for name, width in columns:
+        for name, align, width in columns:
             if width < len(name):
                 width = len(name)
-            items.append((width, urwid.Text(name, wrap='clip')))
+            items.append((width, urwid.Text(name, wrap='clip', align=align)))
             self._widths.append(width)
+            self._alignments.append(align)
 
         self._walker.append(urwid.Columns(items, dividechars=self._numsep))
         self._walker.append(urwid.Divider('─'))
@@ -279,16 +263,8 @@ class Table(urwid.WidgetWrap):
         table_width = (sum(self._widths) + self._numsep * (len(self._widths)-1))
         urwid.WidgetWrap.__init__(self, urwid.Padding(listbox, width=table_width))
 
-    def append_row(self, columns, callbacks=None):
-        """callbacks: list of tuples (col, cb, data)"""
-        items = []
-        for i, v in enumerate(columns):
-            kwargs = {}
-            if callbacks:
-                for col, cb, data in callbacks:
-                    if col == i:
-                        kwargs['cb'] = cb
-                        kwargs['data'] = data
-                        break
-            items.append((self._widths[i], Table.Cell(v, **kwargs)))
-        self._walker.append(urwid.Columns(items, dividechars=self._numsep))
+    def append_row(self, cols):
+        for i, w in enumerate(cols):
+            cols[i] = urwid.Padding(w, self._alignments[i], 'pack')
+        self._walker.append(urwid.Columns(zip(self._widths, cols),
+                                          dividechars=self._numsep))
