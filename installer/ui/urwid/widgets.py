@@ -261,8 +261,9 @@ class Table(urwid.WidgetWrap):
     def __init__(self, columns):
         self._widths = []
         self._numsep = 1
+        self._walker = urwid.SimpleListWalker([])
 
-        # build the header
+        # build the table header
         items = []
         for name, width in columns:
             if width < len(name):
@@ -270,16 +271,13 @@ class Table(urwid.WidgetWrap):
             items.append((width, urwid.Text(name, wrap='clip')))
             self._widths.append(width)
 
-        header = urwid.Pile([urwid.Columns(items, dividechars=self._numsep),
-                             urwid.Divider('─')])
+        self._walker.append(urwid.Columns(items, dividechars=self._numsep))
+        self._walker.append(urwid.Divider('─'))
 
-        # build the body of the table
-        self._walker = urwid.SimpleListWalker([])
+        # build the content of the table
         listbox = urwid.ListBox(self._walker)
-
-        frame_width = (sum(self._widths) + self._numsep * (len(self._widths)-1))
-        frame = urwid.Frame(listbox, header)
-        urwid.WidgetWrap.__init__(self, urwid.Padding(frame, width=frame_width))
+        table_width = (sum(self._widths) + self._numsep * (len(self._widths)-1))
+        urwid.WidgetWrap.__init__(self, urwid.Padding(listbox, width=table_width))
 
     def append_row(self, columns, callbacks=None):
         """callbacks: list of tuples (col, cb, data)"""
