@@ -88,7 +88,7 @@ class DiskTableWidget(urwid.WidgetWrap):
                 self._entries.append(entry)
 
                 row  = [entry, urwid.Text(bus)]
-                row += [urwid.Text(bdev.model if bdev.model else bdev.devpath)]
+                row += [urwid.Text(bdev.model)]
                 row += [urwid.Text(pretty_size(bdev.size))]
                 table.append_row(row)
 
