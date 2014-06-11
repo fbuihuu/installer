@@ -32,8 +32,8 @@ palette = [
     ('side.bar.mark.check',   'dark green',        ''),
     ('top.bar.label',         'black',             'light gray'),
     ('top.bar.hotkey',        'dark blue',         'light gray'),
-    ('sum.section',           'underline',         ''),
     ('page.title',            'bold',              ''),
+    ('page.section',          'underline',         ''),
     ('page.legend',           'dark blue',         ''),
     ('progress.bar',          'black',             'dark green'),
     ('log.warn',              'light red',         ''),
@@ -384,7 +384,7 @@ class SummaryView(View):
         items = []
 
         for section in settings.sections:
-            items.append(urwid.Text(('sum.section', section.name)))
+            items.append(urwid.Text(('page.section', section.name)))
             for entry in section.entries:
                 value = urwid.Text(str(settings.get(section.name, entry)))
                 entry = "    " + entry
