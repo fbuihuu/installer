@@ -259,6 +259,12 @@ class DiskDevice(BlockDevice):
         super(DiskDevice, self).__init__(gudev)
 
     @property
+    def model(self):
+        if BlockDevice.model.fget(self):
+            return BlockDevice.model.fget(self)
+        return self.devpath
+
+    @property
     def priority(self):
         """Usage preference for this disk: higher is better."""
         return PRIORITY_DEFAULT if self.bus else PRIORITY_LOW + 5
