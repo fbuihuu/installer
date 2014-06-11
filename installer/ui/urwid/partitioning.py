@@ -48,8 +48,9 @@ class DiskEntryWidget(urwid.CheckBox):
 
 class DiskListWidget(urwid.WidgetWrap):
 
-    def __init__(self, ui):
+    def __init__(self, ui, priority=device.PRIORITY_DEFAULT):
         self._entries = []
+        self._prio = priority
         super(DiskListWidget, self).__init__(self._create_disk_list())
         ui.register_uevent_handler(self._on_uevent)
 
@@ -77,6 +78,9 @@ class DiskListWidget(urwid.WidgetWrap):
                 continue
 
             for bdev in groups:
+                if bdev.priority < self._prio:
+                    continue
+
                 entry = DiskEntryWidget(bdev)
                 entry.state = bdev in selected
                 self._entries.append(entry)
@@ -98,6 +102,16 @@ class DiskListWidget(urwid.WidgetWrap):
                 urwid.connect_signal(entry, 'change', self._on_change, bus)
 
         return table
+
+    @property
+    def priority(self):
+        return self._prio
+
+    @priority.setter
+    def priority(self, prio):
+        self._prio = prio
+        selected = [d for d in self.get_selected() if d.priority >= self._prio]
+        self._w = self._create_disk_list(selected, focus=self.get_focus())
 
     def _on_uevent(self, action, bdev):
         #
@@ -155,9 +169,10 @@ class DiskSelectionPage(widgets.Page):
 
     def __init__(self, ui):
         super(DiskSelectionPage, self).__init__(_("Choose the disk(s) to use"))
+        self._prio = device.PRIORITY_DEFAULT
 
         # Body
-        disks = DiskListWidget(ui)
+        disks = DiskListWidget(ui, self._prio)
         self._disk_list_w = disks
         self.body = urwid.Filler(disks, valign='middle', height=('relative', 70))
 
@@ -165,7 +180,20 @@ class DiskSelectionPage(widgets.Page):
             urwid.Columns([widgets.Button(_("Auto"),   on_press=self._on_detect),
                            widgets.Button(_("Clear"),  on_press=self._on_clear)]),
             urwid.Columns([widgets.Button(_("Cancel"), on_press=self._on_cancel),
-                           widgets.Button(_("Done"),   on_press=self._on_done)])])
+                           widgets.Button(_("Done"),   on_press=self._on_done)]),
+            urwid.Divider('─'),
+            urwid.Text(('page.legend', _("Press <alt-a> to see all devices")))
+            ])
+
+    def keypress(self, size, key):
+        if key == 'meta a':
+            if self._prio == device.PRIORITY_DEFAULT:
+                self._prio = device.PRIORITY_LOW
+            else:
+                self._prio = device.PRIORITY_DEFAULT
+            self._disk_list_w.priority = self._prio
+            return None
+        return super(DiskSelectionPage, self).keypress(size, key)
 
     def _on_focus_changed(self, bdev):
         self.footer.base_widget.set_text(str(bdev))
