@@ -42,14 +42,11 @@ class PresetPage(widgets.Page):
 class DiskEntryWidget(urwid.CheckBox):
 
     def __init__(self, bdev):
-        model = bdev.model if bdev.model else bdev.devpath
-        urwid.CheckBox.__init__(self, model)
+        urwid.CheckBox.__init__(self, "")
         self.bdev = bdev
 
 
 class DiskListWidget(urwid.WidgetWrap):
-
-    signals = ['focus_changed']
 
     def __init__(self, ui):
         self._entries = []
@@ -57,33 +54,38 @@ class DiskListWidget(urwid.WidgetWrap):
         ui.register_uevent_handler(self._on_uevent)
 
     def __get_bus(self, bdev):
-        return bdev.bus.capitalize() if bdev.bus else 'Others'
+        return bdev.bus.capitalize() if bdev.bus else ''
 
     def _create_disk_list(self, selected=[], focus=None):
         self._entries = []
-        self._walker = urwid.SimpleListWalker([])
 
         force_bus = None
         if selected:
             force_bus = self.__get_bus(selected[0])
 
+        table = widgets.Table([("",           'left',    5),
+                               (_("Bus"),     'left',    8),
+                               (_("Model"),   'center', 28),
+                               (_("Size"),    'right',   9)])
+
         # candidates are sorted by prio and grouped by bus already.
         for groups in disk.get_candidates():
 
             bus = self.__get_bus(groups[0])
-            if force_bus and bus != force_bus:
+            if force_bus is not None and bus != force_bus:
                 # skip this group
                 continue
-
-            self._walker.append(urwid.Divider(" "))
-            self._walker.append(urwid.Text(('sum.section', bus)))
-            self._walker.append(urwid.Divider(" "))
 
             for bdev in groups:
                 entry = DiskEntryWidget(bdev)
                 entry.state = bdev in selected
                 self._entries.append(entry)
-                self._walker.append(entry)
+
+                row  = [entry, urwid.Text(bus)]
+                row += [urwid.Text(bdev.model if bdev.model else bdev.devpath)]
+                row += [urwid.Text(pretty_size(bdev.size))]
+                table.append_row(row)
+
                 #
                 # Make sure to set the focus on a device item:
                 # otherwise urwid will pick up the first item which is
@@ -92,18 +94,10 @@ class DiskListWidget(urwid.WidgetWrap):
                 if not focus:
                     focus = entry.bdev
                 if entry.bdev == focus:
-                    self._walker.set_focus(len(self._walker) - 1)
+                    table.set_focus(-1)
                 urwid.connect_signal(entry, 'change', self._on_change, bus)
-        #
-        # 'modified' signal is normally used to track changed in
-        # walker's content. But SimpleListWalker uses it also to
-        # notify focus changes, unlike SimpleFocusListWalker.
-        #
-        urwid.connect_signal(self._walker, 'modified', self._on_focus_changed)
-        return urwid.ListBox(self._walker)
 
-    def _on_focus_changed(self):
-        urwid.emit_signal(self, "focus_changed", self.get_focus())
+        return table
 
     def _on_uevent(self, action, bdev):
         #
@@ -128,15 +122,14 @@ class DiskListWidget(urwid.WidgetWrap):
         self._w = self._create_disk_list(selected, self.get_focus())
 
     def get_focus(self):
-        widget, idx = self._walker.get_focus()
-        return widget.bdev
+        cols = self._w.get_focus()
+        return cols[0].bdev
 
     def set_focus(self, bdev):
-        for idx, entry in enumerate(self._walker):
-            if isinstance(entry, DiskEntryWidget):
-                if entry.bdev == bdev:
-                    self._walker.set_focus(idx)
-                    return
+        for i, entry in enumerate(self._entries):
+            if entry.bdev == bdev:
+                self._w.set_focus(i)
+                return
 
     def get_selected(self):
         return [e.bdev for e in self._entries if e.state == True]
@@ -164,28 +157,15 @@ class DiskSelectionPage(widgets.Page):
         super(DiskSelectionPage, self).__init__(_("Choose the disk(s) to use"))
 
         # Body
-        pile = widgets.ClickableTextPile([(_("Auto"), self._on_detect),
-                                          (_("Clear"),  self._on_clear),
-                                          None,
-                                          (_("Cancel"), self._on_cancel),
-                                          (_("Done"),   self._on_done)])
-        pile = urwid.LineBox(pile)
-        pile = urwid.Filler(pile, 'middle')
-        pile = urwid.Padding(pile, align='center', width=('relative', 70))
-
         disks = DiskListWidget(ui)
         self._disk_list_w = disks
-        disks = urwid.Filler(disks, valign='middle', height=('relative', 70))
-        #disks = urwid.Padding(disks, align='center', width=('relative', 80))
+        self.body = urwid.Filler(disks, valign='middle', height=('relative', 70))
 
-        self.body = urwid.Columns([('weight',   1, disks),
-                                   ('weight', 0.4, pile)])
-
-        urwid.connect_signal(self._disk_list_w, 'focus_changed',
-                             self._on_focus_changed)
-
-        self.footer = urwid.LineBox(urwid.Text(""))
-        self._on_focus_changed(self._disk_list_w.get_focus())
+        self.footer = urwid.Pile([
+            urwid.Columns([widgets.Button(_("Auto"),   on_press=self._on_detect),
+                           widgets.Button(_("Clear"),  on_press=self._on_clear)]),
+            urwid.Columns([widgets.Button(_("Cancel"), on_press=self._on_cancel),
+                           widgets.Button(_("Done"),   on_press=self._on_done)])])
 
     def _on_focus_changed(self, bdev):
         self.footer.base_widget.set_text(str(bdev))
