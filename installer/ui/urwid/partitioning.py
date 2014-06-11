@@ -51,13 +51,13 @@ class DiskListWidget(urwid.WidgetWrap):
     def __init__(self, ui, priority=device.PRIORITY_DEFAULT):
         self._entries = []
         self._prio = priority
-        super(DiskListWidget, self).__init__(self._create_disk_list())
+        super(DiskListWidget, self).__init__(self._create_disk_table())
         ui.register_uevent_handler(self._on_uevent)
 
     def __get_bus(self, bdev):
         return bdev.bus.capitalize() if bdev.bus else ''
 
-    def _create_disk_list(self, selected=[], focus=None):
+    def _create_disk_table(self, selected=[], focus=None):
         self._entries = []
 
         force_bus = None
@@ -111,7 +111,7 @@ class DiskListWidget(urwid.WidgetWrap):
     def priority(self, prio):
         self._prio = prio
         selected = [d for d in self.get_selected() if d.priority >= self._prio]
-        self._w = self._create_disk_list(selected, focus=self.get_focus())
+        self._w = self._create_disk_table(selected, focus=self.get_focus())
 
     def _on_uevent(self, action, bdev):
         #
@@ -124,7 +124,7 @@ class DiskListWidget(urwid.WidgetWrap):
             if action == 'remove' and bdev in selected:
                 selected.remove(bdev)
 
-            self._w = self._create_disk_list(selected, self.get_focus())
+            self._w = self._create_disk_table(selected, self.get_focus())
 
     def _on_change(self, widget, state, bus):
         selected = self.get_selected()
@@ -133,7 +133,7 @@ class DiskListWidget(urwid.WidgetWrap):
         else:
             selected.remove(widget.bdev)
 
-        self._w = self._create_disk_list(selected, self.get_focus())
+        self._w = self._create_disk_table(selected, self.get_focus())
 
     def get_focus(self):
         cols = self._w.get_focus()
@@ -149,7 +149,7 @@ class DiskListWidget(urwid.WidgetWrap):
         return [e.bdev for e in self._entries if e.state == True]
 
     def set_selected(self, selected):
-        self._w = self._create_disk_list(selected, focus=self.get_focus())
+        self._w = self._create_disk_table(selected, focus=self.get_focus())
 
     def auto_select(self):
         candidates = disk.select_candidates(map(lambda e: e.bdev, self._entries))
@@ -160,7 +160,7 @@ class DiskListWidget(urwid.WidgetWrap):
 
     def unselect_all(self):
         # Unselecting items doesn't modify the focus.
-        self._w = self._create_disk_list(focus=self.get_focus())
+        self._w = self._create_disk_table(focus=self.get_focus())
 
 
 class DiskSelectionPage(widgets.Page):
