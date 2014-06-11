@@ -46,12 +46,12 @@ class DiskEntryWidget(urwid.CheckBox):
         self.bdev = bdev
 
 
-class DiskListWidget(urwid.WidgetWrap):
+class DiskTableWidget(urwid.WidgetWrap):
 
     def __init__(self, ui, priority=device.PRIORITY_DEFAULT):
         self._entries = []
         self._prio = priority
-        super(DiskListWidget, self).__init__(widgets.NullWidget())
+        super(DiskTableWidget, self).__init__(widgets.NullWidget())
         self._create_disk_table()
         ui.register_uevent_handler(self._on_uevent)
 
@@ -168,12 +168,11 @@ class DiskSelectionPage(widgets.Page):
 
     def __init__(self, ui):
         super(DiskSelectionPage, self).__init__(_("Choose the disk(s) to use"))
-        self._prio = device.PRIORITY_DEFAULT
 
-        # Body
-        disks = DiskListWidget(ui, self._prio)
-        self._disk_list_w = disks
-        self.body = urwid.Filler(disks, valign='middle', height=('relative', 70))
+        self._prio = device.PRIORITY_DEFAULT
+        self._table = DiskTableWidget(ui, self._prio)
+        self.body   = urwid.Filler(self._table, valign='middle',
+                                    height=('relative', 70))
 
         self.footer = urwid.Pile([
             urwid.Columns([widgets.Button(_("Auto"),   on_press=self._on_detect),
@@ -190,7 +189,7 @@ class DiskSelectionPage(widgets.Page):
                 self._prio = device.PRIORITY_LOW
             else:
                 self._prio = device.PRIORITY_DEFAULT
-            self._disk_list_w.priority = self._prio
+            self._table.priority = self._prio
             return None
         return super(DiskSelectionPage, self).keypress(size, key)
 
@@ -198,13 +197,13 @@ class DiskSelectionPage(widgets.Page):
         self.footer.base_widget.set_text(str(bdev))
 
     def _on_clear(self, widget):
-        self._disk_list_w.unselect_all()
+        self._table.unselect_all()
 
     def _on_detect(self, widget):
-        self._disk_list_w.auto_select()
+        self._table.auto_select()
 
     def _on_done(self, widget):
-        disks = self._disk_list_w.get_selected()
+        disks = self._table.get_selected()
 
         try:
             disk.check_candidates(disks)
