@@ -268,3 +268,14 @@ class Table(urwid.WidgetWrap):
             cols[i] = urwid.Padding(w, self._alignments[i], 'pack')
         self._walker.append(urwid.Columns(zip(self._widths, cols),
                                           dividechars=self._numsep))
+
+    def get_focus(self):
+        """Returns the row (list of widget) which has the focus"""
+        cols = self._walker.get_focus()[0]
+        return [padding.original_widget for padding, options in cols.contents]
+
+    def set_focus(self, index):
+        # Skip the table header.
+        if index < 0:
+            index = len(self._walker) + index - 2
+        self._walker.set_focus(index + 2)
