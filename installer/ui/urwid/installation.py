@@ -26,9 +26,6 @@ class PartitionEntryWidget(urwid.WidgetWrap):
         super(PartitionEntryWidget, self).__init__(columns)
         self.refresh()
 
-    def selectable(self):
-        return True
-
     def keypress(self, size, key):
         if key == "backspace" or key == "delete":
             self._on_clear(self.partition)
@@ -43,55 +40,81 @@ class PartitionEntryWidget(urwid.WidgetWrap):
         self._devpath.set_text(dev.devpath if dev else "")
 
 
+class PartitionSectionWidget(urwid.WidgetWrap):
+    """Only flow widdgets can be added to the section content."""
+
+    def __init__(self, title):
+        self._pile = urwid.Pile([('pack', urwid.Text(('page.section', title)))])
+        urwid.WidgetWrap.__init__(self, self._pile)
+
+    @property
+    def focus(self):
+        return self._pile.focus
+
+    @property
+    def focus_position(self):
+        return self._pile.focus_position - 1
+
+    @focus_position.setter
+    def focus_position(self, index):
+        self._pile.focus_position = index + 1
+
+    def get_contents(self):
+        return [widget for widget, opts in self._pile.contents[1:]]
+
+    def append(self, widget):
+        self._pile.contents.append((widget, ('pack', None)))
+        if len(self._pile.contents) == 2:
+            self.focus_position = 0
+
+
 class PartitionListWidget(urwid.WidgetWrap):
 
     def __init__(self, on_select, on_clear):
-        self._entries = []
+        self._entries  = []
+        self._walker   = None
+        self._sections = []
         for part in partition.partitions:
             self._entries.append(PartitionEntryWidget(part, on_select, on_clear))
-
-        # First list contains mandatory partitions, the second
-        # contains optional ones.
-        items = [urwid.ListBox(urwid.SimpleListWalker([])),
-                 ('pack', urwid.Divider(" ")),
-                 urwid.ListBox(urwid.SimpleListWalker([])),
-                 ('pack', urwid.Divider(" ")),
-                 urwid.ListBox(urwid.SimpleListWalker([]))] # swaps
-        self._pile = urwid.Pile(items)
-        linebox = urwid.LineBox(self._pile)
-        attrmap = urwid.Padding(linebox, align='center', width=('relative', 70))
-        attrmap = urwid.Filler(attrmap, 'middle', height=('relative', 90))
-        super(PartitionListWidget, self).__init__(attrmap)
+        urwid.WidgetWrap.__init__(self, widgets.NullWidget())
         self.refresh()
 
-    @property
-    def _walkers(self):
-        return ((0, self._pile[0].body), (2, self._pile[2].body),
-                (4, self._pile[4].body))
-
     def get_focus(self):
-        return self._pile.focus.get_focus()[0].partition
+        section, index = self._walker.get_focus()
+        return section.focus.partition
 
     def update_focus(self):
         """Move the focus on the first unconfigured entry"""
-        for i, walker in self._walkers:
-            for j, entry in enumerate(walker):
+        for section in self._sections:
+            for i, entry in enumerate(section.get_contents()):
                 if not entry.partition.device:
-                    walker.set_focus(j)
-                    self._pile.focus_position = i
+                    section.focus_position = i
                     return
 
     def refresh(self):
-        for idx, walker in self._walkers:
-            del walker[:]
+        mandatories = PartitionSectionWidget(_('Mandatory mountpoints'))
+        optionals   = PartitionSectionWidget(_('Optional mountpoints'))
+        swaps       = PartitionSectionWidget(_('Swaps'))
+        self._sections = [mandatories, optionals, swaps]
+
         for entry in self._entries:
+            section = optionals
             if not entry.partition.is_optional():
-                self._walkers[0][1].append(entry)
+                section = mandatories
             elif entry.partition.is_swap:
-                self._walkers[2][1].append(entry)
-            else:
-                self._walkers[1][1].append(entry)
+                section = swaps
+            section.append(entry)
             entry.refresh()
+
+        self._walker = urwid.SimpleListWalker([])
+        self._walker.append(mandatories)
+        self._walker.append(urwid.Divider(" "))
+        self._walker.append(optionals)
+        self._walker.append(urwid.Divider(" "))
+        self._walker.append(swaps)
+        listbox = urwid.ListBox(self._walker) # swaps
+        self._w = urwid.Filler(listbox, 'middle', height=('relative', 80))
+        self.update_focus()
 
 
 class DeviceListWidget(widgets.ClickableTextList):
