@@ -168,13 +168,17 @@ class InstallationView(StepView):
         self._update_install_button(focus=True)
 
     def _create_device_page(self, part, devices):
-        page = widgets.Page(_("Choose device to use for %s") % part.name)
-        page.body   = DeviceListWidget(part, devices)
-        footer      = urwid.Text(str(page.body.get_focus()))
+        devlist = DeviceListWidget(part, devices)
+
+        page   = widgets.Page(_("Choose device to use for %s") % part.name)
+        body   = urwid.Filler(devlist, 'middle', height=('relative', 80))
+        body   = urwid.Padding(body, 'center', width=('relative', 60))
+        footer = urwid.Text(str(devlist.get_focus()))
+        page.body   = body
         page.footer = urwid.LineBox(footer)
 
-        urwid.connect_signal(page.body, 'click', self._on_select_device)
-        urwid.connect_signal(page.body, 'focus_changed',
+        urwid.connect_signal(devlist, 'click', self._on_select_device)
+        urwid.connect_signal(devlist, 'focus_changed',
                              lambda dev: footer.set_text(str(dev)))
         return page
 
