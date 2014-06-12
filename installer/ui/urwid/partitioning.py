@@ -262,8 +262,8 @@ class ReviewPage(widgets.Page):
                 fields.append(urwid.Text(part.setup.raid_level[0]))
             t2.append_row(fields)
 
-        self.body = urwid.Pile([t1, t2, urwid.Filler(urwid.Divider(" "), 'top')])
-
+        self.body = urwid.Filler(urwid.Pile([t1, t2]), 'middle',
+                                 height=('relative', 80))
         #
         # Buttons
         #
