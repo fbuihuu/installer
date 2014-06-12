@@ -19,7 +19,7 @@ class PresetPage(widgets.Page):
     signals = ['preset']
 
     def __init__(self):
-        super(PresetPage, self).__init__(_("Type of server"))
+        super(PresetPage, self).__init__(_("Type of server [1/3]"))
 
         items = [(_("Small/Basic server"),  self._on_small_server),
                  (_("File/Mail server"),    self._on_mail_server),
@@ -167,7 +167,7 @@ class DiskSelectionPage(widgets.Page):
     signals = ['done', 'cancel']
 
     def __init__(self, ui):
-        super(DiskSelectionPage, self).__init__(_("Choose the disk(s) to use"))
+        super(DiskSelectionPage, self).__init__(_("Choose the disk(s) to use [2/3]"))
 
         self._prio = device.PRIORITY_DEFAULT
         self._table = DiskTableWidget(ui, self._prio)
@@ -225,7 +225,7 @@ class ReviewPage(widgets.Page):
     signals = ['create', 'cancel']
 
     def __init__(self, setup):
-        super(ReviewPage, self).__init__(_("Disk Review"))
+        super(ReviewPage, self).__init__(_("Disk Review [3/3]"))
         has_raid = len(setup.disks) > 1
 
         #
