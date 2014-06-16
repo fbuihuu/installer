@@ -8,11 +8,11 @@ import glob
 from subprocess import check_output, check_call
 
 from installer import disk
-from installer.partition import partitions, mount_rootfs, unmount_rootfs
+from installer.partition import partitions
 from installer.system import distribution, is_efi
 from installer.settings import settings
-from installer.process import monitor, monitor_chroot
 from . import Step, StepError
+
 
 class FStabEntry(object):
 
@@ -77,7 +77,6 @@ class _InstallStep(Step):
 
     def __init__(self):
         Step.__init__(self)
-        self._root = None
         self._fstab = {}
         self.__extra_packages = None
 
@@ -239,52 +238,18 @@ class _InstallStep(Step):
         self._chroot('ln -sf /usr/share/zoneinfo/%s /etc/localtime' % tzone,
                      with_nspawn=False)
 
-    def _monitor(self, args, **kwargs):
-        if "logger" not in kwargs:
-            kwargs["logger"] = self.logger
-        monitor(args, **kwargs)
-
-    def _chroot(self, args, **kwargs):
-        if "logger" not in kwargs:
-            kwargs["logger"] = self.logger
-        monitor_chroot(self._root, args, **kwargs)
-
-    def _chroot_cp(self, src, overwrite=True):
-        """Copy a file from the host into the chroot using the same
-        path. 'src' must be an absolute path.
-        """
-        assert(src[0] == "/")
-        dst = os.path.join(self._root, '.' + src)
-        if not os.path.exists(dst) or overwrite:
-            self.logger.info("importing from host: %s", src)
-            self._monitor(["cp", src, dst])
-
     def _cancel(self):
         raise NotImplementedError()
 
     def _process(self):
         self.set_completion(1)
-        self._root = mount_rootfs()
-
-        try:
-            self._do_rootfs()
-            self._do_i18n()
-            self._do_fstab()
-            self._do_bootloader()
-            self._do_extra_packages()
-            self._do_initramfs()
-            self._done()
-        except Exception as e:
-            try:
-                # At that point umounting rootfs will probably fail, but
-                # let's try to do the cleanup anyways.
-                unmount_rootfs()
-            except:
-                self.logger.error("failed to umount %s", self._root)
-            raise e
-        else:
-            unmount_rootfs()
-            self._root = None
+        self._do_rootfs()
+        self._do_i18n()
+        self._do_fstab()
+        self._do_bootloader()
+        self._do_extra_packages()
+        self._do_initramfs()
+        self._done()
 
     #
     # Some generic helpers

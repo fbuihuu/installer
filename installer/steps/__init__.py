@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 #
 
+import os
 import logging
 from threading import current_thread, Thread, RLock
 from installer.utils import Signal
+from installer.process import monitor, monitor_chroot
+from installer.partition import mount_rootfs, unmount_rootfs
 from installer.settings import settings, SettingsError
 
 
@@ -66,6 +69,7 @@ class Step(object):
     def __init__(self):
         self._skip = False
         self._exit = False # system wide exit
+        self._root = None
         self._exit_delay = 0
         self._thread = None
         self.requires = set(self.requires)
@@ -113,6 +117,7 @@ class Step(object):
     def __process(self):
         quit = False
         delay = 0
+        self._root = mount_rootfs()
 
         try:
             self._process()
@@ -124,8 +129,13 @@ class Step(object):
         else:
             if self.__is_in_progress():
                 self._done()
-        finally:
-            finished_signal.emit(self, self._exit, self._exit_delay)
+
+        try:
+            self._root = unmount_rootfs()
+        except:
+            self.logger.error("failed to umount %s", self._root)
+
+        finished_signal.emit(self, self._exit, self._exit_delay)
 
     def process(self):
         assert(not self.__is_in_progress())
@@ -179,9 +189,6 @@ class Step(object):
         """Notify the thread it should terminate as soon as possible"""
         raise NotImplementedError()
 
-    def _cancel(self):
-        raise NotImplementedError()
-
     def is_enabled(self):
         return self._state != self._STATE_DISABLED
 
@@ -205,6 +212,25 @@ class Step(object):
             self._completion = percent
             completion_signal.emit(self, percent)
 
+    def _monitor(self, args, **kwargs):
+        if "logger" not in kwargs:
+            kwargs["logger"] = self.logger
+        monitor(args, **kwargs)
+
+    def _chroot(self, args, **kwargs):
+        if "logger" not in kwargs:
+            kwargs["logger"] = self.logger
+        monitor_chroot(self._root, args, **kwargs)
+
+    def _chroot_cp(self, src, overwrite=True):
+        """Copy a file from the host into the chroot using the same
+        path. 'src' must be an absolute path.
+        """
+        assert(src[0] == "/")
+        dst = os.path.join(self._root, '.' + src)
+        if not os.path.exists(dst) or overwrite:
+            self.logger.info("importing from host: %s", src)
+            self._monitor(["cp", src, dst])
 
 #
 # Step instantiations requires working translation.

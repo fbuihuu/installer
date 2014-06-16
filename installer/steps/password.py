@@ -2,9 +2,7 @@
 #
 
 from . import Step
-from installer.partition import mount_rootfs, unmount_rootfs
 from installer.settings import settings
-from installer.process import monitor_chroot
 
 
 class PasswordStep(Step):
@@ -20,14 +18,8 @@ class PasswordStep(Step):
         pass
 
     def _process(self):
+        self.logger.info(_("setting root's password"))
         password = settings.password.root
-
-        root = mount_rootfs()
-        try:
-            self.logger.info(_("setting root's password"))
-            cmd = "echo 'root:%s' | chpasswd" % password
-            # Make sure to not log root's password ;)
-            monitor_chroot(root, cmd, logger=None)
-        finally:
-            unmount_rootfs()
+        cmd = "echo 'root:%s' | chpasswd" % password
+        self._chroot(cmd, logger=None) # do not log root's password ;)
 
