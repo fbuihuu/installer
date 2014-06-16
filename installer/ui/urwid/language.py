@@ -6,7 +6,7 @@ import urwid
 from . import StepView
 from . import widgets
 from installer.settings import settings
-from installer.l10n import country_dict
+from installer.l10n import country_names, country_zones
 
 
 #
@@ -24,24 +24,26 @@ class LanguageView(StepView):
 
         self.page = widgets.Page(_("Select your location"))
         # Make the list centered inside its container
-        body = widgets.ClickableTextList(country_dict.keys(), self.on_click)
+        countries = sorted(country_names.values())
+        body = widgets.ClickableTextList(countries, self.on_click)
         body = urwid.Filler(body, 'middle', height=('relative', 40))
         body = urwid.Padding(body, align='center', width=('relative', 60))
         self.page.body = body
 
     def on_click(self, entry):
-        zone = entry.text
+        country = entry.text
 
-        if self._zone != zone:
-            self._zone = zone
-            settings.I18n.country  = zone
-            settings.I18n.timezone = country_dict[zone][0]
-            settings.I18n.keymap   = country_dict[zone][1]
-            settings.I18n.locale   = country_dict[zone][2]
+        for code in country_names:
+            if country_names[code] == country:
+                break
 
-            # Change the language of the whole ui.
-            self._ui.language = settings.I18n.locale
+        zi = country_zones[code][0]
+        settings.I18n.country  = code
+        settings.I18n.timezone = zi.timezone
+        settings.I18n.keymap   = zi.keymap
+        settings.I18n.locale   = zi.locale
 
-            self.run()
-        else:
-            self._ui._select_next_step()
+        # Change the language of the whole ui.
+        self._ui.language = settings.I18n.locale
+
+        self.run()

@@ -2,7 +2,6 @@
 #
 
 from . import Step
-from installer.l10n import country_dict
 from installer.settings import settings
 import installer.system
 

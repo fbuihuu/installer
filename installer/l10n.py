@@ -12,18 +12,6 @@ from . import get_topdir
 logger = logging.getLogger(__name__)
 
 
-# [1]: default time zone
-# [2]: default keymap
-# [3]: default locale (<language>_<country>)
-
-country_dict = {
-    'America':  [ 'America/New_York', 'us',        'en_US'],
-    'Brasil':   [ 'Brazil/West',      'br-abnt2',  'pt_BR'],
-    'Deutsch':  [ 'Europe/Berlin',    'de',        'de_DE'],
-    'France':   [ 'Europe/Paris',     'fr',        'fr_FR'],
-}
-
-
 def set_locale(lang):
     try:
         locale.setlocale(locale.LC_ALL, lang)
@@ -58,3 +46,54 @@ def set_translation(lang):
     if sys.version_info[0] < 3:
         kwargs['unicode'] = True
     trans.install(**kwargs)
+
+#
+# We need _() to be installed.
+#
+set_translation('en_US')
+
+#
+#
+#
+class Zone(object):
+
+    def __init__(self, city, timezone, country, keymap, locale):
+        self.city     = city
+        self.timezone = timezone
+        self.keymap   = keymap
+        self.locale   = locale
+        self.country  = country # country code
+
+
+class BrazilZone(Zone):
+    def __init__(self, city, timezone):
+        super(BrazilZone, self).__init__(city, timezone, 'BR', 'br-abnt2', 'pt_BR')
+
+
+class UsaZone(Zone):
+    def __init__(self, city, timezone):
+        super(UsaZone, self).__init__(city, timezone, 'US', 'us', 'en_US')
+
+
+# The first zone of the list of each country is the prefered one.
+country_zones = {
+    'BR' : [
+        BrazilZone(_('Curitiba'),  'America/Cuiaba'),
+        BrazilZone(_('Sao Paulo'), 'America/Sao_Paulo'),
+    ],
+    'FR' : [
+        Zone(_('Paris'), 'Europe/Paris', 'FR', 'fr', 'fr_FR')
+    ],
+    'US' : [
+        UsaZone(_('New York'),    'America/New_York'),
+        UsaZone(_('Los Angeles'), 'America/Los_Angeles'),
+        UsaZone(_('Denver'),      'America/Denver'),
+    ],
+}
+
+
+country_names = {
+    'BR' : _('Brazil'),
+    'FR' : _('France'),
+    'US' : _('United States'),
+}
