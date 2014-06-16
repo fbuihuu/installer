@@ -10,6 +10,7 @@ installer/steps/end.py
 installer/steps/installation.py
 installer/steps/language.py
 installer/steps/license.py
+installer/steps/localization.py
 installer/steps/partitioning.py
 installer/steps/password.py
 installer/system.py
@@ -21,6 +22,7 @@ installer/ui/urwid/end.py
 installer/ui/urwid/installation.py
 installer/ui/urwid/language.py
 installer/ui/urwid/license.py
+installer/ui/urwid/localization.py
 installer/ui/urwid/partitioning.py
 installer/ui/urwid/password.py
 installer/ui/urwid/widgets.py

@@ -8,6 +8,7 @@ import glob
 from subprocess import check_output, check_call
 
 from installer import disk
+from installer import l10n
 from installer.partition import partitions
 from installer.system import distribution, is_efi
 from installer.settings import settings
@@ -216,28 +217,6 @@ class _InstallStep(Step):
     def _do_extra_packages(self):
         raise NotImplementedError()
 
-    def _do_i18n(self):
-        # Don't rely on localectl(1), it may be missing on old
-        # systems.
-
-        locale = settings.I18n.locale
-        keymap = settings.I18n.keymap
-        tzone  = settings.I18n.timezone
-        charmap = "UTF-8"
-
-        self.logger.debug("using locale '%s'", locale)
-        with open(self._root + '/etc/locale.conf', 'w') as f:
-            f.write("LANG=%s.%s\n" % (locale, charmap))
-
-        self.logger.debug("using keymap '%s'", keymap)
-        with open(self._root + '/etc/vconsole.conf', 'w') as f:
-            f.write("KEYMAP=%s.%s\n" % (keymap, charmap))
-
-        # Old versions of systemd-nspawn bind mount localtime
-        self.logger.debug("selecting timezone '%s'", tzone)
-        self._chroot('ln -sf /usr/share/zoneinfo/%s /etc/localtime' % tzone,
-                     with_nspawn=False)
-
     def _cancel(self):
         raise NotImplementedError()
 
@@ -369,7 +348,8 @@ class ArchInstallStep(_InstallStep):
         locale = settings.I18n.locale
         self._chroot("sed -i 's/^#\(%s.*\)/\\1/' /etc/locale.gen" % locale)
         self._chroot("locale-gen")
-        _InstallStep._do_i18n(self)
+        l10n.init_timezones('/usr/share/zoneinfo/posix', self._root)
+        l10n.init_keymaps('/usr/share/kbd/keymaps', self._root)
 
     def _do_bootloader_on_efi(self):
         self._do_pacstrap(['gummiboot'])
@@ -503,7 +483,8 @@ class MandrivaInstallStep(_InstallStep):
     def _do_i18n(self):
         locale = settings.I18n.locale
         self._do_urpmi(['locales-%s' % locale.split('_')[0]], 65)
-        _InstallStep._do_i18n(self)
+        l10n.init_timezones('/usr/share/zoneinfo/posix', self._root)
+        l10n.init_keymaps('/usr/lib/kbd/keymaps', self._root)
 
     def _do_bootloader_on_efi(self):
         self._do_urpmi(['gummiboot'], 70)

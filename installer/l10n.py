@@ -97,3 +97,43 @@ country_names = {
     'FR' : _('France'),
     'US' : _('United States'),
 }
+
+#
+# Time zones
+#
+timezones = []
+timezones_path = None
+
+def init_timezones(path, prefix=None):
+    global timezones_path
+    timezones_path = path
+    if prefix:
+        path = os.path.join(prefix, path.lstrip('/'))
+    for dirpath, dirnames, filenames in os.walk(path):
+        for f in filenames:
+            tz = os.path.relpath(os.path.join(dirpath, f), path)
+            timezones.append(tz)
+    timezones.sort()
+
+#
+# Keymaps
+#
+keymaps = []
+keymaps_path = None
+
+def init_keymaps(path, prefix=None):
+    global keymaps_path
+    keymaps_path = path
+    if prefix:
+        path = os.path.join(prefix, path.lstrip('/'))
+    for dirpath, dirnames, filenames in os.walk(path):
+        for f in filenames:
+            if f.endswith('.map'):
+                f = f[:-4]
+            elif f.endswith('.map.gz'):
+                f = f[:-7]
+            else:
+                continue
+            keymaps.append(f)
+    keymaps.sort()
+

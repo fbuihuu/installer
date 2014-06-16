@@ -239,6 +239,7 @@ from .language import LanguageStep
 from .license import LicenseStep
 from .partitioning import PartitioningStep
 from .installation import InstallStep
+from .localization import LocalizationStep
 from .password import PasswordStep
 from .end import EndStep
 
@@ -254,6 +255,7 @@ def initialize():
     _initialize_one_step(LicenseStep(), settings.Steps.license)
     _initialize_one_step(PartitioningStep(), settings.Steps.partitioning)
     _initialize_one_step(InstallStep(), True)
+    _initialize_one_step(LocalizationStep(), settings.Steps.localization)
     _initialize_one_step(PasswordStep(), settings.Steps.password)
     _initialize_one_step(EndStep(), settings.Steps.end)
 
