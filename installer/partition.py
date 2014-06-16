@@ -2,6 +2,7 @@
 #
 
 import os
+import shutil
 import logging
 from operator import attrgetter
 from tempfile import mkdtemp
@@ -375,15 +376,17 @@ _rootfs_mntpnt = None
 
 def mount_rootfs():
     global _rootfs_mntpnt
-
     assert(not _rootfs_mntpnt)
-    _rootfs_mntpnt = mkdtemp()
 
     for part in partitions:
         if part.device and not part.is_swap:
-            mntpnt = _rootfs_mntpnt + part.name
-            if part.name != "/" and not os.path.exists(mntpnt):
-                os.mkdir(mntpnt)
+            if part.name == '/':
+                _rootfs_mntpnt = mkdtemp()
+                mntpnt = _rootfs_mntpnt
+            else:
+                mntpnt = _rootfs_mntpnt + part.name
+                if not os.path.exists(mntpnt):
+                    os.mkdir(mntpnt)
             part.mount(mntpnt)
 
     return _rootfs_mntpnt
@@ -391,11 +394,12 @@ def mount_rootfs():
 def unmount_rootfs():
     global _rootfs_mntpnt
 
-    for part in reversed(partitions):
-        if part.device and not part.is_swap:
-            mntpnt = part.umount()
-    os.rmdir(_rootfs_mntpnt)
-    _rootfs_mntpnt = None
+    if _rootfs_mntpnt:
+        for part in reversed(partitions):
+            if part.device and not part.is_swap:
+                part.umount()
+        shutil.rmtree(_rootfs_mntpnt)
+        _rootfs_mntpnt = None
 
 def find_partition(name):
     if name == '/root':
