@@ -88,6 +88,7 @@ class PartitionListWidget(urwid.WidgetWrap):
         for section in self._sections:
             for i, entry in enumerate(section.get_contents()):
                 if not entry.partition.device:
+                    self._walker.set_focus(self._walker.index(section))
                     section.focus_position = i
                     return
 
