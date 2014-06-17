@@ -121,20 +121,21 @@ class DeviceListWidget(widgets.ClickableTextList):
 
     signals = ['focus_changed', 'click']
 
-    def __init__(self, part, devices):
-        self._devices = devices
-        items = [ dev.devpath for dev in self._devices ]
-        super(DeviceListWidget, self).__init__(items, self.__on_click)
-        urwid.connect_signal(self._walker, 'modified', self.__on_focus_changed)
+    def __init__(self, devices):
+        super(DeviceListWidget, self).__init__([], self._on_click)
+        self.update(devices)
+        urwid.connect_signal(self._walker, 'modified', self._on_focus_changed)
 
-        if part.device:
-            self._walker.set_focus(self._devices.index(part.device))
-
-    def __on_focus_changed(self):
+    def _on_focus_changed(self):
         urwid.emit_signal(self, "focus_changed", self.get_focus())
 
-    def __on_click(self, widget):
+    def _on_click(self, widget):
         urwid.emit_signal(self, "click", self.get_focus())
+
+    def update(self, devices):
+        self._devices = devices
+        items = [dev.devpath for dev in self._devices]
+        widgets.ClickableTextList.update(self, items)
 
     def keypress(self, size, key):
         if key == "esc":
@@ -143,8 +144,12 @@ class DeviceListWidget(widgets.ClickableTextList):
         return super(DeviceListWidget, self).keypress(size, key)
 
     def get_focus(self):
-        widget, idx = self._walker.get_focus()
-        return self._devices[idx]
+        if self._devices:
+            widget, idx = self._walker.get_focus()
+            return self._devices[idx]
+
+    def set_focus(self, device):
+        self._walker.set_focus(self._devices.index(device))
 
 
 class InstallationView(StepView):
@@ -159,6 +164,18 @@ class InstallationView(StepView):
         self._partition_page.body = self._partition_list_widget
         self.page = self._partition_page
 
+        self._devlist = DeviceListWidget([])
+        self._devlist_page = widgets.Page()
+        body   = urwid.Filler(self._devlist, 'middle', height=('relative', 80))
+        body   = urwid.Padding(body, 'center', width=('relative', 60))
+        footer = urwid.Text("")
+        self._devlist_page.body   = body
+        self._devlist_page.footer = urwid.LineBox(footer)
+
+        urwid.connect_signal(self._devlist, 'click', self._on_select_device)
+        urwid.connect_signal(self._devlist, 'focus_changed',
+                             lambda dev: footer.set_text(str(dev)))
+
         ui.register_uevent_handler(self._on_uevent)
 
     def _redraw(self):
@@ -166,21 +183,6 @@ class InstallationView(StepView):
         # already assigned to partitions by the partitioning step.
         self._partition_list_widget.refresh()
         self._update_install_button(focus=True)
-
-    def _create_device_page(self, part, devices):
-        devlist = DeviceListWidget(part, devices)
-
-        page   = widgets.Page(_("Choose device to use for %s") % part.name)
-        body   = urwid.Filler(devlist, 'middle', height=('relative', 80))
-        body   = urwid.Padding(body, 'center', width=('relative', 60))
-        footer = urwid.Text(str(devlist.get_focus()))
-        page.body   = body
-        page.footer = urwid.LineBox(footer)
-
-        urwid.connect_signal(devlist, 'click', self._on_select_device)
-        urwid.connect_signal(devlist, 'focus_changed',
-                             lambda dev: footer.set_text(str(dev)))
-        return page
 
     def _update_install_button(self, focus=False):
         for part in partition.partitions:
@@ -191,18 +193,23 @@ class InstallationView(StepView):
         if focus:
             self._partition_page.set_focus('footer')
 
+    def _update_device_list(self, part):
+        devices = partition.get_candidates(part)
+        if not devices:
+            self.logger.warning(_("No valid device found for %s"), part.name)
+        self._devlist.update(devices)
+        if part.device:
+            self._devlist.set_focus(part.device)
+
     def _on_clear_partition(self, part):
         part.device = None
         self._partition_list_widget.refresh()
         self._update_install_button()
 
     def _on_select_partition(self, part):
-        devices = partition.get_candidates(part)
-        if devices:
-            self.page = self._create_device_page(part, devices)
-        else:
-            name = part.name
-            self.logger.warning(_("No valid device found for %s"), name)
+        self._devlist_page.title = _("Choose device to use for %s") % part.name
+        self._update_device_list(part)
+        self.page = self._devlist_page
 
     def _on_select_device(self, dev):
         if dev:
@@ -232,22 +239,17 @@ class InstallationView(StepView):
 
     def _on_uevent(self, action, bdev):
         #
-        # If we're currently showing the device list then we
-        # recreate the whole page so that any added/removed devices
-        # will be showed/hidden accordingly.
+        # Note: we can enter this function when the current page is
+        # the progress one.
         #
-        if self.page != self._partition_page:
+        if self.page == self._devlist_page:
             #
-            # switch back to the partition list, so it won't fail if
-            # the new list is empty.
-            #
-            self.page = self._partition_page
-            #
-            # recreate and display the new device list.
+            # update the device list.
             #
             part = self._partition_list_widget.get_focus()
-            self._on_select_partition(part)
-        else:
+            self._update_device_list(part)
+
+        elif self.page == self._partition_page:
             #
             # Refresh the partition list page only if it's currently
             # displayed. For the other case, it will be refreshed by
