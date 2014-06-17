@@ -51,17 +51,22 @@ class ClickableText(urwid.WidgetWrap):
 class ClickableTextList(urwid.WidgetWrap):
 
     def __init__(self, items, on_click=None):
-        lst = []
-
-        for item in items:
-            txt = ClickableText(item)
-            txt.set_layout('center', 'clip', None)
-            if on_click:
-                urwid.connect_signal(txt, 'click', on_click)
-            lst.append(txt)
-
-        self._walker = urwid.SimpleListWalker(lst)
+        self._walker = urwid.SimpleListWalker([])
+        self._on_click = on_click
+        self.update(items)
         urwid.WidgetWrap.__init__(self, urwid.ListBox(self._walker))
+
+    def update(self, items):
+        clickables = []
+        for item in items:
+            clickable = ClickableText(item)
+            clickable.set_layout('center', 'clip', None)
+            if self._on_click:
+                urwid.connect_signal(clickable, 'click', self._on_click)
+            clickables.append(clickable)
+        # update walker contents once so we will trigger only one 'modified'
+        # signal.
+        self._walker[:] = clickables
 
 
 class ClickableTextPile(urwid.WidgetWrap):
