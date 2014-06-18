@@ -93,7 +93,7 @@ class ClickableTextPile(urwid.WidgetWrap):
         urwid.WidgetWrap.__init__(self, urwid.Pile(lst))
 
 
-class Field(urwid.Edit):
+class LimitedEdit(urwid.Edit):
     """Edit widget with a limited number of chars.
 
     It also sends a signal when <enter> has been pressed.
@@ -102,7 +102,7 @@ class Field(urwid.Edit):
     signals = ['validated']
 
     def __init__(self, caption, max_length=-1):
-        super(Field, self).__init__(caption, wrap='clip')
+        super(LimitedEdit, self).__init__(caption, wrap='clip')
         self._max_len = max_length
 
     def keypress(self, size, key):
@@ -115,10 +115,10 @@ class Field(urwid.Edit):
                 # No more room for printable chars.
                 return None
 
-        return super(Field, self).keypress(size, key)
+        return super(LimitedEdit, self).keypress(size, key)
 
 
-class Password(Field):
+class Password(LimitedEdit):
     """An EditBox widget initialize to match password requierements"""
 
     default_mask = u'\u2022' # bullet
