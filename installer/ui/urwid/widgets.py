@@ -93,6 +93,37 @@ class ClickableTextPile(urwid.WidgetWrap):
         urwid.WidgetWrap.__init__(self, urwid.Pile(lst))
 
 
+class Field(urwid.WidgetWrap):
+
+    signals = ['click', 'clear']
+
+    def __init__(self, name, value=""):
+        self._value = ClickableText(value)
+        field = urwid.Text(name, layout=FillRightLayout(b'.'))
+        cols = urwid.Columns([('weight', 0.9, field),
+                              ('pack', urwid.Text(" : ")),
+                              ('weight', 1, self._value)])
+        urwid.WidgetWrap.__init__(self, cols)
+        urwid.connect_signal(self._value, 'click', self._on_click)
+
+    @property
+    def value(self):
+        return self._value.text
+
+    @value.setter
+    def value(self, txt):
+        self._value.set_text(txt if txt else "")
+
+    def _on_click(self, widget):
+        urwid.emit_signal(self, 'click')
+
+    def keypress(self, size, key):
+        if key == "backspace" or key == "delete":
+            urwid.emit_signal(self, 'clear')
+            return None
+        return super(Field, self).keypress(size, key)
+
+
 class LimitedEdit(urwid.Edit):
     """Edit widget with a limited number of chars.
 

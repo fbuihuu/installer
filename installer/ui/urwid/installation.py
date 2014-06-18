@@ -11,34 +11,6 @@ from installer import device
 from installer.settings import settings
 
 
-class PartitionEntryWidget(urwid.WidgetWrap):
-
-    def __init__(self, part, on_click, on_clear):
-        self._on_click = on_click
-        self._on_clear = on_clear
-        self.partition = part
-        widget1 = urwid.Text(part.name, layout=widgets.FillRightLayout(b'.'))
-        self._devpath = widgets.ClickableText()
-
-        columns = urwid.Columns([('weight', 0.9, widget1),
-                                 ('pack', urwid.Text(" : ")),
-                                 self._devpath])
-        super(PartitionEntryWidget, self).__init__(columns)
-        self.refresh()
-
-    def keypress(self, size, key):
-        if key == "backspace" or key == "delete":
-            self._on_clear(self.partition)
-            return None
-        if key == "enter":
-            self._on_click(self.partition)
-            return None
-        return key
-
-    def refresh(self):
-        dev = self.partition.device
-        self._devpath.set_text(dev.devpath if dev else "")
-
 
 class PartitionSectionWidget(urwid.WidgetWrap):
     """Only flow widdgets can be added to the section content."""
@@ -70,12 +42,17 @@ class PartitionSectionWidget(urwid.WidgetWrap):
 
 class PartitionListWidget(urwid.WidgetWrap):
 
-    def __init__(self, on_select, on_clear):
+    def __init__(self, on_click, on_clear):
         self._entries  = []
         self._walker   = None
         self._sections = []
         for part in partition.partitions:
-            self._entries.append(PartitionEntryWidget(part, on_select, on_clear))
+            field = widgets.Field(part.name)
+            field.partition = part
+            self._entries.append(field)
+            urwid.connect_signal(field, 'click', on_click, part)
+            urwid.connect_signal(field, 'clear', on_clear, part)
+
         urwid.WidgetWrap.__init__(self, widgets.NullWidget())
         self.refresh()
 
@@ -99,13 +76,14 @@ class PartitionListWidget(urwid.WidgetWrap):
         self._sections = [mandatories, optionals, swaps]
 
         for entry in self._entries:
+            part    = entry.partition
             section = optionals
-            if not entry.partition.is_optional():
+            if not part.is_optional():
                 section = mandatories
-            elif entry.partition.is_swap:
+            elif part.is_swap:
                 section = swaps
             section.append(entry)
-            entry.refresh()
+            entry.value = part.device.devpath if part.device else None
 
         self._walker = urwid.SimpleListWalker([])
         self._walker.append(mandatories)
