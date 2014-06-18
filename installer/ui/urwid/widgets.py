@@ -50,8 +50,9 @@ class ClickableText(urwid.WidgetWrap):
 
 class ClickableTextList(urwid.WidgetWrap):
 
-    def __init__(self, items, on_click=None):
+    def __init__(self, items, on_click=None, align='center'):
         self._walker = urwid.SimpleListWalker([])
+        self._align = align
         self._on_click = on_click
         self.update(items)
         urwid.WidgetWrap.__init__(self, urwid.ListBox(self._walker))
@@ -60,7 +61,7 @@ class ClickableTextList(urwid.WidgetWrap):
         clickables = []
         for item in items:
             clickable = ClickableText(item)
-            clickable.set_layout('center', 'clip', None)
+            clickable.set_layout(self._align, 'clip', None)
             if self._on_click:
                 urwid.connect_signal(clickable, 'click', self._on_click)
             clickables.append(clickable)
