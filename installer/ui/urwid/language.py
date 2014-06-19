@@ -26,8 +26,11 @@ class LanguageView(StepView):
         # Make the list centered inside its container
         countries = sorted(country_names.values())
         body = widgets.ClickableTextList(countries, self.on_click)
+        # Try to move the focus on the entry that matches (roughly)
+        # the current locale.
+        body.set_focus(country_names[settings.I18n.country])
         body = urwid.Filler(body, 'middle', height=('relative', 40))
-        body = urwid.Padding(body, align='center', width=('relative', 60))
+        body = urwid.Padding(body,'center', width=('relative', 60))
         self.page.body = body
 
     def on_click(self, entry):
