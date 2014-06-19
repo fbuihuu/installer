@@ -69,6 +69,12 @@ class ClickableTextList(urwid.WidgetWrap):
         # signal.
         self._walker[:] = clickables
 
+    def set_focus(self, item):
+        for clickable in self._walker:
+            if clickable.text == item:
+                self._walker.set_focus(self._walker.index(clickable))
+                return
+
 
 class ClickableTextPile(urwid.WidgetWrap):
 
