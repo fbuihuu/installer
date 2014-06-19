@@ -2,8 +2,8 @@
 #
 
 from . import Step
+from installer import l10n
 from installer.settings import settings
-import installer.system
 
 
 class LanguageStep(Step):
@@ -18,7 +18,7 @@ class LanguageStep(Step):
         pass
 
     def _process(self):
-        zone = settings.I18n.timezone.split('/')[0]
+        country = l10n.country_names[settings.I18n.country]
 
         # Switch the keyboard layout accordingly.
         layout = settings.I18n.keyboard
@@ -26,4 +26,4 @@ class LanguageStep(Step):
         #  self.logger.info(_("switching keyboard layout to %s"), layout)
         #   system.keyboard.set_layout(layout)
 
-        self._done(_("set location to %s") % zone)
+        self._done(_("set location to %s") % country)
