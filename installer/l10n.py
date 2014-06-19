@@ -9,7 +9,20 @@ import gettext
 
 from . import get_topdir
 
+#
+# FileNotFoundError is not available on python 2.x
+#
+try:
+    FileNotFoundError
+except NameError:
+    FileNotFoundError = IOError
+
+
 logger = logging.getLogger(__name__)
+
+
+class TranslationError(Exception):
+    """Base class for exceptions for the l10n module."""
 
 
 #
@@ -41,29 +54,30 @@ country_names = None
 #
 #
 #
-def set_locale(lang):
-    try:
-        locale.setlocale(locale.LC_ALL, lang)
-    except locale.Error:
-        logger.warn("failed to set current locale to %s", lang)
-
-
 def set_translation(lang):
     global country_zones, country_names
 
+    # Try changing the prog current locale but that's really not a big
+    # deal if that fails.
+    try:
+        locale.setlocale(locale.LC_ALL, lang)
+    except locale.Error:
+        logger.debug("failed to set current locale to %s" % lang)
+
+    #
+    # However failing to find a translation for this lang is more
+    # annoying since the user will notice.
+    #
     localedir = None
     if get_topdir():
         localedir = os.path.join(get_topdir(), 'build/mo')
-
-    trans = gettext.translation('installer', languages=[lang],
-                                localedir=localedir, fallback=True)
-
-    #
-    # If no translation was found then use the default language which
-    # is en_US.
-    #
-    if lang != "en_US" and type(trans) == gettext.NullTranslations:
-        logger.warn("failed to find translation for %s", lang)
+    try:
+        trans = gettext.translation('installer', languages=[lang],
+                                    localedir=localedir)
+    except FileNotFoundError:
+        assert(lang != 'en_US')
+        logger.warn("No translation found for '%s' language", lang)
+        raise TranslationError()
 
     #
     # In Python 2, ensure that the _() that gets installed

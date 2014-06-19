@@ -32,9 +32,8 @@ class UI(object):
 
     @language.setter
     def language(self, lang):
-        self._language = lang
-        l10n.set_locale(lang)
         l10n.set_translation(lang)
+        self._language = lang
 
     def _load_step_views(self):
         for step in steps.get_steps():
