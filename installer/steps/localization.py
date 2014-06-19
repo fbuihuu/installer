@@ -43,7 +43,7 @@ class LocalizationStep(Step):
             f.write("LANG=%s.%s\n" % (locale, charmap))
 
         with open(self._root + '/etc/vconsole.conf', 'w') as f:
-            f.write("KEYMAP=%s.%s\n" % (keymap, charmap))
+            f.write("KEYMAP=%s\n" % keymap)
 
         # Old versions of systemd-nspawn bind mount localtime
         tz_path = os.path.join(l10n.timezones_path, tzone)
