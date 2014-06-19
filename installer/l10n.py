@@ -12,6 +12,35 @@ from . import get_topdir
 logger = logging.getLogger(__name__)
 
 
+#
+# a Zone is a country's area with a specific timezone (mainly).
+#
+class Zone(object):
+
+    def __init__(self, city, timezone, country, keymap, locale):
+        self.city     = city
+        self.timezone = timezone
+        self.keymap   = keymap
+        self.locale   = locale
+        self.country  = country # country code
+
+
+class BrazilZone(Zone):
+    def __init__(self, city, timezone):
+        super(BrazilZone, self).__init__(city, timezone, 'BR', 'br-abnt2', 'pt_BR')
+
+
+class UsaZone(Zone):
+    def __init__(self, city, timezone):
+        super(UsaZone, self).__init__(city, timezone, 'US', 'us', 'en_US')
+
+
+country_zones = None
+country_names = None
+
+#
+#
+#
 def set_locale(lang):
     try:
         locale.setlocale(locale.LC_ALL, lang)
@@ -20,6 +49,8 @@ def set_locale(lang):
 
 
 def set_translation(lang):
+    global country_zones, country_names
+
     localedir = None
     if get_topdir():
         localedir = os.path.join(get_topdir(), 'build/mo')
@@ -47,56 +78,31 @@ def set_translation(lang):
         kwargs['unicode'] = True
     trans.install(**kwargs)
 
-#
-# We need _() to be installed.
-#
-set_translation('en_US')
+    # The first zone of the list of each country is the prefered one.
+    country_zones = {
+        'BR' : [
+            BrazilZone(_('Curitiba'),  'America/Cuiaba'),
+            BrazilZone(_('Sao Paulo'), 'America/Sao_Paulo'),
+        ],
+        'FR' : [
+            Zone(_('Paris'), 'Europe/Paris', 'FR', 'fr', 'fr_FR')
+        ],
+        'US' : [
+            UsaZone(_('New York'),    'America/New_York'),
+            UsaZone(_('Los Angeles'), 'America/Los_Angeles'),
+            UsaZone(_('Denver'),      'America/Denver'),
+        ],
+    }
 
-#
-#
-#
-class Zone(object):
+    country_names = {
+        'BR' : _('Brazil'),
+        'FR' : _('France'),
+        'US' : _('United States'),
+    }
 
-    def __init__(self, city, timezone, country, keymap, locale):
-        self.city     = city
-        self.timezone = timezone
-        self.keymap   = keymap
-        self.locale   = locale
-        self.country  = country # country code
-
-
-class BrazilZone(Zone):
-    def __init__(self, city, timezone):
-        super(BrazilZone, self).__init__(city, timezone, 'BR', 'br-abnt2', 'pt_BR')
-
-
-class UsaZone(Zone):
-    def __init__(self, city, timezone):
-        super(UsaZone, self).__init__(city, timezone, 'US', 'us', 'en_US')
-
-
-# The first zone of the list of each country is the prefered one.
-country_zones = {
-    'BR' : [
-        BrazilZone(_('Curitiba'),  'America/Cuiaba'),
-        BrazilZone(_('Sao Paulo'), 'America/Sao_Paulo'),
-    ],
-    'FR' : [
-        Zone(_('Paris'), 'Europe/Paris', 'FR', 'fr', 'fr_FR')
-    ],
-    'US' : [
-        UsaZone(_('New York'),    'America/New_York'),
-        UsaZone(_('Los Angeles'), 'America/Los_Angeles'),
-        UsaZone(_('Denver'),      'America/Denver'),
-    ],
-}
-
-
-country_names = {
-    'BR' : _('Brazil'),
-    'FR' : _('France'),
-    'US' : _('United States'),
-}
+# Init module, with the current local. The current locale is probably
+# not yet reseted by the installer: use the default locale.
+set_translation(locale.getdefaultlocale()[0])
 
 #
 # Time zones

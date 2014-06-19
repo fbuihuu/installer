@@ -56,8 +56,6 @@ def parse_cmdline():
 
 def main():
     locale.resetlocale()
-    lang, enc = locale.getlocale()
-    l10n.set_translation(lang)
 
     args = parse_cmdline()
 
@@ -113,6 +111,7 @@ def main():
     #
     # Start the frontend interface.
     #
+    lang, enc = locale.getlocale()
     ui = UrwidUI(lang)
     ui.run()
 

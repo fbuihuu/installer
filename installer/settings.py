@@ -2,7 +2,10 @@
 #
 
 import os
+import locale
+
 from installer.system import is_efi
+from installer import l10n
 
 
 try:
@@ -45,12 +48,36 @@ class Section(object):
         except AttributeError:
             return self._default
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class I18n(Section):
-    country  = 'France'
-    timezone = 'Europe/Paris'
-    keymap   = 'fr'
-    locale   = 'fr_FR'
+    country  = ''
+    timezone = ''
+    keymap   = ''
+    locale   = ''
+
+    def __init__(self):
+        lang, enc = locale.getdefaultlocale()
+
+        found = None
+        for ccode, zones in l10n.country_zones.items():
+            for zi in zones:
+                if lang == zi.locale:
+                    found = (ccode, zi)
+                    break
+                if not found and zi.locale.startswith(lang.split('_')[0]):
+                    found = (ccode, zi)
+            if lang == zi.locale:
+                break
+        if not found:
+            found = ('US', l10n.country_zones['US'][0])
+
+        I18n.country  = found[0]
+        I18n.timezone = found[1].timezone
+        I18n.keymap   = found[1].keymap
+        I18n.locale   = found[1].locale
 
 
 class Kernel(Section):

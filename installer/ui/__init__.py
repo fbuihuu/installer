@@ -17,13 +17,13 @@ class UI(object):
     _hotkeys = {}
 
     def __init__(self, lang):
+        self._language = None
+        self.language  = lang
+        self._current_step = None
+
         steps.initialize()
         steps.finished_signal.connect(self._on_step_finished)
         steps.completion_signal.connect(self._on_step_completion)
-
-        self._current_step = None
-        self._language = None
-        self.language = lang
         self._load_step_views()
 
     @property
