@@ -18,12 +18,8 @@ class LanguageStep(Step):
         pass
 
     def _process(self):
+        # Nothing to do here since most of the actions are done later
+        # by localization step. Even changing the keyboard layout
+        # depends on the frontend used.
         country = l10n.country_names[settings.I18n.country]
-
-        # Switch the keyboard layout accordingly.
-        layout = settings.I18n.keyboard
-        # if system.keyboard.get_layout() != layout:
-        #  self.logger.info(_("switching keyboard layout to %s"), layout)
-        #   system.keyboard.set_layout(layout)
-
         self._done(_("set location to %s") % country)
