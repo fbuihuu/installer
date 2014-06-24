@@ -18,17 +18,31 @@ class SettingsError(Exception):
     """Base class for exceptions for the settings module."""
 
 
+class SectionSettingsError(SettingsError, AttributeError):
+    """Exception thrown when trying to access to an unset/undefined section."""
+
+    def __init__(self, section):
+        self.section = section
+
+    def __str__(self):
+        return "unknown section '%s'" % self.section
+
+
+class AttributeSettingsError(SettingsError, AttributeError):
+    """Exception thrown when a section doesn't define a setting."""
+
+    def __init__(self, section, attr):
+        self.section = section
+        self.attr    = attr
+
+    def __str__(self):
+        return "missing attribute '%s' in section '%s'" % (self.attr, self. section)
+
+
 class Section(object):
-    _default = None
 
     def __init__(self, name=None):
-        self._name = name
-
-    @property
-    def name(self):
-        if self._name:
-            return self._name
-        return self.__class__.__name__
+        self.name = name if name else self.__class__.__name__
 
     @property
     def entries(self):
@@ -42,7 +56,7 @@ class Section(object):
         return lst
 
     def __getattr__(self, attr):
-        return self._default
+        raise AttributeSettingsError(self.name, attr)
 
 
 class I18n(Section):
@@ -76,6 +90,10 @@ class I18n(Section):
 
 class Kernel(Section):
     cmdline  = 'rw quiet'
+
+
+class License(Section):
+    dir = ''
 
 
 class Options(Section):
@@ -115,7 +133,13 @@ class Packages(Section):
 
 
 class Steps(Section):
-    _default = True
+    language = True
+    license  = True
+    partitioning = True
+    installation = True
+    localization = True
+    password = True
+    end = True
 
 
 class Urpmi(Section):
@@ -129,6 +153,7 @@ class _Settings(object):
         self._sections = {
             'I18n'       : I18n(),
             'Kernel'     : Kernel(),
+            'License'    : License(),
             'Options'    : Options(),
             'Packages'   : Packages(),
             'Steps'      : Steps(),
@@ -139,10 +164,11 @@ class _Settings(object):
     def sections(self):
         return [s for s in self._sections.values() if s.entries]
 
-    def __getattr__(self, attr):
-        if attr not in self._sections:
-            self._sections[attr] = Section(name=attr)
-        return self._sections[attr]
+    def __getattr__(self, section):
+        try:
+            return self._sections[section]
+        except KeyError:
+            raise SectionSettingsError(section)
 
     def get(self, section, attribute):
         return getattr(getattr(self, section), attribute)
