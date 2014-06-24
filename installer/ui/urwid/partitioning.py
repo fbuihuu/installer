@@ -67,7 +67,7 @@ class DiskTableWidget(urwid.WidgetWrap):
 
         table = widgets.Table([("",           'left',    5),
                                (_("Bus"),     'left',    8),
-                               (_("Model"),   'center', 28),
+                               (_("Model"),   'center', 34),
                                (_("Size"),    'right',   9)])
         self._w = table
 
@@ -234,7 +234,7 @@ class ReviewPage(widgets.Page):
         # FIXME: show somehow if the disks contains data
         #
         t1 = widgets.Table([(_("Disk. #"), 'center', 10),
-                            (_("Model"),   'center', 30),
+                            (_("Model"),   'center', 34),
                             (_("Size"),    'right',   9)])
 
         for i, drive in enumerate(setup.disks, 1):
