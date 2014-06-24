@@ -21,9 +21,9 @@ class PresetPage(widgets.Page):
     def __init__(self):
         super(PresetPage, self).__init__(_("Type of server [1/3]"))
 
-        items = [(_("Small/Basic server"),  self._on_small_server),
-                 (_("File/Mail server"),    self._on_mail_server),
-                 (_("Database/Web server"), self._on_web_server)]
+        items = [(_("Small/Basic"),  self._on_small_server),
+                 (_("File/Mail"),    self._on_mail_server),
+                 (_("Database/Web"), self._on_web_server)]
         body = widgets.ClickableTextPile(items)
         body = urwid.Filler(body, 'middle')
         body = urwid.Padding(body, align='center', width=('relative', 60))
