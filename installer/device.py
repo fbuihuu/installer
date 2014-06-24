@@ -449,8 +449,8 @@ class MetadiskDevice(DiskDevice):
             for f in os.listdir(md_dir):
                 if f.startswith('dev-'):
                     parent = _syspath_to_bdev(os.path.join(md_dir, f, 'block'))
-                    if parent:
-                        parents.append(parent)
+                    assert(parent)
+                    parents.append(parent)
         except IOError:
             parent = []
         else:
