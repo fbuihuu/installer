@@ -42,14 +42,7 @@ class Section(object):
         return lst
 
     def __getattr__(self, attr):
-        """Return 'self._default' for unset section entries"""
-        try:
-            return object.__getattr__(self, attr)
-        except AttributeError:
-            return self._default
-
-import logging
-logger = logging.getLogger(__name__)
+        return self._default
 
 
 class I18n(Section):
