@@ -52,6 +52,7 @@ class I18n(Section):
     locale   = ''
 
     def __init__(self):
+        Section.__init__(self)
         lang, enc = locale.getdefaultlocale()
 
         found = None
