@@ -139,10 +139,10 @@ class Partition(object):
             dev.validate()  # track any device inconsistencies.
             self._validate_dev(dev)
             self._validate_fs(dev.filesystem)
-            settings.set("Partition", self.name, dev.devpath)
+            settings.set("Partitions", self.name, dev.devpath)
 
-        elif settings.get("Partition", self.name):
-            settings.remove("Partition", self.name)
+        elif settings.get("Partitions", self.name):
+            settings.remove("Partitions", self.name)
 
         self._device = dev
 
