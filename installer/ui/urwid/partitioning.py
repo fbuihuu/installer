@@ -180,7 +180,7 @@ class DiskSelectionPage(widgets.Page):
             urwid.Columns([widgets.Button(_("Cancel"), on_press=self._on_cancel),
                            widgets.Button(_("Done"),   on_press=self._on_done)]),
             urwid.Divider('─'),
-            urwid.Text(('page.legend', _("Press <alt-a> to see all devices")))
+            urwid.Text(('page.legend', _("Press <alt>-a to see all devices")))
             ])
 
     def keypress(self, size, key):

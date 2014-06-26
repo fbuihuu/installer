@@ -49,9 +49,9 @@ class SelectionPage(widgets.Page):
 
     def _redraw_footer(self):
         if self._show_all:
-            txt = _('Press <alt v> to minimize the list')
+            txt = _('Press <alt>-v to minimize the list')
         else:
-            txt = _('Press <alt v> to show them all')
+            txt = _('Press <alt>-v to show them all')
         self.footer.original_widget.set_text(txt)
 
     def redraw(self):
