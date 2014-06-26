@@ -171,9 +171,16 @@ class _Settings(object):
             raise SectionSettingsError(section)
 
     def get(self, section, attribute):
-        return getattr(getattr(self, section), attribute)
+        """If the section or attribute is undefined returns None."""
+        try:
+            return getattr(getattr(self, section), attribute)
+        except (SectionSettingsError, AttributeSettingsError) as e:
+            return None
 
     def set(self, section, attribute, value):
+        """If the section or attribute is undefined, create it."""
+        if not section in self._sections:
+            self._sections[section] = Section(section)
         return setattr(getattr(self, section), attribute, value)
 
     def remove(self, section, attribute):
