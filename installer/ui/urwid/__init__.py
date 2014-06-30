@@ -19,12 +19,6 @@ from . import widgets
 
 palette = [
     ('default',               'default',           'default'),
-    ('line',                  'black',             'light gray'),
-    ('title1',                'bold',              ''),
-    ('options',               'light red',         'black'),
-    ('focus heading',         'white',             'dark red'),
-    ('focus line',            'black',             'dark red'),
-    ('focus options',         'black',             'light gray'),
     ('button.active',         'bold',              ''),
     ('list.entry.active',     'bold',              ''),
     ('list.entry.disabled',   'dark blue',         ''),
@@ -32,7 +26,6 @@ palette = [
     ('side.bar.mark.check',   'dark green',        ''),
     ('top.bar.label',         'black',             'light gray'),
     ('top.bar.hotkey',        'dark blue',         'light gray'),
-    ('page.title',            'bold',              ''),
     ('page.section',          'underline',         ''),
     ('page.legend',           'dark blue',         ''),
     ('progress.bar',          'black',             'dark green'),
