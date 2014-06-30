@@ -313,8 +313,9 @@ class ArchInstallStep(_InstallStep):
             self._pacstrap = None
 
     def _do_pacstrap(self, pkgs, **kwargs):
-        self._monitor(['pacstrap', self._root] + pkgs, **kwargs)
-        self._pacstrap = None
+        if pkgs:
+            self._monitor(['pacstrap', self._root] + pkgs, **kwargs)
+            self._pacstrap = None
 
     def _do_rootfs(self):
         self.logger.info("Initializing rootfs with pacstrap...")
@@ -390,8 +391,7 @@ initrd      /{initrd}
         pass
 
     def _do_extra_packages(self):
-        if self._extra_packages:
-            self._do_pacstrap(self._extra_packages)
+        self._do_pacstrap(self._extra_packages)
 
     def _do_initramfs(self):
         hooks = ["base", "udev"]
@@ -444,13 +444,14 @@ class MandrivaInstallStep(_InstallStep):
                 delta = completion - completion_origin
                 self.set_completion(completion_origin + delta * count / total)
 
-        if self._urpmi_installed:
-            cmd = " ".join(["urpmi"] + urpmi_opts + args)
-            self._chroot(cmd, stdout_handler=stdout_handler)
-        else:
-            cmd = ['urpmi', '--root', self._root] + urpmi_opts + args
-            self._monitor(cmd, stdout_handler=stdout_handler)
-        self._urpmi = None
+        if args:
+            if self._urpmi_installed:
+                cmd = " ".join(["urpmi"] + urpmi_opts + args)
+                self._chroot(cmd, stdout_handler=stdout_handler)
+            else:
+                cmd = ['urpmi', '--root', self._root] + urpmi_opts + args
+                self._monitor(cmd, stdout_handler=stdout_handler)
+            self._urpmi = None
         self.set_completion(completion)
 
         # Switch to urpmi from rootfs, so all packages installed later
@@ -504,10 +505,7 @@ class MandrivaInstallStep(_InstallStep):
         self._do_urpmi(['kernel'], 80)
 
     def _do_extra_packages(self):
-        if self._extra_packages:
-            self._do_urpmi(self._extra_packages, 90)
-        else:
-            self.set_completion(90)
+        self._do_urpmi(self._extra_packages, 90)
 
     def _do_initramfs(self):
         #
