@@ -187,9 +187,10 @@ class _InstallStep(Step):
         self._do_bootloader_finish()
 
         # Fix the kernel command line in syslinux config file.
+        append = "    APPEND      %s" % self._kernel_cmdline
         for cfg in glob.glob(self._root + self._syslinux_cfg):
-            re = 's/([[:space:]]*APPEND[[:space:]]+).*/\\1%s/I' % self._kernel_cmdline
-            self._monitor(["sed", "-ri", re, cfg])
+            self._monitor(["sed", "-i", "/[[:space:]]*APPEND[[:space:]]+/d", cfg])
+            self._monitor(["sed", "-i", "$a%s" % append, cfg])
 
         # Fix the kernel command line in gummiboot config file.
         options = "options     %s" % self._kernel_cmdline
