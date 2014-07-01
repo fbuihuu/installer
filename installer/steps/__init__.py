@@ -114,13 +114,13 @@ class Step(object):
             # Don't trigger an event for that, the caller will.
             self._state = self._STATE_FAILED
 
-    def __process(self):
+    def __process(self, *args):
         quit = False
         delay = 0
         self._root = mount_rootfs()
 
         try:
-            self._process()
+            self._process(*args)
         except StepError as e:
             self._failed("%s" % e)
         except:
@@ -137,9 +137,9 @@ class Step(object):
 
         finished_signal.emit(self, self._exit, self._exit_delay)
 
-    def process(self):
+    def process(self, *args):
         assert(not self.__is_in_progress())
-        self._thread = Thread(target=self.__process)
+        self._thread = Thread(target=self.__process, args=args)
         self._state = self._STATE_IN_PROGRESS
         self._thread.start()
 

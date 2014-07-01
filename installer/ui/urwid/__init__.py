@@ -330,8 +330,8 @@ class StepView(View):
     def logger(self):
         return logging.getLogger(self._step.name)
 
-    def run(self):
-        self._step.process()
+    def run(self, *args):
+        self._step.process(*args)
 
     def set_completion(self, percent):
         #
