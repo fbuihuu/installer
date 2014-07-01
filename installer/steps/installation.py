@@ -496,8 +496,14 @@ class MandrivaInstallStep(_InstallStep):
         self._do_bootloader_on_bios_with_syslinux(bootable, gpt=False)
 
     def _do_bootloader_finish(self):
+        #
         # The kernel needs to be installed after the bootloader so all
         # bootloader configuration files will be updated accordingly.
+        #
+        # Note: we can't use extra_package, here because we have to
+        # generate all config files right now so _do_bootloader can
+        # customize them.
+        #
         self._do_urpmi(['kernel'], 80)
 
     def _do_extra_packages(self):
