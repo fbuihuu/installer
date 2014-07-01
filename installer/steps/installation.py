@@ -474,12 +474,11 @@ class MandrivaInstallStep(_InstallStep):
 
     def _do_rootfs(self, pkgs):
         self.logger.info("Initializing rootfs with urpmi...")
-        pkgs = ['basesystem-minimal'] + pkgs
+        locale = 'locales-%s' % settings.I18n.locale.split('_')[0]
+        pkgs = ['basesystem-minimal', locale] + pkgs
         self._do_urpmi(pkgs, 60)
 
     def _do_i18n(self):
-        locale = settings.I18n.locale
-        self._do_urpmi(['locales-%s' % locale.split('_')[0]], 65)
         l10n.init_timezones('/usr/share/zoneinfo/posix', self._root)
         l10n.init_keymaps('/usr/lib/kbd/keymaps', self._root)
 
