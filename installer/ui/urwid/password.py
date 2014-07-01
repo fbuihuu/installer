@@ -43,7 +43,8 @@ class PasswordView(StepView):
         elif not p2:
             self._pile.focus_position = 1
         elif p1 == p2:
-            settings.password.root = p1
+            # password section may not exist yet, so use set().
+            settings.set('password', 'root', p1)
             self.run()
         else:
             self.logger.error(_("passwords mismatch"))
