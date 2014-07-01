@@ -79,7 +79,7 @@ class _InstallStep(Step):
     def __init__(self):
         Step.__init__(self)
         self._fstab = {}
-        self.__extra_packages = None
+        self._extra_packages = ['mdadm'] # FIXME: should test if it's a RAID setup
 
     @property
     def name(self):
@@ -92,23 +92,21 @@ class _InstallStep(Step):
             return cmdline
         return "root=" + self._fstab["/"].source + " " + cmdline
 
-    @property
-    def _extra_packages(self):
-        if self.__extra_packages is None:
-            self.__extra_packages = []
-            for pkgfile in settings.Packages.extras:
-                self.logger.info("importing extra packages file")
-                try:
-                    with open(pkgfile, 'r') as f:
-                        for line in f:
-                            line = line.partition('#')[0]
-                            line = line.strip()
-                            if line:
-                                self.__extra_packages.append(line)
-                except IOError:
-                    self.logger.error("Failed to read extra packages file %s" %
-                                      settings.Package.list)
-        return self.__extra_packages
+    def _do_read_package_list(self):
+        lst = []
+        for pkgfile in settings.Packages.extras:
+            self.logger.info("reading package list")
+            try:
+                with open(pkgfile, 'r') as f:
+                    for line in f:
+                        line = line.partition('#')[0]
+                        line = line.strip()
+                        if line:
+                            lst.append(line)
+            except IOError:
+                self.logger.error("Failed to read package list %s" %
+                                  settings.Package.list)
+        return lst
 
     def _do_rootfs(self):
         raise NotImplementedError()
@@ -222,7 +220,9 @@ class _InstallStep(Step):
 
     def _process(self):
         self.set_completion(1)
-        self._do_rootfs()
+
+        pkgs = self._do_read_package_list()
+        self._do_rootfs(pkgs)
         self._do_i18n()
         self._do_fstab()
         self._do_bootloader()
@@ -317,7 +317,7 @@ class ArchInstallStep(_InstallStep):
             self._monitor(['pacstrap', self._root] + pkgs, **kwargs)
             self._pacstrap = None
 
-    def _do_rootfs(self):
+    def _do_rootfs(self, pkgs):
         self.logger.info("Initializing rootfs with pacstrap...")
 
         def stdout_handler(p, line, data):
@@ -341,7 +341,7 @@ class ArchInstallStep(_InstallStep):
 
             return (count, total, pattern)
 
-        pkgs = ["base", "mdadm"]
+        pkgs = ["base"] + pkgs
         self._do_pacstrap(pkgs, stdout_handler=stdout_handler)
 
     def _do_i18n(self):
@@ -472,14 +472,10 @@ class MandrivaInstallStep(_InstallStep):
                     vmlinuz = vmlinuz[:-4]
                 self._uname_r = vmlinuz
 
-    def _do_rootfs(self):
+    def _do_rootfs(self, pkgs):
         self.logger.info("Initializing rootfs with urpmi...")
-
-        # Note that the kernel needs to be installed after the
-        # bootloader so all bootloader configuration files will be
-        # updated accordingly.
-        packages = ["basesystem-minimal", "urpmi", "mdadm"]
-        self._do_urpmi(packages, 60)
+        pkgs = ['basesystem-minimal'] + pkgs
+        self._do_urpmi(pkgs, 60)
 
     def _do_i18n(self):
         locale = settings.I18n.locale
@@ -500,8 +496,8 @@ class MandrivaInstallStep(_InstallStep):
         self._do_bootloader_on_bios_with_syslinux(bootable, gpt=False)
 
     def _do_bootloader_finish(self):
-        #  This going to create config files for all previously
-        #  installed bootloaders.
+        # The kernel needs to be installed after the bootloader so all
+        # bootloader configuration files will be updated accordingly.
         self._do_urpmi(['kernel'], 80)
 
     def _do_extra_packages(self):
