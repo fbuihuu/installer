@@ -47,14 +47,13 @@ class LanguageView(StepView):
             self.logger.warn(_("UI is using '%s' language as fallback"),
                              settings.I18n.locale)
 
-        #
-        # This going to overwrite all user's settings previously set
-        # by options or conf file but that's fine since the user can
-        # still disable this step.
-        #
+        # Only init I18 settings if the user didn't already.
         settings.I18n.country  = code
-        settings.I18n.timezone = zi.timezone
-        settings.I18n.keymap   = zi.keymap
-        settings.I18n.locale   = zi.locale
+        if not settings.I18n.timezone:
+            settings.I18n.timezone = zi.timezone
+        if not settings.I18n.keymap:
+            settings.I18n.keymap = zi.keymap
+        if not settings.I18n.locale:
+            settings.I18n.locale = zi.locale
 
         self.run()
