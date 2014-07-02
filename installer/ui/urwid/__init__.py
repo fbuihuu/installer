@@ -20,8 +20,8 @@ from . import widgets
 palette = [
     ('default',               'default',           'default'),
     ('button.active',         'bold',              ''),
-    ('list.entry.active',     'bold',              ''),
-    ('list.entry.disabled',   'dark blue',         ''),
+    ('side.bar.step.inactive','dark blue',         ''),
+    ('side.bar.step.active',  'bold',              ''),
     ('side.bar.mark.cross',   'light red',         ''),
     ('side.bar.mark.check',   'dark green',        ''),
     ('top.bar.label',         'black',             'light gray'),
@@ -501,9 +501,9 @@ class NavigatorEntry(urwid.WidgetWrap):
             elif self._step.is_failed():
                 mark = self.cross_mark_markup
             if self.active:
-                title = ('list.entry.active', title)
+                title = ('side.bar.step.active', title)
         else:
-            title = ('list.entry.disabled', title)
+            title = ('side.bar.step.inactive', title)
 
         self._title.set_text(title)
         self._mark.set_text(mark)
