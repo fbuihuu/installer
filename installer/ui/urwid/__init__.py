@@ -16,7 +16,17 @@ from installer import l10n
 from .. import UI
 from . import widgets
 
-
+#
+# When using VGA text mode, 16 colors should be available. Therefore
+# the default palette use them. But sometimes only 8 colors are really
+# present. This is the case when booting the system with syslinux, but
+# no idea why.
+#
+# The following URL enumerates the different colors available for the
+# different modes:
+#
+# http://urwid.org/manual/displayattributes.html#high-colors
+#
 palette = [
     ('default',               'default',           'default'),
     ('button.active',         'bold',              ''),
@@ -31,6 +41,22 @@ palette = [
     ('progress.bar',          'black',             'dark green'),
     ('log.warn',              'light red',         ''),
     ('log.info',              'light green',       ''),
+    ('reversed',              'standout',          '')]
+
+palette_8_colors = [
+    ('default',               'default',           'default'),
+    ('button.active',         'dark cyan',         ''),
+    ('side.bar.step.inactive','dark blue',         ''),
+    ('side.bar.step.active',  'dark cyan',         ''),
+    ('side.bar.mark.cross',   'dark red',          ''),
+    ('side.bar.mark.check',   'dark green',        ''),
+    ('top.bar.label',         'black',             'light gray'),
+    ('top.bar.hotkey',        'dark blue',         'light gray'),
+    ('page.section',          'dark cyan',         ''),
+    ('page.legend',           'dark blue',         ''),
+    ('progress.bar',          'black',             'dark green'),
+    ('log.warn',              'dark red',          ''),
+    ('log.info',              'dark green',        ''),
     ('reversed',              'standout',          '')]
 
 
