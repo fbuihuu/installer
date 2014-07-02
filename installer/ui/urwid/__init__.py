@@ -21,7 +21,7 @@ palette = [
     ('default',               'default',           'default'),
     ('button.active',         'bold',              ''),
     ('side.bar.step.inactive','dark blue',         ''),
-    ('side.bar.step.active',  'bold',              ''),
+    ('side.bar.step.active',  'underline',         ''),
     ('side.bar.mark.cross',   'light red',         ''),
     ('side.bar.mark.check',   'dark green',        ''),
     ('top.bar.label',         'black',             'light gray'),
