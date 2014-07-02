@@ -436,15 +436,19 @@ class MandrivaInstallStep(_InstallStep):
         urpmi_opts = settings.Urpmi.options.split() + \
                      ["--auto", "--downloader=curl", "--curl-options='-s'"]
 
-        completion_origin = self._completion
-        pattern = re.compile(r'\s+([0-9]+)/([0-9]+): ')
         def stdout_handler(p, line, data):
             self._urpmi = p
+            if data is None:
+                data = (self._completion, re.compile(r'\s+([0-9]+)/([0-9]+): '))
+            origin, pattern = data
+
             match = pattern.match(line)
             if match:
                 count, total = map(int, match.group(1, 2))
-                delta = completion - completion_origin
-                self.set_completion(completion_origin + delta * count / total)
+                delta = completion - origin
+                self.set_completion(origin + delta * count / total)
+
+            return (origin, pattern)
 
         if args:
             if self._urpmi_installed:
