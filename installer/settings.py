@@ -126,7 +126,7 @@ class Packages(Section):
         # containing the config file.
         #
         for f in pkgfiles:
-            f = os.path.join(os.path.dirname(configuration_file), f)
+            f = os.path.join(os.path.dirname(settings.Options.config), f)
             if not os.path.exists(f):
                 raise SettingsError("Can't find package list file %s" % f)
             self._extras.append(f)
@@ -189,14 +189,12 @@ class _Settings(object):
             del self._sections[section]
 
 
-configuration_file = None
+def load_config_file(fp):
+    # Register the config file path in the global settings.
+    settings.set('Options', 'config', os.path.abspath(fp.name))
 
-def load_config_file(config_file):
-    global configuration_file
-
-    configuration_file = os.path.realpath(config_file)
     config = ConfigParser()
-    config.read(configuration_file)
+    config.readfp(fp)
 
     for section in config.sections():
         for entry in config.options(section):
