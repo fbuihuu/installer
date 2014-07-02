@@ -313,19 +313,13 @@ class ArchInstallStep(_InstallStep):
             self._pacstrap.terminate()
             self._pacstrap = None
 
-    def _do_pacstrap(self, pkgs, **kwargs):
-        if pkgs:
-            self._monitor(['pacstrap', self._root] + pkgs, **kwargs)
-            self._pacstrap = None
-
-    def _do_rootfs(self, pkgs):
-        self.logger.info("Initializing rootfs with pacstrap...")
+    def _do_pacstrap(self, pkgs, completion):
 
         def stdout_handler(p, line, data):
             self._pacstrap = p
             if data is None:
-                data = (0, 0, re.compile(r'Packages \(([0-9]+)\)'))
-            count, total, pattern = data
+                data = (self._completion, 0, 0, re.compile(r'Packages \(([0-9]+)\)'))
+            origin, count, total, pattern = data
 
             match = pattern.search(line)
             if not match:
@@ -333,17 +327,23 @@ class ArchInstallStep(_InstallStep):
             elif total == 0:
                 total = int(match.group(1)) * 2
                 pattern = re.compile(r'downloading |(re)?installing ')
-                self.set_completion(2)
             else:
                 if not line.startswith('downloading '):
                     count = max(count, total/2)
                 count += 1
-                self.set_completion(2 + count * 97 / total)
+                delta = completion - origin # constant
+                self.set_completion(origin + delta * count / total)
 
-            return (count, total, pattern)
+            return (origin, count, total, pattern)
 
-        pkgs = ["base"] + pkgs
-        self._do_pacstrap(pkgs, stdout_handler=stdout_handler)
+        if pkgs:
+            self._monitor(['pacstrap', self._root] + pkgs,
+                          stdout_handler=stdout_handler)
+            self._pacstrap = None
+
+    def _do_rootfs(self, pkgs):
+        self.logger.info("Initializing rootfs with pacstrap...")
+        self._do_pacstrap(["base"] + pkgs, 60)
 
     def _do_i18n(self):
         # Uncomment all related locales
@@ -354,7 +354,7 @@ class ArchInstallStep(_InstallStep):
         l10n.init_keymaps('/usr/share/kbd/keymaps', self._root)
 
     def _do_bootloader_on_efi(self):
-        self._do_pacstrap(['gummiboot'])
+        self._do_pacstrap(['gummiboot'], 80)
         self._chroot('mkdir -p /boot/loader/entries')
 
         initrd = "initramfs-linux"
@@ -381,18 +381,18 @@ initrd      /{initrd}
         self._do_bootloader_on_efi_with_gummiboot()
 
     def _do_bootloader_on_mbr(self, bootable):
-        self._do_pacstrap(['syslinux', 'util-linux'])
+        self._do_pacstrap(['syslinux', 'util-linux'], 80)
         self._do_bootloader_on_bios_with_syslinux(bootable, gpt=False)
 
     def _do_bootloader_on_gpt(self, bootable):
-        self._do_pacstrap(['syslinux', 'gptfdisk'])
+        self._do_pacstrap(['syslinux', 'gptfdisk'], 80)
         self._do_bootloader_on_bios_with_syslinux(bootable, gpt=True)
 
     def _do_bootloader_finish(self):
         pass
 
     def _do_extra_packages(self):
-        self._do_pacstrap(self._extra_packages)
+        self._do_pacstrap(self._extra_packages, 90)
 
     def _do_initramfs(self):
         hooks = ["base", "udev"]
@@ -415,6 +415,7 @@ initrd      /{initrd}
         re = "s/^HOOKS=.*/HOOKS='{0}'/".format(" ".join(hooks))
         self._monitor(["sed", "-i", re, self._root+'/etc/mkinitcpio.conf'])
         self._chroot("mkinitcpio -p linux")
+        self.set_completion(99)
 
 
 class MandrivaInstallStep(_InstallStep):
