@@ -7,6 +7,7 @@ import time
 import collections
 import logging
 import urwid
+from operator import attrgetter
 
 from installer.settings import settings
 from installer import steps
@@ -411,7 +412,7 @@ class SummaryView(View):
         page = widgets.Page(_("Summary"))
         items = []
 
-        for section in settings.sections:
+        for section in sorted(settings.sections, key=attrgetter('name')):
             items.append(urwid.Text(('page.section', section.name)))
             for entry in section.entries:
                 value = urwid.Text(str(settings.get(section.name, entry)))
