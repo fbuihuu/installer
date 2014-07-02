@@ -27,7 +27,7 @@ from . import widgets
 #
 # http://urwid.org/manual/displayattributes.html#high-colors
 #
-palette = [
+palette_16_colors = [
     ('default',               'default',           'default'),
     ('button.active',         'bold',              ''),
     ('side.bar.step.inactive','dark blue',         ''),
@@ -86,7 +86,7 @@ class UrwidUI(UI):
     _top_bar = None
     _echo_area = None
 
-    def __init__(self, lang):
+    def __init__(self, args, lang):
         self._uevent_handlers = []
         self._watch_pipe_fd = None
         self._watch_pipe_queue = collections.deque()
@@ -97,6 +97,10 @@ class UrwidUI(UI):
             utils.die(_("urwid frontend requires a tty"))
 
         device.listen_uevent(self._on_uevent)
+
+        # Parse Urwid's specific options
+        if args.colors:
+            settings.Urwid.colors = args.colors
 
     @UI.language.setter
     def language(self, lang):
@@ -194,6 +198,11 @@ class UrwidUI(UI):
         #
         from gi.repository import GObject
         GObject.threads_init()
+
+        if settings.Urwid.colors == 8:
+            palette = palette_8_colors
+        else:
+            palette = palette_16_colors
 
         self._loop = urwid.MainLoop(self._main_frame, palette,
                                     event_loop=urwid.GLibEventLoop(),

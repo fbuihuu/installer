@@ -16,6 +16,14 @@ from installer.settings import settings, load_config_file
 from installer.utils import die
 
 
+def parse_urwid_cmdline(parser):
+    """Parses the relevant cmdline arguments specific to urwid frontend"""
+    group = parser.add_argument_group('urwid', 'urwid frontend specific options')
+    group.add_argument('--colors',
+                       type=int,
+                       choices=[8, 16],
+                       dest='colors',
+                       help='select the num of colors urwid will use')
 
 def parse_cmdline():
     """Parses the relevant cmdline arguments"""
@@ -49,6 +57,8 @@ def parse_cmdline():
     parser.add_argument("--version",
                         action='version',
                         version=get_version())
+
+    parse_urwid_cmdline(parser)
 
     return parser.parse_args()
 
@@ -112,7 +122,7 @@ def main():
     # Start the frontend interface.
     #
     lang, enc = locale.getlocale()
-    ui = UrwidUI(lang)
+    ui = UrwidUI(args, lang)
     ui.run()
 
 

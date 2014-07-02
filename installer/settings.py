@@ -147,6 +147,10 @@ class Urpmi(Section):
     use_host_config = True
 
 
+class Urwid(Section):
+    colors = 16
+
+
 class _Settings(object):
 
     def __init__(self):
@@ -158,6 +162,7 @@ class _Settings(object):
             'Packages'   : Packages(),
             'Steps'      : Steps(),
             'Urpmi'      : Urpmi(),
+            'Urwid'      : Urwid(),
         }
 
     @property
