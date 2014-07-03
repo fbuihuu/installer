@@ -423,7 +423,6 @@ class MandrivaInstallStep(_InstallStep):
     def __init__(self):
         _InstallStep.__init__(self)
         self._urpmi = None
-        self._uname_r = None
         self._urpmi_installed = False
         self._syslinux_cfg = '/boot/syslinux/entries/*'
 
@@ -468,16 +467,6 @@ class MandrivaInstallStep(_InstallStep):
             self._chroot("urpmi.update -a --force-key -q")
             self._urpmi_installed = True
 
-        # If the kernel has been installed, it's time to setup
-        # self._uname_r.
-        if not self._uname_r:
-            ls = glob.glob(os.path.join(self._root, 'boot', 'vmlinuz-*'))
-            if ls:
-                vmlinuz = os.path.basename(ls[0])[8:]
-                if vmlinuz.endswith('.img'):
-                    vmlinuz = vmlinuz[:-4]
-                self._uname_r = vmlinuz
-
     def _do_rootfs(self, pkgs):
         self.logger.info("Initializing rootfs with urpmi...")
         locale = 'locales-%s' % settings.I18n.locale.split('_')[0]
@@ -516,6 +505,15 @@ class MandrivaInstallStep(_InstallStep):
 
     def _do_initramfs(self):
         #
+        # Retrieve the kernel version we previously installed.
+        #
+        ls = glob.glob(os.path.join(self._root, 'boot', 'vmlinuz-*'))
+        vmlinuz = os.path.basename(ls[0])[8:]
+        if vmlinuz.endswith('.img'):
+            vmlinuz = vmlinuz[:-4]
+        uname_r = vmlinuz
+
+        #
         # Even if the initramfs has been built during kernel
         # installation, we regenerate it now so it includes all tools
         # needed to mount the rootfs since the rootfs is completely
@@ -523,7 +521,7 @@ class MandrivaInstallStep(_InstallStep):
         #
         opt = '--hostonly' if settings.Options.hostonly else '--no-hostonly'
         cmd = "dracut {0} --force /boot/initrd-{1}.img {1}"
-        self._chroot(cmd.format(opt, self._uname_r))
+        self._chroot(cmd.format(opt, uname_r))
         self.set_completion(98)
 
 
