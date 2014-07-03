@@ -185,13 +185,13 @@ class BlockDevice(object):
 
     @property
     def mountpoints(self):
-        if self.filesystem:
-            try:
-                args = ["findmnt", "-n", "-o", "TARGET", "--source", self.devpath]
-                return check_output(args).decode().split()
-            except CalledProcessError:
-                pass
-        return []
+        # Don't test if there's a filesystem: there're cases where
+        # there's no (more) filesystem but the device is still mounted.
+        try:
+            args = ["findmnt", "-n", "-o", "TARGET", "--source", self.devpath]
+            return check_output(args).decode().split()
+        except CalledProcessError:
+            return []
 
     def devlinks(self, ident=None):
         links = self._gudev.get_property("DEVLINKS").split()
