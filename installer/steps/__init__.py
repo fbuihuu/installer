@@ -121,7 +121,12 @@ class Step(object):
     def __process(self, *args):
         quit = False
         delay = 0
-        self._root = mount_rootfs()
+
+        # Mount rootfs only if the step needs it. Also mount it in the
+        # case the step is going to initialize it.
+        if 'rootfs' in self.requires or 'rootfs' in self.provides:
+            self._root = mount_rootfs()
+            assert(self._root)
 
         try:
             self._process(*args)
@@ -134,10 +139,13 @@ class Step(object):
             if self.__is_in_progress():
                 self._done()
 
-        try:
-            self._root = unmount_rootfs()
-        except:
-            self.logger.error("failed to umount %s", self._root)
+        if self._root:
+            try:
+                unmount_rootfs()
+            except:
+                self.logger.error("failed to umount %s", self._root)
+            finally:
+                self._root = None
 
         finished_signal.emit(self, self._exit, self._exit_delay)
 
