@@ -458,9 +458,10 @@ def __uevent_callback(action, bdev):
             if part.device == bdev:
                 part.device = None
                 if bdev in get_candidates(part):
-                    part.device = bdev
-                else:
-                    logger.warn("incompatible changes in device %s for %s",
-                                bdev.devpath, part.name)
+                    try:
+                        part.device = bdev
+                    except PartitionError:
+                        logger.warn("incompatible changes in device %s for %s",
+                                    bdev.devpath, part.name)
 
 device.listen_uevent(__uevent_callback)
