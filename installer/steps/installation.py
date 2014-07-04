@@ -3,12 +3,12 @@
 
 from __future__ import print_function
 import os
-import re
 import glob
 from subprocess import check_output, check_call
 
 from installer import disk
 from installer import l10n
+from installer import distro
 from installer.partition import partitions
 from installer.system import distribution, is_efi
 from installer.settings import settings
@@ -188,7 +188,7 @@ class _InstallStep(Step):
 
         # Fix the kernel command line in syslinux config file.
         append = "    APPEND      %s" % self._kernel_cmdline
-        for cfg in glob.glob(self._root + self._syslinux_cfg):
+        for cfg in glob.glob(self._root + distro.paths['syslinux.cfg']):
             self._monitor(["sed", "-i", "/[[:space:]]*APPEND[[:space:]]+/d", cfg])
             self._monitor(["sed", "-i", "$a%s" % append, cfg])
 
@@ -305,56 +305,22 @@ class ArchInstallStep(_InstallStep):
 
     def __init__(self):
         _InstallStep.__init__(self)
-        self._pacstrap = None
-        self._syslinux_cfg = '/boot/syslinux/syslinux.cfg'
-
-    def _cancel(self):
-        if self._pacstrap:
-            self._pacstrap.terminate()
-            self._pacstrap = None
-
-    def _do_pacstrap(self, pkgs, completion):
-
-        def stdout_handler(p, line, data):
-            self._pacstrap = p
-            if data is None:
-                data = (self._completion, 0, 0, re.compile(r'Packages \(([0-9]+)\)'))
-            origin, count, total, pattern = data
-
-            match = pattern.search(line)
-            if not match:
-                pass
-            elif total == 0:
-                total = int(match.group(1)) * 2
-                pattern = re.compile(r'downloading |(re)?installing ')
-            else:
-                if not line.startswith('downloading '):
-                    count = max(count, total/2)
-                count += 1
-                delta = completion - origin # constant
-                self.set_completion(origin + delta * count / total)
-
-            return (origin, count, total, pattern)
-
-        if pkgs:
-            self._monitor(['pacstrap', self._root] + pkgs,
-                          stdout_handler=stdout_handler)
-            self._pacstrap = None
+        self._pacstrap = self._chroot_install
 
     def _do_rootfs(self, pkgs):
         self.logger.info("Initializing rootfs with pacstrap...")
-        self._do_pacstrap(["base"] + pkgs, 60)
+        self._pacstrap(["base"] + pkgs, 60)
 
     def _do_i18n(self):
         # Uncomment all related locales
         locale = settings.I18n.locale
         self._chroot("sed -i 's/^#\(%s.*\)/\\1/' /etc/locale.gen" % locale)
         self._chroot("locale-gen")
-        l10n.init_timezones('/usr/share/zoneinfo/posix', self._root)
-        l10n.init_keymaps('/usr/share/kbd/keymaps', self._root)
+        l10n.init_timezones(distro.paths['timezones'], self._root)
+        l10n.init_keymaps(distro.paths['keymaps'], self._root)
 
     def _do_bootloader_on_efi(self):
-        self._do_pacstrap(['gummiboot'], 80)
+        self._pacstrap(['gummiboot'], 80)
         self._chroot('mkdir -p /boot/loader/entries')
 
         initrd = "initramfs-linux"
@@ -381,18 +347,18 @@ initrd      /{initrd}
         self._do_bootloader_on_efi_with_gummiboot()
 
     def _do_bootloader_on_mbr(self, bootable):
-        self._do_pacstrap(['syslinux', 'util-linux'], 80)
+        self._pacstrap(['syslinux', 'util-linux'], 80)
         self._do_bootloader_on_bios_with_syslinux(bootable, gpt=False)
 
     def _do_bootloader_on_gpt(self, bootable):
-        self._do_pacstrap(['syslinux', 'gptfdisk'], 80)
+        self._pacstrap(['syslinux', 'gptfdisk'], 80)
         self._do_bootloader_on_bios_with_syslinux(bootable, gpt=True)
 
     def _do_bootloader_finish(self):
         pass
 
     def _do_extra_packages(self):
-        self._do_pacstrap(self._extra_packages, 90)
+        self._pacstrap(self._extra_packages, 90)
 
     def _do_initramfs(self):
         hooks = ["base", "udev"]
@@ -422,71 +388,28 @@ class MandrivaInstallStep(_InstallStep):
 
     def __init__(self):
         _InstallStep.__init__(self)
-        self._urpmi = None
-        self._urpmi_installed = False
-        self._syslinux_cfg = '/boot/syslinux/entries/*'
-
-    def _cancel(self):
-        if self._urpmi:
-            self._urpmi.terminate()
-            self._urpmi = None
-
-    def _do_urpmi(self, args, completion):
-        urpmi_opts = settings.Urpmi.options.split() + \
-                     ["--auto", "--downloader=curl", "--curl-options='-s'"]
-
-        def stdout_handler(p, line, data):
-            self._urpmi = p
-            if data is None:
-                data = (self._completion, re.compile(r'\s+([0-9]+)/([0-9]+): '))
-            origin, pattern = data
-
-            match = pattern.match(line)
-            if match:
-                count, total = map(int, match.group(1, 2))
-                delta = completion - origin
-                self.set_completion(origin + delta * count / total)
-
-            return (origin, pattern)
-
-        if args:
-            if self._urpmi_installed:
-                cmd = " ".join(["urpmi"] + urpmi_opts + args)
-                self._chroot(cmd, stdout_handler=stdout_handler)
-            else:
-                cmd = ['urpmi', '--root', self._root] + urpmi_opts + args
-                self._monitor(cmd, stdout_handler=stdout_handler)
-            self._urpmi = None
-        self.set_completion(completion)
-
-        # Switch to urpmi from rootfs, so all packages installed later
-        # will use a proper environment inside the chroot.
-        if 'urpmi' in args:
-            self._chroot_cp('/etc/urpmi/urpmi.cfg',
-                            overwrite=settings.Urpmi.use_host_config)
-            self._chroot("urpmi.update -a --force-key -q")
-            self._urpmi_installed = True
+        self._urpmi = self._chroot_install # alias
 
     def _do_rootfs(self, pkgs):
         self.logger.info("Initializing rootfs with urpmi...")
         locale = 'locales-%s' % settings.I18n.locale.split('_')[0]
         pkgs = ['basesystem-minimal', locale] + pkgs
-        self._do_urpmi(pkgs, 60)
+        self._urpmi(pkgs, 60)
 
     def _do_i18n(self):
-        l10n.init_timezones('/usr/share/zoneinfo/posix', self._root)
-        l10n.init_keymaps('/usr/lib/kbd/keymaps', self._root)
+        l10n.init_timezones(distro.paths['timezones'], self._root)
+        l10n.init_keymaps(distro.paths['keymaps'], self._root)
 
     def _do_bootloader_on_efi(self):
-        self._do_urpmi(['gummiboot'], 70)
+        self._urpmi(['gummiboot'], 70)
         self._do_bootloader_on_efi_with_gummiboot()
 
     def _do_bootloader_on_gpt(self, bootable):
-        self._do_urpmi(['syslinux', 'extlinux', 'gdisk'], 70)
+        self._urpmi(['syslinux', 'extlinux', 'gdisk'], 70)
         self._do_bootloader_on_bios_with_syslinux(bootable, gpt=True)
 
     def _do_bootloader_on_mbr(self, bootable):
-        self._do_urpmi(['syslinux', 'extlinux', 'util-linux'], 70)
+        self._urpmi(['syslinux', 'extlinux', 'util-linux'], 70)
         self._do_bootloader_on_bios_with_syslinux(bootable, gpt=False)
 
     def _do_bootloader_finish(self):
@@ -498,10 +421,10 @@ class MandrivaInstallStep(_InstallStep):
         # generate all config files right now so _do_bootloader can
         # customize them.
         #
-        self._do_urpmi(['kernel'], 80)
+        self._urpmi(['kernel'], 80)
 
     def _do_extra_packages(self):
-        self._do_urpmi(self._extra_packages, 90)
+        self._urpmi(self._extra_packages, 90)
 
     def _do_initramfs(self):
         #

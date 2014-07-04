@@ -4,8 +4,9 @@
 import os
 import logging
 from threading import current_thread, Thread, RLock
+from installer import distro
 from installer.utils import Signal
-from installer.process import monitor, monitor_chroot
+from installer.process import monitor, monitor_chroot, get_current
 from installer.partition import mount_rootfs, unmount_rootfs
 from installer.settings import settings, SettingsError
 
@@ -106,8 +107,11 @@ class Step(object):
         assert(current_thread() != self._thread)
 
         if self.__is_in_progress():
+            self.logger.info("aborting...")
             self._state = self._STATE_CANCELLED
-            self._cancel()
+            if get_current():
+                self.logger.debug("killing %d" % get_current().pid)
+                get_current().terminate()
             self._thread.join()
             self.logger.info("aborted.")
             self.set_completion(0)
@@ -185,10 +189,6 @@ class Step(object):
         """Implement the actual work executed asynchronously"""
         raise NotImplementedError()
 
-    def _cancel(self):
-        """Notify the thread it should terminate as soon as possible"""
-        raise NotImplementedError()
-
     def is_enabled(self):
         return self._state != self._STATE_DISABLED
 
@@ -231,6 +231,10 @@ class Step(object):
         if not os.path.exists(dst) or overwrite:
             self.logger.info("importing from host: %s", src)
             self._monitor(["cp", src, dst])
+
+    def _chroot_install(self, pkgs, completion):
+        distro.install(pkgs, self._root, self._completion, completion,
+                       self.set_completion, self.logger)
 
 #
 # Step instantiations requires working translation.
