@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 #
 import os
+from subprocess import CalledProcessError
 
-from . import Step
+from . import Step, StepError
 from installer.settings import settings
 from installer import l10n
 from installer.system import distribution
@@ -43,7 +44,11 @@ class _L10nStep(Step):
         self.logger.debug("using keymap '%s'", keymap)
         self.logger.debug("using timezone '%s'", tzone)
 
-        self._do_locale(locale)
+        try:
+            self._do_locale(locale)
+        except CalledProcessError:
+            raise StepError("Unsupported locale '%s'" % locale)
+
         self._do_timezone(tzone)
         self._do_keymap(keymap)
 
@@ -64,6 +69,8 @@ class _L10nStep(Step):
 class ArchL10nStep(_L10nStep):
 
     def _do_locale(self, locale):
+        # make sure the locale is supported
+        self._chroot("grep -q %s /etc/locale.gen" % locale)
         # Uncomment all related locales
         self._chroot("sed -i 's/^#\(%s.*\)/\\1/' /etc/locale.gen" % locale)
         self._chroot("locale-gen")
