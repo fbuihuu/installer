@@ -111,6 +111,10 @@ class _InstallStep(Step):
     def _do_rootfs(self):
         raise NotImplementedError()
 
+    def _do_i18n(self):
+        l10n.init_timezones(distro.paths['timezones'], self._root)
+        l10n.init_keymaps(distro.paths['keymaps'], self._root)
+
     def _do_fstab(self):
         self.logger.info("generating fstab")
         for part in partitions:
@@ -311,14 +315,6 @@ class ArchInstallStep(_InstallStep):
         self.logger.info("Initializing rootfs with pacstrap...")
         self._pacstrap(["base"] + pkgs, 60)
 
-    def _do_i18n(self):
-        # Uncomment all related locales
-        locale = settings.I18n.locale
-        self._chroot("sed -i 's/^#\(%s.*\)/\\1/' /etc/locale.gen" % locale)
-        self._chroot("locale-gen")
-        l10n.init_timezones(distro.paths['timezones'], self._root)
-        l10n.init_keymaps(distro.paths['keymaps'], self._root)
-
     def _do_bootloader_on_efi(self):
         self._pacstrap(['gummiboot'], 80)
         self._chroot('mkdir -p /boot/loader/entries')
@@ -392,13 +388,7 @@ class MandrivaInstallStep(_InstallStep):
 
     def _do_rootfs(self, pkgs):
         self.logger.info("Initializing rootfs with urpmi...")
-        locale = 'locales-%s' % settings.I18n.locale.split('_')[0]
-        pkgs = ['basesystem-minimal', locale] + pkgs
-        self._urpmi(pkgs, 60)
-
-    def _do_i18n(self):
-        l10n.init_timezones(distro.paths['timezones'], self._root)
-        l10n.init_keymaps(distro.paths['keymaps'], self._root)
+        self._urpmi(['basesystem-minimal'] + pkgs, 60)
 
     def _do_bootloader_on_efi(self):
         self._urpmi(['gummiboot'], 70)
@@ -456,4 +446,3 @@ def InstallStep():
         return ArchInstallStep()
 
     raise NotImplementedError()
-
