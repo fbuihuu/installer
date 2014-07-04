@@ -27,7 +27,13 @@ systemd_version = int(_output[1])
 # 'args' is list of arguments to be passed to Popen(shell=False) (ie
 # execvp())
 #
-def monitor(args, logger=None, stdout_handler=None, stderr_handler=None):
+_current = None
+def get_current():
+    return _current
+
+def _monitor(args, logger=None, stdout_handler=None, stderr_handler=None):
+    global _current
+
     fd_map = {}
     data = None
 
@@ -42,6 +48,7 @@ def monitor(args, logger=None, stdout_handler=None, stderr_handler=None):
     env = os.environ.copy()
     env['LC_ALL'] = 'C'
     p = Popen(args, env=env, stdout=PIPE, stderr=PIPE)
+    _current = p
 
     if not stdout_handler:
         stdout_handler = lambda p,l,d: d
@@ -89,8 +96,22 @@ def monitor(args, logger=None, stdout_handler=None, stderr_handler=None):
                 del fd_map[fd]
 
     retcode = p.wait()
+    _current = None
     if retcode:
         raise CalledProcessError(retcode, " ".join(args))
+
+
+def monitor(args, logger=None, stdout_handler=None, stderr_handler=None):
+    global _current
+    assert(not _current)
+
+    try:
+        _monitor(args, logger, stdout_handler, stderr_handler)
+    except:
+        if _current:
+            _current.terminate()
+            _current = None
+        raise
 
 #
 # Same as above but execute the command in a chrooted/container
