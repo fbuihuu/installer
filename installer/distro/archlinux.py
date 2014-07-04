@@ -14,6 +14,8 @@ paths = {
 def install(pkgs, root=None, completion_start=0, completion_end=0,
           set_completion=lambda *args: None, logger=None):
 
+    pacman_opts = ['--needed']
+
     def stdout_handler(p, line, data):
         if data is None:
             data = (0, 0, re.compile(r'Packages \(([0-9]+)\)'))
@@ -36,10 +38,11 @@ def install(pkgs, root=None, completion_start=0, completion_end=0,
 
     if pkgs:
         if root:
-            monitor(['pacstrap', root] + pkgs, logger=logger,
+            monitor(['pacstrap', root] + pacman_opts + pkgs, logger=logger,
                     stdout_handler=stdout_handler)
         else:
-            monitor(['pacman'] + pkgs, logger=logger, stdout_handler=stdout_handler)
+            monitor(['pacman'] + pkgs + pacman_opts, logger=logger,
+                    stdout_handler=stdout_handler)
 
     # Make sure to set completion level specially when packages are
     # already installed (and --needed options is used).
