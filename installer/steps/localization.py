@@ -35,11 +35,15 @@ class _L10nStep(Step):
         keymap = settings.I18n.keymap
         tzone  = settings.I18n.timezone
 
+        if not '.' in locale:
+            # default charmap is utf-8
+            locale = locale + '.UTF-8'
+
         self.logger.debug("using locale '%s'", locale)
         self.logger.debug("using keymap '%s'", keymap)
         self.logger.debug("using timezone '%s'", tzone)
 
-        self._do_locale(locale, "UTF-8")
+        self._do_locale(locale)
         self._do_timezone(tzone)
         self._do_keymap(keymap)
 
@@ -52,25 +56,25 @@ class _L10nStep(Step):
         tz_path = os.path.join(l10n.timezones_path, tz)
         self._chroot('ln -sf %s /etc/localtime' % tz_path, with_nspawn=False)
 
-    def _do_locale(self, locale, charmap):
+    def _do_locale(self, locale):
         with open(self._root + '/etc/locale.conf', 'w') as f:
-            f.write("LANG=%s.%s\n" % (locale, charmap))
+            f.write("LANG=%s\n" % locale)
 
 
 class ArchL10nStep(_L10nStep):
 
-    def _do_locale(self, locale, charmap):
+    def _do_locale(self, locale):
         # Uncomment all related locales
         self._chroot("sed -i 's/^#\(%s.*\)/\\1/' /etc/locale.gen" % locale)
         self._chroot("locale-gen")
-        _L10nStep._do_locale(self, locale, charmap)
+        _L10nStep._do_locale(self, locale)
 
 
 class MandrivaL10nStep(_L10nStep):
 
-    def _do_locale(self, locale, charmap):
+    def _do_locale(self, locale):
         self._chroot_install(['locales-%s' % locale.split('_')[0]], 90)
-        _L10nStep._do_locale(self, locale, charmap)
+        _L10nStep._do_locale(self, locale)
 
 
 def LocalizationStep():
