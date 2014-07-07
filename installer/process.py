@@ -1,4 +1,5 @@
 import os
+import signal
 import select
 import logging
 from subprocess import PIPE, Popen, call, check_call, check_output, CalledProcessError
@@ -31,6 +32,14 @@ _current = None
 def get_current():
     return _current
 
+def kill_current(sig=signal.SIGTERM, logger=None):
+    if get_current():
+        # current is the process group leader
+        pid = get_current().pid
+        if logger:
+            logger.debug("killing %d" % pid)
+        os.killpg(pid, sig)
+
 def _monitor(args, logger=None, stdout_handler=None, stderr_handler=None):
     global _current
 
@@ -43,11 +52,17 @@ def _monitor(args, logger=None, stdout_handler=None, stderr_handler=None):
     if [logger, stdout_handler, stderr_handler].count(None) == 3:
         return call(args, stdout=DEVNULL, stderr=DEVNULL)
 
+    #
     # Make sure the command's output is always formatted the same
     # regardless the current locale setting.
+    #
+    # Make the new created process the group leader, so we can kill
+    # it *and* all its sibling easily by sending signals to the whole
+    # group. pacstrap for example needs that.
+    #
     env = os.environ.copy()
     env['LC_ALL'] = 'C'
-    p = Popen(args, env=env, stdout=PIPE, stderr=PIPE)
+    p = Popen(args, env=env, stdout=PIPE, stderr=PIPE, preexec_fn=os.setpgrp)
     _current = p
 
     if not stdout_handler:

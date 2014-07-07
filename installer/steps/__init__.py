@@ -6,7 +6,7 @@ import logging
 from threading import current_thread, Thread, RLock
 from installer import distro
 from installer.utils import Signal
-from installer.process import monitor, monitor_chroot, get_current
+from installer.process import monitor, monitor_chroot, get_current, kill_current
 from installer.partition import mount_rootfs, unmount_rootfs
 from installer.settings import settings, SettingsError
 
@@ -109,9 +109,7 @@ class Step(object):
         if self.__is_in_progress():
             self.logger.info("aborting...")
             self._state = self._STATE_CANCELLED
-            if get_current():
-                self.logger.debug("killing %d" % get_current().pid)
-                get_current().terminate()
+            kill_current(logger=self.logger)
             self._thread.join()
             self.logger.info("aborted.")
             self.set_completion(0)
