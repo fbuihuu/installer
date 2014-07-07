@@ -44,7 +44,7 @@ class UI(object):
             l10n.set_translation(self._language)
 
             # Import view's module.
-            mod = import_module('.' + name.lower(), 'installer.ui.urwid')
+            mod = import_module('.' + name.lower(), self.__module__)
 
             # Retrieve view's class and instantiate it.
             view = getattr(mod, name + 'View')(self, step)
