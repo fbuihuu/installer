@@ -68,6 +68,16 @@ def debug():
     pdb.set_trace()
 
 
+def parse_cmdline(parser):
+    """Parses the relevant cmdline arguments specific to urwid frontend"""
+    group = parser.add_argument_group('urwid', 'urwid frontend specific options')
+    group.add_argument('--colors',
+                       type=int,
+                       choices=[8, 16],
+                       dest='colors',
+                       help='select the num of colors urwid will use')
+
+
 class LogHandler(logging.Handler):
 
     def __init__(self, ui):
