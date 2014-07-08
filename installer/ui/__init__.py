@@ -43,12 +43,16 @@ class UI(object):
             name = step.name
             l10n.set_translation(self._language)
 
-            # Import view's module.
-            mod = import_module('.' + name.lower(), self.__module__)
-
-            # Retrieve view's class and instantiate it.
-            view = getattr(mod, name + 'View')(self, step)
-            step.view_data = view
+            try:
+                # Import view's module if available
+                mod = import_module('.' + name.lower(), self.__module__)
+            except ImportError:
+                logger.debug("no module view for step '%s'" % name)
+                step.view_data = None
+            else:
+                # Retrieve view's class and instantiate it.
+                view = getattr(mod, name + 'View')(self, step)
+                step.view_data = view
 
     def run(self):
         raise NotImplementedError()
