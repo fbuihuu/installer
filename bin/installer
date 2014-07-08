@@ -21,20 +21,22 @@ def parse_cmdline():
 
     parser = argparse.ArgumentParser(description="An easy way to install your favorite distribution")
     parser.add_argument("-c", "--config",
-                        metavar='file',
+                        metavar='FILE',
                         type=argparse.FileType('r'),
                         help="specify a configuration file")
     parser.add_argument("--skip",
                         dest="skipped_steps",
+                        metavar="STEP",
                         nargs="+",
                         help="don't proceed the specified step(s)")
     parser.add_argument("--no-skip",
                         dest="forced_steps",
+                        metavar="STEP",
                         nargs="+",
                         help="don't skip the specified step(s)")
     parser.add_argument("--log",
                         dest="logfile",
-                        metavar='file',
+                        metavar='FILE',
                         help="specify the log file")
     parser.add_argument("--firmware",
                         dest="firmware",
