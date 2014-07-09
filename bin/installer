@@ -93,7 +93,8 @@ def main():
     #
     # Set hostonly mode.
     #
-    settings.Options.hostonly = args.hostonly
+    if args.hostonly:
+        settings.Options.hostonly = args.hostonly
 
     #
     # Set firmware.
