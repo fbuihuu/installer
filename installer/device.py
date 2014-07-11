@@ -90,7 +90,7 @@ def _syspath_to_bdev(syspath):
             if dev.syspath == syspath:
                 return dev
 
-def _find_bdev(major, minor):
+def find_bdev(major, minor):
     with _bdev_lock:
         for dev in _block_devices:
             if dev.major == major and dev.minor == minor:
