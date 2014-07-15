@@ -4,7 +4,7 @@
 
 import os
 import re
-from subprocess import check_output
+from subprocess import check_output, CalledProcessError
 from .systemd import localed
 
 
@@ -63,6 +63,42 @@ def get_arch():
     if arch in ("i686", "i586", "i486", "i386"):
         arch = "x86_32"
     return arch
+
+
+# Implementation stolen from python 3.4
+def __get_terminal_size(fallback=(80, 24)):
+    # columns, lines are the working values
+    try:
+        columns = int(os.environ['COLUMNS'])
+    except (KeyError, ValueError):
+        columns = 0
+
+    try:
+        lines = int(os.environ['LINES'])
+    except (KeyError, ValueError):
+        lines = 0
+
+    # only query if necessary
+    if columns <= 0 or lines <= 0:
+        try:
+            stty = check_output(['stty', 'size']).decode().split()
+            size = (int(stty[1]), int(stty[0]))
+        except CalledProcessError:
+            size = fallback
+        if columns <= 0:
+            columns = size[0]
+        if lines <= 0:
+            lines = size[1]
+
+    return terminal_size(columns, lines)
+
+try:
+    import shutil
+    get_terminal_size = shutil.get_terminal_size
+except AttributeError:
+    import collections, os
+    terminal_size = collections.namedtuple('terminal_size', 'columns lines')
+    get_terminal_size = __get_terminal_size
 
 
 class Keyboard(object):
