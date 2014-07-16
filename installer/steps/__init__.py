@@ -126,6 +126,7 @@ class Step(object):
             self._root = mount_rootfs()
             assert(self._root)
 
+        self.logger.info("processing...")
         try:
             self._process(*args)
         except StepError as e:
