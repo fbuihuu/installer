@@ -131,6 +131,8 @@ class Step(object):
             self._process(*args)
         except StepError as e:
             self._failed("%s" % e)
+        except SettingsError as e:
+            self.logger.error("configuration error: %s" % e)
         except:
             if not self.__is_cancelled():
                 self._failed(_("failed, see logs for details."), True)
