@@ -191,7 +191,7 @@ class UrwidUI(UI):
         self.register_hotkey('f5', self.quit)
 
         #
-        # Since GUdev is used we need to use the even loop based on
+        # Since GUdev is used we need to use the event loop based on
         # GLib.
         #
         # In that case, before using Python threads we have to call
@@ -200,9 +200,8 @@ class UrwidUI(UI):
         # support in PyGObject (it was called gobject.threads_init()
         # in pygtk). Think of it as gi.threads_init().
         #
-        # Since PyGObject 3.10.2, calling GObject.threads_init() this
-        # is no longer needed.
-        #
+        # Since PyGObject 3.10.2, calling GObject.threads_init() is no
+        # longer needed.
         #
         # FIXME: I'm still not sure if it's the right place to add
         # this.
