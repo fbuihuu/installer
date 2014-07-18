@@ -282,7 +282,7 @@ class UrwidUI(UI):
     @ui_thread
     def quit(self, delay=0):
         self._redraw()   # Make sure that any pending gfx changes are redrawn.
-        UI._quit(self)
+        self._quit()
         time.sleep(delay)
         raise urwid.ExitMainLoop()
 
