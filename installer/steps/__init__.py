@@ -106,7 +106,7 @@ class Step(object):
         #
         assert(current_thread() != self._thread)
 
-        if self.__is_in_progress():
+        if self.is_in_progress():
             self.logger.info("aborting...")
             self._state = self._STATE_CANCELLED
             kill_current(logger=self.logger)
@@ -137,7 +137,7 @@ class Step(object):
             if not self.__is_cancelled():
                 self._failed(_("failed, see logs for details."), True)
         else:
-            if self.__is_in_progress():
+            if self.is_in_progress():
                 self._done()
 
         if self._root:
@@ -151,7 +151,7 @@ class Step(object):
         finished_signal.emit(self, self._exit, self._exit_delay)
 
     def process(self, *args):
-        assert(not self.__is_in_progress())
+        assert(not self.is_in_progress())
         self._thread = Thread(target=self.__process, args=args)
         self._state = self._STATE_IN_PROGRESS
         self._thread.start()
@@ -165,12 +165,12 @@ class Step(object):
     def disable(self):
         if len(self.requires):
             if self.is_enabled():
-                if self.__is_in_progress():
+                if self.is_in_progress():
                     self.__cancel()
                 self._state = self._STATE_DISABLED
 
     def reset(self):
-        if self.__is_in_progress():
+        if self.is_in_progress():
             self.__cancel()
         if self.is_done() or self.is_failed():
             self._state = self._STATE_INIT
@@ -210,7 +210,7 @@ class Step(object):
     def is_failed(self):
         return self._state == self._STATE_FAILED
 
-    def __is_in_progress(self):
+    def is_in_progress(self):
         return self._state == self._STATE_IN_PROGRESS
 
     def __is_cancelled(self):
