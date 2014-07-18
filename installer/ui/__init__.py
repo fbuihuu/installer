@@ -58,8 +58,8 @@ class UI(object):
         raise NotImplementedError()
 
     def _quit(self):
-        for m in steps.get_steps():
-            m.reset()
+        for s in steps.get_steps():
+            s.reset()
         logger.info(_("exiting..."))
 
     def suspend(self):
