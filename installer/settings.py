@@ -25,7 +25,7 @@ class SectionSettingsError(SettingsError, AttributeError):
         self.section = section
 
     def __str__(self):
-        return "unknown section '%s'" % self.section
+        return "missing section '%s'" % self.section
 
 
 class AttributeSettingsError(SettingsError, AttributeError):
@@ -36,7 +36,7 @@ class AttributeSettingsError(SettingsError, AttributeError):
         self.attr    = attr
 
     def __str__(self):
-        return "missing attribute '%s' in section '%s'" % (self.attr, self. section)
+        return "missing option '%s' in section '%s'" % (self.attr, self. section)
 
 
 class Section(object):
