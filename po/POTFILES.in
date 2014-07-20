@@ -1,6 +1,9 @@
 installer/__init__.py
 installer/device.py
 installer/disk.py
+installer/distro/__init__.py
+installer/distro/archlinux.py
+installer/distro/mandriva.py
 installer/l10n.py
 installer/partition.py
 installer/process.py
