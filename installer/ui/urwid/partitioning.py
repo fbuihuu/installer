@@ -115,16 +115,15 @@ class DiskTableWidget(urwid.WidgetWrap):
 
     def _on_uevent(self, action, bdev):
         #
-        # We're not interested by 'change' events since disk validity is
-        # checked later. We simply want to display all disks connected
-        # to this system.
+        # Display all disks known by the system. We'll check the
+        # validity of the selected disks later. Note that 'change'
+        # events might add new disks, loop devices is an example.
         #
-        if action != 'change':
-            selected = self.get_selected()
-            if action == 'remove' and bdev in selected:
-                selected.remove(bdev)
+        selected = self.get_selected()
+        if action == 'remove' and bdev in selected:
+            selected.remove(bdev)
 
-            self._create_disk_table(selected, self.get_focus())
+        self._create_disk_table(selected, self.get_focus())
 
     def _on_change(self, widget, state, bus):
         selected = self.get_selected()

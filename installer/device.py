@@ -62,7 +62,7 @@ def leaf_block_devices():
     without partitions.
     """
     with _bdev_lock:
-        leaves = list(_block_devices)
+        leaves = [bdev for bdev in _block_devices if bdev.is_ready]
         for dev in _block_devices:
             for parent in dev.get_parents():
                 if parent in leaves:
@@ -75,6 +75,8 @@ def root_block_devices():
     with _bdev_lock:
         for dev in _block_devices:
             if dev.devtype != 'disk':
+                continue
+            if not dev.is_ready:
                 continue
             if dev.get_parents():
                 continue
@@ -182,6 +184,11 @@ class BlockDevice(object):
     @property
     def fslabel(self):
         return self._gudev.get_property("ID_FS_LABEL")
+
+    @property
+    def is_ready(self):
+        """Inform the caller that we can operate on this device"""
+        return True
 
     @property
     def mountpoints(self):
@@ -340,6 +347,10 @@ class LoopDevice(DiskDevice):
             return self._gudev.get_sysfs_attr_as_strv('loop/backing_file')[0]
         except IndexError:
             return None
+
+    @property
+    def is_ready(self):
+        return self.backing_file is not None
 
     def __str__(self):
         lines = [(_("Model"),          self.model),
@@ -551,8 +562,6 @@ def __on_add_uevent(gudev):
         bdev = FloppyDevice(gudev)
     elif major == 7:
         bdev = LoopDevice(gudev)
-        if not bdev.backing_file:
-            bdev = None
     elif major == 9:
         bdev = MetadiskDevice(gudev)
     elif major == 11:
