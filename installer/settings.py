@@ -60,32 +60,74 @@ class Section(object):
 
 
 class I18n(Section):
-    country  = ''
-    timezone = ''
-    keymap   = ''
-    locale   = ''
+    _country  = ''
+    _timezone = ''
+    _keymap   = ''
+    _locale  = ''
 
     def __init__(self):
         Section.__init__(self)
-        lang, enc = locale.getdefaultlocale()
+        # used to keep track of the options overriden by the user explicitely.
+        self._explicit_settings = set()
+        self.locale = locale.getdefaultlocale()[0]
 
+    @property
+    def country(self):
+        return self._country
+
+    @property
+    def timezone(self):
+        return self._timezone
+
+    @property
+    def keymap(self):
+        return self._keymap
+
+    @property
+    def locale(self):
+        return self._locale
+
+    @country.setter
+    def country(self, country):
+        self._explicit_settings.add('country')
+        self._country = country
+
+    @timezone.setter
+    def timezone(self, tz):
+        self._explicit_settings.add('timezone')
+        self._timezone = tz
+
+    @keymap.setter
+    def keymap(self, kmap):
+        self._explicit_settings.add('keymap')
+        self._keymap = kmap
+
+    @locale.setter
+    def locale(self, locale):
         found = None
         for ccode, zones in l10n.country_zones.items():
             for zi in zones:
-                if lang == zi.locale:
+                if locale == zi.locale:
                     found = (ccode, zi)
                     break
-                if not found and zi.locale.startswith(lang.split('_')[0]):
+                if found:
+                    # Try to find an exact match only.
+                    continue
+                if zi.locale.split('_')[0] == locale.split('_')[0]:
                     found = (ccode, zi)
-            if lang == zi.locale:
+            if locale == zi.locale:
                 break
         if not found:
             found = ('US', l10n.country_zones['US'][0])
 
-        I18n.country  = found[0]
-        I18n.timezone = found[1].timezone
-        I18n.keymap   = found[1].keymap
-        I18n.locale   = found[1].locale
+        self._locale = found[1].locale
+        # don't change values previously customized by the user.
+        if not 'country' in self._explicit_settings:
+            self._country = found[0]
+        if not 'timezone' in self._explicit_settings:
+            self._timezone = found[1].timezone
+        if not 'keymap' in self._explicit_settings:
+            self._keymap = found[1].keymap
 
 
 class Kernel(Section):

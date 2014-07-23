@@ -39,21 +39,12 @@ class LanguageView(StepView):
             if l10n.country_names[code] == country:
                 zi = l10n.country_zones[code][0]
                 break
-        try:
-            # Change the language of the whole ui.
-            self._ui.language = zi.locale
 
-        except l10n.TranslationError:
-            self.logger.warn(_("UI is using '%s' language as fallback"),
-                             settings.I18n.locale)
+        # Change the language of the whole ui. This may fail if no
+        # translation is available for this lang.
+        self._ui.language = zi.locale
 
-        # Only init I18 settings if the user didn't already.
-        settings.I18n.country  = code
-        if not settings.I18n.timezone:
-            settings.I18n.timezone = zi.timezone
-        if not settings.I18n.keymap:
-            settings.I18n.keymap = zi.keymap
-        if not settings.I18n.locale:
-            settings.I18n.locale = zi.locale
+        # This only inits the others I18n settings if the user didn't already.
+        settings.I18n.locale = zi.locale
 
         self.run()

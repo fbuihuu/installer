@@ -16,9 +16,7 @@ class UI(object):
     _keys = {}
     _hotkeys = {}
 
-    def __init__(self, lang):
-        self._language = None
-        self.language  = lang
+    def __init__(self):
         self._current_step = None
 
         steps.initialize()
@@ -28,20 +26,20 @@ class UI(object):
 
     @property
     def language(self):
-        return self._language
+        return l10n.language
 
     @language.setter
     def language(self, lang):
         l10n.set_translation(lang)
-        self._language = lang
 
     def _load_step_views(self):
         for step in steps.get_steps():
             # Dynamic loading of view modules is based on the english name
             # of the step.
-            l10n.set_translation('en_US')
+            lang = l10n.language
+            l10n.set_translation(None)
             name = step.name
-            l10n.set_translation(self._language)
+            l10n.set_translation(lang)
 
             try:
                 # Import view's module if available

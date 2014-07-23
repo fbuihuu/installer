@@ -9,20 +9,8 @@ import gettext
 
 from . import get_topdir
 
-#
-# FileNotFoundError is not available on python 2.x
-#
-try:
-    FileNotFoundError
-except NameError:
-    FileNotFoundError = IOError
-
 
 logger = logging.getLogger(__name__)
-
-
-class TranslationError(Exception):
-    """Base class for exceptions for the l10n module."""
 
 
 #
@@ -33,9 +21,9 @@ class Zone(object):
     def __init__(self, city, timezone, country, keymap, locale):
         self.city     = city
         self.timezone = timezone
+        self.country  = country # country code
         self.keymap   = keymap
         self.locale   = locale
-        self.country  = country # country code
 
 
 class BrazilZone(Zone):
@@ -50,12 +38,16 @@ class UsaZone(Zone):
 
 country_zones = None
 country_names = None
+language = None
 
 #
 #
 #
 def set_translation(lang):
-    global country_zones, country_names
+    global country_zones, country_names, language
+
+    if not lang:
+        lang = 'en_US'
 
     # Try changing the prog current locale but that's really not a big
     # deal if that fails.
@@ -71,13 +63,17 @@ def set_translation(lang):
     localedir = None
     if get_topdir():
         localedir = os.path.join(get_topdir(), 'build/mo')
-    try:
-        trans = gettext.translation('installer', languages=[lang],
-                                    localedir=localedir)
-    except FileNotFoundError:
-        assert(lang != 'en_US')
-        logger.warn("No translation found for '%s' language", lang)
-        raise TranslationError()
+
+    trans = gettext.translation('installer', languages=[lang],
+                                localedir=localedir, fallback=True)
+    #
+    # If no translation was found then use the default language which
+    # is en_US.
+    #
+    if type(trans) == gettext.NullTranslations:
+        if lang != 'en_US':
+            logger.warn("No translation found for '%s' language", lang)
+            lang = 'en_US'
 
     #
     # In Python 2, ensure that the _() that gets installed
@@ -91,6 +87,8 @@ def set_translation(lang):
     if sys.version_info[0] < 3:
         kwargs['unicode'] = True
     trans.install(**kwargs)
+
+    language = lang
 
     # The first zone of the list of each country is the prefered one.
     country_zones = {
@@ -114,9 +112,8 @@ def set_translation(lang):
         'US' : _('United States'),
     }
 
-# Init module, with the current local. The current locale is probably
-# not yet reseted by the installer: use the default locale.
-set_translation(locale.getdefaultlocale()[0])
+# Install _() with the default language used by the installer.
+set_translation(None)
 
 #
 # Time zones
