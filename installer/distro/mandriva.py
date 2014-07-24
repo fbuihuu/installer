@@ -40,16 +40,13 @@ def install(pkgs, root=None, completion_start=0, completion_end=0,
             cmd = ['urpmi'] + urpmi_opts + pkgs
             monitor(cmd, logger=logger, stdout_hander=stdout_hander)
 
-        elif os.path.exists(os.path.join(root, 'usr/sbin/urpmi')):
-            global _first_install_call
-            if _first_install_call:
-                _init_urpmi(root, logger)
-                _first_install_call = False
-
-            cmd = " ".join(["urpmi"] + urpmi_opts + pkgs)
-            monitor_chroot(root, cmd, logger=logger, stdout_handler=stdout_handler)
-
         else:
+            if os.path.exists(os.path.join(root, 'usr/sbin/urpmi')):
+                global _first_install_call
+                if _first_install_call:
+                    _init_urpmi(root, logger)
+                    _first_install_call = False
+
             cmd = ['urpmi', '--root', root] + urpmi_opts + pkgs
             monitor(cmd, logger=logger, stdout_handler=stdout_handler)
 
