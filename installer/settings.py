@@ -183,6 +183,18 @@ class Steps(Section):
 
 class Urpmi(Section):
     options  = ''
+    _config  = '/etc/urpmi/urpmi.cfg'
+
+    def __init__(self):
+        Section.__init__(self)
+
+    @property
+    def config(self):
+        return Urpmi._config
+
+    @config.setter
+    def config(self, f):
+        Urpmi._config = check_file(f)
 
 
 class Urwid(Section):
