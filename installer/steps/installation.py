@@ -11,7 +11,7 @@ from installer import l10n
 from installer import distro
 from installer.partition import partitions
 from installer.system import distribution, is_efi
-from installer.settings import settings
+from installer.settings import settings, SettingsError
 from . import Step, StepError
 
 
@@ -78,6 +78,8 @@ class _InstallStep(Step):
 
     def __init__(self):
         Step.__init__(self)
+        if self._skip:
+            raise SettingsError(_("installation step can't be disabled !"))
         self._fstab = {}
         self._extra_packages = ['mdadm'] # FIXME: should test if it's a RAID setup
 

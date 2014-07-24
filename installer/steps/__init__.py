@@ -68,7 +68,7 @@ class Step(object):
     _STATE_CANCELLED   = 4
 
     def __init__(self):
-        self._skip = False
+        self._skip = not settings.get('Steps', self.name.lower())
         self._exit = False # system wide exit
         self._root = None
         self._exit_delay = 0
@@ -256,21 +256,15 @@ from .localization import LocalizationStep
 from .password import PasswordStep
 from .end import EndStep
 
-def _initialize_one_step(step, no_skip):
-    step._skip = not no_skip
-    _all_steps.append(step)
 
 def initialize():
-    if not settings.Steps.installation:
-        raise SettingsError(_("installation step can't be disabled !"))
-
-    _initialize_one_step(LanguageStep(), settings.Steps.language)
-    _initialize_one_step(LicenseStep(), settings.Steps.license)
-    _initialize_one_step(PartitioningStep(), settings.Steps.partitioning)
-    _initialize_one_step(InstallStep(), True)
-    _initialize_one_step(LocalizationStep(), settings.Steps.localization)
-    _initialize_one_step(PasswordStep(), settings.Steps.password)
-    _initialize_one_step(EndStep(), settings.Steps.end)
+    _all_steps.append(LanguageStep())
+    _all_steps.append(LicenseStep())
+    _all_steps.append(PartitioningStep())
+    _all_steps.append(InstallStep())
+    _all_steps.append(LocalizationStep())
+    _all_steps.append(PasswordStep())
+    _all_steps.append(EndStep())
 
     assert(get_steps())
     assert(not _all_steps[0].requires)
