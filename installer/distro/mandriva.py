@@ -14,8 +14,11 @@ paths = {
 
 _first_install_call = True
 def _init_urpmi(root, logger=lambda *args: None):
-    # Import urpmi.cfg from host since it's the one used to init the rootfs.
-    monitor(["cp", '/etc/urpmi/urpmi.cfg', os.path.join(root, 'etc/urpmi/')])
+    #
+    # Import urpmi.cfg from host only if it was used to init the rootfs.
+    #
+    if not settings.Urpmi.distrib_src:
+        monitor(["cp", '/etc/urpmi/urpmi.cfg', os.path.join(root, 'etc/urpmi/')])
 
     # Import pub keys in the rootfs
     monitor(['urpmi.update', '--urpmi-root', root, '-a', '--force-key', '-q'])
@@ -26,6 +29,9 @@ def install(pkgs, root=None, completion_start=0, completion_end=0,
 
     urpmi_opts  = settings.Urpmi.options.split()
     urpmi_opts += ["--auto", "--downloader=curl", "--curl-options='-s'"]
+
+    if settings.Urpmi.distrib_src:
+        urpmi_opts += ['--use-distrib', settings.Urpmi.distrib_src]
 
     def stdout_handler(p, line, data):
         pattern = re.compile(r'\s+([0-9]+)/([0-9]+): ')

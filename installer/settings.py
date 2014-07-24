@@ -197,6 +197,7 @@ class Steps(Section):
 
 class Urpmi(Section):
     options  = ''
+    distrib_src = ''
 
 
 class Urwid(Section):
