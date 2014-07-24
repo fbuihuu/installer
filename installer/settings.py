@@ -168,10 +168,7 @@ class Packages(Section):
         # containing the config file.
         #
         for f in pkgfiles:
-            f = os.path.join(os.path.dirname(settings.Options.config), f)
-            if not os.path.exists(f):
-                raise SettingsError("Can't find package list file %s" % f)
-            self._extras.append(f)
+            self._extras.append(check_file(f))
 
 
 class Steps(Section):
@@ -261,6 +258,16 @@ def load_config_file(fp):
                 value = value.split(',')
 
             settings.set(section, entry, value)
+
+
+def check_file(f):
+    """Helper to do basic sanity checks on files specified in the
+    config file.
+    """
+    f = os.path.join(os.path.dirname(settings.Options.config), f)
+    if not os.path.exists(f):
+        raise SettingsError("Can't find file %s" % f)
+    return f
 
 
 settings = _Settings()
