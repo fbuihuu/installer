@@ -13,11 +13,11 @@ paths = {
 
 
 _first_install_call = True
-def _init_urpmi(root):
-    # Import urpmi.cfg from host when apppropriate.
-    root_urpmi_cfg = os.path.join(root, 'etc/urpmi/urpmi.cfg')
-    if not os.path.exists(root_urpmi_cfg) or settings.Urpmi.use_host_config:
-        monitor(["cp", '/etc/urpmi/urpmi.cfg', root_urpmi_cfg])
+def _init_urpmi(root, logger=lambda *args: None):
+    # Import urpmi.cfg from host since it's the one used to init the rootfs.
+    if os.path.exists(os.path.join(root, 'etc/urpmi/urpmi.cfg')):
+        logger.debug("overwriting rootfs' urpmi.cfg with system one")
+    monitor(["cp", '/etc/urpmi/urpmi.cfg', os.path.join(root, 'etc/urpmi/')])
 
     # Import pub keys in the rootfs
     monitor_chroot(root, "urpmi.update -a --force-key -q")
@@ -45,7 +45,7 @@ def install(pkgs, root=None, completion_start=0, completion_end=0,
         elif os.path.exists(os.path.join(root, 'usr/sbin/urpmi')):
             global _first_install_call
             if _first_install_call:
-                _init_urpmi(root)
+                _init_urpmi(root, logger)
                 _first_install_call = False
 
             cmd = " ".join(["urpmi"] + urpmi_opts + pkgs)

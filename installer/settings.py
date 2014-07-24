@@ -186,7 +186,6 @@ class Steps(Section):
 
 class Urpmi(Section):
     options  = ''
-    use_host_config = True
 
 
 class Urwid(Section):
