@@ -17,7 +17,7 @@ def _init_urpmi(root, logger=lambda *args: None):
     # Import urpmi.cfg from host since it's the one used to init the rootfs.
     if os.path.exists(os.path.join(root, 'etc/urpmi/urpmi.cfg')):
         logger.debug("overwriting rootfs' urpmi.cfg with system one")
-    monitor(["cp", settings.Urpmi.config, os.path.join(root, 'etc/urpmi/')])
+    monitor(["cp", '/etc/urpmi/urpmi.cfg', os.path.join(root, 'etc/urpmi/')])
 
     # Import pub keys in the rootfs
     monitor_chroot(root, "urpmi.update -a --force-key -q")
