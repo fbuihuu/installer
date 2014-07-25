@@ -259,6 +259,7 @@ from .language import LanguageStep
 from .license import LicenseStep
 from .partitioning import PartitioningStep
 from .installation import InstallStep
+from .download import DownloadStep
 from .localization import LocalizationStep
 from .password import PasswordStep
 from .end import EndStep
@@ -269,6 +270,7 @@ def initialize():
     _all_steps.append(LicenseStep())
     _all_steps.append(PartitioningStep())
     _all_steps.append(InstallStep())
+    _all_steps.append(DownloadStep())
     _all_steps.append(LocalizationStep())
     _all_steps.append(PasswordStep())
     _all_steps.append(EndStep())

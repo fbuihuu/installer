@@ -186,18 +186,20 @@ class Packages(Section):
 
 
 class Steps(Section):
-    language = True
-    license  = True
+    language     = True
+    license      = True
     partitioning = True
     installation = True
+    download     = True
     localization = True
-    password = True
-    end = True
+    password     = True
+    end          = True
 
 
 class Urpmi(Section):
     options  = ''
     distrib_src = ''
+    distrib_dst = ''
 
 
 class Urwid(Section):
