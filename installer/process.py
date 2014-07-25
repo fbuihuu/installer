@@ -134,7 +134,7 @@ def monitor(args, logger=None, stdout_handler=None, stderr_handler=None):
 # cmd parameter should be a string which specifies the command to execute
 # through the shell.
 #
-def monitor_chroot(rootfs, cmd, bind_mounts=[],
+def monitor_chroot(rootfs, args, bind_mounts=[],
                    with_nspawn=False, **kwargs):
     mounts = []
 
@@ -168,7 +168,7 @@ def monitor_chroot(rootfs, cmd, bind_mounts=[],
              stderr=DEVNULL)
 
     try:
-        monitor(chroot + ["sh", "-c", cmd], **kwargs)
+        monitor(chroot + args, **kwargs)
     finally:
         for m in reversed(mounts):
             check_call(["umount", "-l", m], stdout=DEVNULL)

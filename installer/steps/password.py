@@ -20,6 +20,6 @@ class PasswordStep(Step):
     def _process(self):
         self.logger.info(_("setting root's password"))
         password = settings.password.root
-        cmd = "echo 'root:%s' | chpasswd" % password
-        self._chroot(cmd, logger=None) # do not log root's password ;)
+        args = ['sh', '-c', 'echo root:%s | chpasswd' % password]
+        self._chroot(args, logger=None) # do not log root's password ;)
 

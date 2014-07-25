@@ -59,7 +59,7 @@ class _L10nStep(Step):
     def _do_timezone(self, tz):
         # Old versions of systemd-nspawn bind mount localtime
         tz_path = os.path.join(l10n.timezones_path, tz)
-        self._chroot('ln -sf %s /etc/localtime' % tz_path, with_nspawn=False)
+        self._chroot(['ln', '-sf', tz_path, '/etc/localtime'], with_nspawn=False)
 
     def _do_locale(self, locale):
         with open(self._root + '/etc/locale.conf', 'w') as f:
@@ -70,10 +70,10 @@ class ArchL10nStep(_L10nStep):
 
     def _do_locale(self, locale):
         # make sure the locale is supported
-        self._chroot("grep -q %s /etc/locale.gen" % locale)
+        self._chroot(['grep', '-q', locale, '/etc/locale.gen'])
         # Uncomment all related locales
-        self._chroot("sed -i 's/^#\(%s.*\)/\\1/' /etc/locale.gen" % locale)
-        self._chroot("locale-gen")
+        self._chroot(['sed', '-i', 's/^#\(%s.*\)/\\1/' % locale, '/etc/locale.gen'])
+        self._chroot(['locale-gen'])
         _L10nStep._do_locale(self, locale)
 
 

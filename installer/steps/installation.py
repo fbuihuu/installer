@@ -247,8 +247,8 @@ class _InstallStep(Step):
         # This should work even on RAID1 device, since in that case
         # the vbr will be mirrored too.
         #
-        self._chroot('cp /usr/lib/syslinux/bios/*.c32 /boot/syslinux/')
-        self._chroot('extlinux --install /boot/syslinux')
+        self._chroot(['sh', '-c', 'cp /usr/lib/syslinux/bios/*.c32 /boot/syslinux/'])
+        self._chroot(['extlinux', '--install', '/boot/syslinux'])
 
         bootcode = "gptmbr.bin" if gpt else "mbr.bin"
         bootcode = os.path.join("/usr/lib/syslinux/bios", bootcode)
@@ -263,8 +263,8 @@ class _InstallStep(Step):
         for i, parent in enumerate(disk.get_candidates(bootable)):
             # install mbr
             self.logger.debug("installing bootcode in %s MBR", parent.devpath)
-            cmd = "dd bs=440 conv=notrunc count=1 if={0} of={1} 2>/dev/null"
-            self._chroot(cmd.format(bootcode, parent.devpath))
+            cmd  = "dd bs=440 conv=notrunc count=1 if={0} of={1} 2>/dev/null"
+            self._chroot(['sh', '-c', cmd.format(bootcode, parent.devpath)])
 
             if gpt:
                 #
@@ -272,21 +272,19 @@ class _InstallStep(Step):
                 # is set for the /boot partition for GPT. It's
                 # required by syslinux on BIOS system.
                 #
-                self._chroot("sgdisk %s --attributes=%d:set:2" %
-                             (parent.devpath, partnums[i]))
+                self._chroot(['sgdisk', parent.devpath,
+                              '--attributes=%d:set:2' % partnums[i]])
             else:
                 # on MBR, we need to mark the boot partition active.
-                self._chroot("sfdisk --activate=%d %s" %
-                             (partnums[i], parent.devpath))
+                self._chroot(['sfdisk' '--activate=%d' % partnums[i],
+                              parent.devpath])
 
     def _do_bootloader_on_bios_with_grub(self, bootable, grub="grub"):
-        cmd = "{0}-mkconfig -o /boot/{0}/grub.cfg".format(grub)
-        self._chroot(cmd)
+        self._chroot([grub + '-mkconfig', '-o', '/boot/' + grub + '/grub.cfg'])
 
         # Install grub on the bootable disk(s)
         for parent in bootable.get_root_parents():
-            cmd = "{0}-install --target=i386-pc {1}".format(grub, parent.devpath)
-            self._chroot(cmd)
+            self._chroot([grub + '-install', '--target=i386-pc', parent.devpath])
 
     def _do_bootloader_on_efi_with_gummiboot(self):
         self.logger.info("installing gummiboot as bootloader on EFI system")
@@ -301,10 +299,11 @@ class _InstallStep(Step):
         # is when we're doing an installation for *this* UEFI host.
         #
         if is_efi() and settings.Options.hostonly:
-            self._chroot("gummiboot --path=/boot install",
+            self._chroot(['gummiboot', '--path=/boot', 'install'],
                          bind_mounts=['/sys/firmware/efi/efivars'])
         else:
-            self._chroot("gummiboot --path=/boot --no-variables install")
+            self._chroot(['gummiboot', '--path=/boot', '--no-variables',
+                          'install'])
 
 
 class ArchInstallStep(_InstallStep):
@@ -319,7 +318,7 @@ class ArchInstallStep(_InstallStep):
 
     def _do_bootloader_on_efi(self):
         self._pacstrap(['gummiboot'], 80)
-        self._chroot('mkdir -p /boot/loader/entries')
+        self._chroot(['mkdir', '-p', '/boot/loader/entries'])
 
         initrd = "initramfs-linux"
         if not settings.Options.hostonly:
@@ -378,7 +377,7 @@ initrd      /{initrd}
         # modify /etc/mkinitcpio.conf
         re = "s/^HOOKS=.*/HOOKS='{0}'/".format(" ".join(hooks))
         self._monitor(["sed", "-i", re, self._root+'/etc/mkinitcpio.conf'])
-        self._chroot("mkinitcpio -p linux")
+        self._chroot(['mkinitcpio', '-p', 'linux'])
         self.set_completion(99)
 
 
@@ -434,9 +433,9 @@ class MandrivaInstallStep(_InstallStep):
         # needed to mount the rootfs since the rootfs is completely
         # initialized.
         #
-        opt = '--hostonly' if settings.Options.hostonly else '--no-hostonly'
-        cmd = "dracut {0} --force /boot/initrd-{1}.img {1}"
-        self._chroot(cmd.format(opt, uname_r))
+        hostonly  = '--hostonly' if settings.Options.hostonly else '--no-hostonly'
+        self._chroot(['dracut', hostonly, '--force',
+                      '/boot/initrd-' + uname_r + '.img', uname_r])
         self.set_completion(98)
 
 
