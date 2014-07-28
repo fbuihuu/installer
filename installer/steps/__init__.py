@@ -5,7 +5,7 @@ import os
 import logging
 from threading import current_thread, Thread, RLock
 from installer import distro
-from installer.utils import Signal
+from installer.utils import Signal, rsync
 from installer.process import monitor, monitor_chroot, get_current, kill_current
 from installer.partition import mount_rootfs, unmount_rootfs
 from installer.settings import settings, SettingsError
@@ -227,6 +227,11 @@ class Step(object):
         if "logger" not in kwargs:
             kwargs["logger"] = self.logger
         monitor(args, **kwargs)
+
+    def _rsync(self, *args, **kwargs):
+        if "logger" not in kwargs:
+            kwargs["logger"] = self.logger
+        rsync(*args, set_completion=self.set_completion, **kwargs)
 
     def _chroot(self, args, **kwargs):
         if "logger" not in kwargs:
