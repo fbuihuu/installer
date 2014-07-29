@@ -20,7 +20,9 @@ class EndStep(Step):
     def _cancel(self):
         return
 
-    def _process(self, action):
+    def _process(self):
+        action = settings.End.action
+
         if action == 'quit':
             self._done("quitting...")
             self._exit = True
@@ -30,5 +32,4 @@ class EndStep(Step):
         elif action == 'shutdown':
             self._done("shutting down...")
             # check_call(["systemctl", "poweroff"])
-        else:
-            self._failed("BUG: unknown end action '%s'" % action)
+

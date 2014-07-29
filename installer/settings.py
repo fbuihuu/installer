@@ -60,7 +60,17 @@ class Section(object):
 
 
 class End(Section):
-    action = 'quit'
+    _action = 'quit'
+
+    @property
+    def action(self):
+        return self._action
+
+    @action.setter
+    def action(self, a):
+        if not a in ('quit', 'reboot', 'shutdown'):
+            raise SettingsError("Invalid value '%s' for End.action" % a)
+        self._action = a
 
 
 class I18n(Section):

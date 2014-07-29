@@ -23,10 +23,13 @@ class EndView(StepView):
         self.page.body = body
 
     def on_quit(self, widget):
-        self.run('quit')
+        settings.End.action = 'quit'
+        self.run()
 
     def on_reboot(self, widget):
-        self.run('reboot')
+        settings.End.action = 'reboot'
+        self.run()
 
     def on_shutdown(self, widget):
-        self.run('shutdow')
+        settings.End.action = 'shutdow'
+        self.run()
