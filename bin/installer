@@ -115,14 +115,14 @@ def main():
     #
     ui = urwid.UrwidUI(args)
     ui.language = settings.I18n.locale
-    ui.run()
+    rv = ui.run()
 
     #
     # Exit as the user required.
     #
     action = settings.End.action
-    if action == 'quit':
-        exit(0)
+    if rv or action == 'quit':
+        exit(rv)
     elif action == 'reboot':
         # check_call(["systemctl", "reboot"])
         exit(1)

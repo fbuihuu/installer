@@ -221,6 +221,7 @@ class UrwidUI(UI):
         self._select_first_step()
         self.__init_watch_pipe()
         self._loop.run()
+        return 0
 
     def _redraw_view(self, view=None):
         if not view:
