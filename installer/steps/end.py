@@ -10,8 +10,7 @@ from installer.settings import settings
 
 class EndStep(Step):
 
-    # FIXME: this should depends on all existing provides.
-    requires = ["password"]
+    requires = ["rootfs"]
 
     @property
     def name(self):
