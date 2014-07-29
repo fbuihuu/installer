@@ -59,6 +59,10 @@ class Section(object):
         raise AttributeSettingsError(self.name, attr)
 
 
+class End(Section):
+    action = 'quit'
+
+
 class I18n(Section):
     _country  = ''
     _timezone = ''
@@ -193,6 +197,7 @@ class _Settings(object):
 
     def __init__(self):
         self._sections = {
+            'End'        : End(),
             'I18n'       : I18n(),
             'Kernel'     : Kernel(),
             'License'    : License(),
