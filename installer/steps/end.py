@@ -21,15 +21,9 @@ class EndStep(Step):
         return
 
     def _process(self):
-        action = settings.End.action
-
-        if action == 'quit':
-            self._done("quitting...")
-            self._exit = True
-        elif action == 'reboot':
-            self._done("rebooting...")
-            # check_call(["systemctl", "reboot"])
-        elif action == 'shutdown':
-            self._done("shutting down...")
-            # check_call(["systemctl", "poweroff"])
+        #
+        # Installer exit is handled by the installer itself: urwid frontend
+        # actually never calls this method.
+        #
+        return
 

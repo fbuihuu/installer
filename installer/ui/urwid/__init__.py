@@ -299,12 +299,9 @@ class UrwidUI(UI):
         self._navigator.set_focus(step)
 
     @ui_thread
-    def _on_step_finished(self, step, quit, delay=0):
-        if quit:
-            self.quit(delay)
-        else:
-            self._navigator.refresh()
-            self._select_next_step()
+    def _on_step_finished(self, step):
+        self._navigator.refresh()
+        self._select_next_step()
 
     @ui_thread
     def _on_step_completion(self, step, percent):

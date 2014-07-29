@@ -117,6 +117,19 @@ def main():
     ui.language = settings.I18n.locale
     ui.run()
 
+    #
+    # Exit as the user required.
+    #
+    action = settings.End.action
+    if action == 'quit':
+        exit(0)
+    elif action == 'reboot':
+        # check_call(["systemctl", "reboot"])
+        exit(1)
+    elif action == 'shutdown':
+        # check_call(["systemctl", "poweroff"])
+        exit(1)
+
 
 if __name__ == "__main__":
     main()

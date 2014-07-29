@@ -69,9 +69,7 @@ class Step(object):
 
     def __init__(self):
         self._skip = not settings.get('Steps', self.name.lower())
-        self._exit = False # system wide exit
         self._root = None
-        self._exit_delay = 0
         self._thread = None
         self.requires = set(self.requires)
         self.provides = set(self.provides)
@@ -148,7 +146,7 @@ class Step(object):
             finally:
                 self._root = None
 
-        finished_signal.emit(self, self._exit, self._exit_delay)
+        finished_signal.emit(self)
 
     def process(self, *args):
         assert(not self.is_in_progress())

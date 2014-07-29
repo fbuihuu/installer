@@ -24,12 +24,12 @@ class EndView(StepView):
 
     def on_quit(self, widget):
         settings.End.action = 'quit'
-        self.run()
+        self._ui.quit()
 
     def on_reboot(self, widget):
         settings.End.action = 'reboot'
-        self.run()
+        self._ui.quit()
 
     def on_shutdown(self, widget):
         settings.End.action = 'shutdow'
-        self.run()
+        self._ui.quit()
