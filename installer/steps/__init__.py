@@ -59,6 +59,7 @@ class Step(object):
 
     requires = []
     provides = []
+    mandatory = False
 
     _STATE_DISABLED    = -1
     _STATE_INIT        = 0
@@ -76,6 +77,9 @@ class Step(object):
         self._completion = 0
         self.view_data = None # should be used by step's view only
         self.__state = self._STATE_DISABLED
+
+        if self._skip and self.mandatory:
+            raise SettingsError(_("step '%s' can't be disabled !" % self.name))
 
     @property
     def name(self):

@@ -75,11 +75,10 @@ class _InstallStep(Step):
 
     requires = ["license"]
     provides = ["rootfs"]
+    mandatory = True
 
     def __init__(self):
         Step.__init__(self)
-        if self._skip:
-            raise SettingsError(_("installation step can't be disabled !"))
         self._fstab = {}
         self._extra_packages = ['mdadm'] # FIXME: should test if it's a RAID setup
 
