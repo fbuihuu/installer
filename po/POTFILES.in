@@ -20,6 +20,8 @@ installer/system.py
 installer/systemd/__init__.py
 installer/systemd/localed.py
 installer/ui/__init__.py
+installer/ui/cmdline/__init__.py
+installer/ui/cmdline/partitioning.py
 installer/ui/urwid/__init__.py
 installer/ui/urwid/end.py
 installer/ui/urwid/installation.py

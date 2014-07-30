@@ -11,7 +11,7 @@ import argparse
 
 from installer import l10n
 from installer import get_version
-from installer.ui import urwid
+from installer.ui import urwid, cmdline
 from installer.settings import settings, load_config_file
 from installer.utils import die
 
@@ -24,6 +24,9 @@ def parse_cmdline():
                         metavar='FILE',
                         type=argparse.FileType('r'),
                         help="specify a configuration file")
+    parser.add_argument("--frontend",
+                        choices=['cmdline', 'urwid'],
+                        help="force the frontend to use"),
     parser.add_argument("--skip",
                         dest="skipped_steps",
                         metavar="STEP",
@@ -51,6 +54,7 @@ def parse_cmdline():
                         action='version',
                         version=get_version())
 
+    cmdline.parse_cmdline(parser)
     urwid.parse_cmdline(parser)
 
     return parser.parse_args()
@@ -89,6 +93,27 @@ def main():
                         level=logging.DEBUG)
 
     #
+    # frontend selection
+    #
+    frontend = settings.get('Options', 'frontend')
+    if args.frontend:
+        frontend = args.frontend
+
+    # if the user didn't specify one, choose one for him.
+    if not frontend:
+        if args.disks:
+            frontend = 'cmdline'
+        elif not sys.stdout.isatty():
+            frontend = 'cmdline'
+        else:
+            frontend = 'urwid'
+
+    if frontend != 'cmdline' and args.disks:
+        die("you must select 'cmdline' frontend when specifying disk(s)")
+
+    settings.set('Options', 'frontend', frontend)
+
+    #
     # Set hostonly mode.
     #
     if args.hostonly:
@@ -113,7 +138,12 @@ def main():
     #
     # Start the frontend interface.
     #
-    ui = urwid.UrwidUI(args)
+    if frontend == 'cmdline':
+        ui = cmdline.CommandLineUI(args)
+    elif frontend == 'urwid':
+        ui = urwid.UrwidUI(args)
+    else:
+        raise NotImplementedError()
     ui.language = settings.I18n.locale
     rv = ui.run()
 
