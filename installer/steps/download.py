@@ -34,8 +34,14 @@ class MandrivaDownloadStep(_DownloadStep):
         # to make it simple allow the download step only if a distrib
         # url has been specified.
 
-        #if not settings.overriden('Step', 'download'):
-        self._skip = not bool(settings.Urpmi.distrib_src)
+        # By default the download step is enabled.
+        if not settings.Step.download:
+            self._skip = True
+        else:
+            # Run the download step only if an alternate distrib has
+            # been specified.
+            self._skip = not bool(settings.Urpmi.distrib_src) or \
+                         not bool(settings.Urpmi.dsitrib_dst)
 
     def _process(self):
         if not settings.Urpmi.distrib_dst:
