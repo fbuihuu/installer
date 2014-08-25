@@ -167,7 +167,7 @@ class BlockDevice(object):
 
     @property
     def size(self):
-        return self._gudev.get_sysfs_attr_as_int('size') * 512
+        return self._gudev.get_sysfs_attr_as_uint64('size') * 512
 
     @property
     def is_readonly(self):
