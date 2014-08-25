@@ -64,7 +64,6 @@ class MandrivaDownloadStep(_DownloadStep):
         self._rsync(src, self._root + dst, 2, 90)
 
         self._chroot(['urpmi.addmedia', '--distrib', dst])
-        self._chroot(['urpmi.update', '-a'])
 
 
 def DownloadStep():
