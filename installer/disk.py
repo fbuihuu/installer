@@ -36,7 +36,7 @@ class DiskRaidError(DiskError):
 class DiskTooSmallError(DiskError):
 
     def __init__(self, bdev):
-        message = _("disk is too small (< %d") % DISK_MINSIZE
+        message = _("disk is too small (< %d)") % DISK_MINSIZE
         DiskError.__init__(self, bdev, message)
 
 
