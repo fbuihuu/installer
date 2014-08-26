@@ -143,12 +143,8 @@ class Step(object):
                 self._done()
 
         if self._root:
-            try:
-                unmount_rootfs()
-            except:
-                self.logger.error("failed to umount %s", self._root)
-            finally:
-                self._root = None
+            unmount_rootfs()
+            self._root = None
 
         finished_signal.emit(self)
 

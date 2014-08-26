@@ -395,11 +395,18 @@ def unmount_rootfs():
     global _rootfs_mntpnt
 
     if _rootfs_mntpnt:
-        for part in reversed(partitions):
-            if part.device and not part.is_swap:
-                part.umount()
-        shutil.rmtree(_rootfs_mntpnt)
-        _rootfs_mntpnt = None
+        try:
+            for part in reversed(partitions):
+                if part.device and not part.is_swap:
+                    part.umount()
+            shutil.rmtree(_rootfs_mntpnt)
+        except:
+            # Workaround: for some unknown reasons, umounting the
+            # rootfs fails sometimes. For now only reports this but
+            # don't fail since it's not critical.
+            logger.error("failed to cleanup rootfs mountpoint %s", _rootfs_mntpnt)
+        finally:
+            _rootfs_mntpnt = None
 
 def find_partition(name):
     if name == '/root':
