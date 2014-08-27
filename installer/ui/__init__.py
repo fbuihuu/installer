@@ -108,7 +108,7 @@ class UI(object):
         """
         return
 
-    def _on_step_finished(self, step, quit, delay=0):
+    def _on_step_finished(self, step):
         """Notify that a step is terminated.
         It can be called by any contexts,
         """
