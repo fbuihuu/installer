@@ -122,11 +122,10 @@ def monitor(args, logger=None, stdout_handler=None, stderr_handler=None):
 
     try:
         _monitor(args, logger, stdout_handler, stderr_handler)
-    except:
+    finally:
         if _current:
             _current.terminate()
             _current = None
-        raise
 
 #
 # Same as above but execute the command in a chrooted/container
