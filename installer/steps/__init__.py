@@ -125,6 +125,7 @@ class Step(object):
         self.logger.info("processing...")
 
         self._state = self._STATE_IN_PROGRESS
+
         #
         # Mount rootfs only if the step needs it. Also mount it in the
         # case the step is going to initialize it.

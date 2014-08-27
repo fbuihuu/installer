@@ -145,20 +145,7 @@ def main():
     else:
         raise NotImplementedError()
     ui.language = settings.I18n.locale
-    rv = ui.run()
-
-    #
-    # Exit as the user required.
-    #
-    action = settings.End.action
-    if rv or action == 'quit':
-        exit(rv)
-    elif action == 'reboot':
-        # check_call(["systemctl", "reboot"])
-        exit(1)
-    elif action == 'shutdown':
-        # check_call(["systemctl", "poweroff"])
-        exit(1)
+    return ui.run()
 
 
 if __name__ == "__main__":

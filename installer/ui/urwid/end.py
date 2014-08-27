@@ -23,13 +23,16 @@ class EndView(StepView):
         self.page.body = body
 
     def on_quit(self, widget):
-        settings.End.action = 'quit'
-        self._ui.quit()
+        self.do_end('quit')
 
     def on_reboot(self, widget):
-        settings.End.action = 'reboot'
-        self._ui.quit()
+        self.do_end('reboot')
 
     def on_shutdown(self, widget):
-        settings.End.action = 'shutdow'
+        self.do_end('shutdown')
+
+    def do_end(self, action):
+        settings.End.action = action
+        # Wait for End step to finish so we can quit easily and safely.
+        self._step.process()
         self._ui.quit()
