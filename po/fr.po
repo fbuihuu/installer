@@ -5,17 +5,18 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-08-27 14:25+0200\n"
-"PO-Revision-Date: 2013-12-19 21:37+0100\n"
-"Last-Translator:  <fbui@mandriva.com>\n"
-"Language-Team: French\n"
+"POT-Creation-Date: 2013-12-20 22:57+CET\n"
+"PO-Revision-Date: 2014-08-27 11:50+0200\n"
+"Last-Translator: Jean-Philippe <jpbraun@mandriva.com>\n"
+"Language-Team: French "
+"<http://translate.mandriva.com/projects/installer/installer/fr/>\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n > 1;\n"
+"X-Generator: Weblate 2.0-dev\n"
 "Generated-By: pygettext.py 1.5\n"
-"Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
 #: ../installer/device.py:255 ../installer/device.py:356
 #: ../installer/device.py:472 ../installer/ui/urwid/partitioning.py:70
@@ -257,7 +258,7 @@ msgstr ""
 
 #: ../installer/ui/urwid/__init__.py:403 ../installer/ui/urwid/__init__.py:564
 msgid "Logs"
-msgstr ""
+msgstr "Journaux"
 
 #: ../installer/ui/urwid/__init__.py:419 ../installer/ui/urwid/__init__.py:564
 msgid "Summary"
