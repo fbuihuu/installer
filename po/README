@@ -6,3 +6,6 @@ If you need to update the translation (*.po), first generate the pot
 file, 'python setup build_i18n' should care of that. Then update po
 file with: 'intltool-update --dist fr -g installer' for the french
 translation for example.
+
+Or simply do 'python setup.py build_i18n --merge-po' which will update
+the .pot file, merge the .po files and build the *.mo ones.
