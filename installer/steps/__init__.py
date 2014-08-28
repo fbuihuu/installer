@@ -136,10 +136,8 @@ class Step(object):
 
         try:
             self._process(*args)
-        except StepError as e:
-            self.logger.error("%s" % e)
-        except SettingsError as e:
-            self.logger.error("configuration error: %s" % e)
+        except (StepError, SettingsError) as e:
+            self.logger.error(e)
         except:
             if not self.__is_cancelled():
                 self.logger.exception(_('failed, see logs for details.'))
@@ -150,8 +148,8 @@ class Step(object):
                 self.logger.info(_('done.'))
 
         if not self.is_done():
-            self._state = self._STATE_FAILED
             self.set_completion(0)
+            self._state = self._STATE_FAILED
 
         if self._root:
             unmount_rootfs()
