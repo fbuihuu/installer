@@ -126,8 +126,6 @@ class Step(object):
     def __process(self, *args):
         self.logger.info("processing...")
 
-        self._state = _STATE_IN_PROGRESS
-
         #
         # Mount rootfs only if the step needs it. Also mount it in the
         # case the step is going to initialize it.
@@ -164,6 +162,7 @@ class Step(object):
         assert(not self.is_in_progress())
         self._thread = Thread(target=self.__process, args=args)
         self._thread.start()
+        self._state = _STATE_IN_PROGRESS
 
     def process(self, *args):
         # The synchronous version is still using a thread because
