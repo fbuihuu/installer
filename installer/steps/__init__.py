@@ -6,7 +6,7 @@ import logging
 from threading import current_thread, Thread, RLock
 from installer import distro
 from installer.utils import Signal, rsync
-from installer.process import monitor, monitor_chroot, get_current, kill_current
+from installer.process import monitor, monitor_chroot, kill_current
 from installer.partition import mount_rootfs, unmount_rootfs
 from installer.settings import settings, SettingsError
 
@@ -120,21 +120,19 @@ class Step(object):
             kill_current(logger=self.logger)
             self._thread.join()
             self.logger.info("aborted.")
-            self.set_completion(0)
-            # Don't trigger an event for that, the caller will.
-            self._state = self._STATE_FAILED
 
     def __process(self, *args):
-        quit = False
-        delay = 0
+        self.logger.info("processing...")
 
+        self._state = self._STATE_IN_PROGRESS
+        #
         # Mount rootfs only if the step needs it. Also mount it in the
         # case the step is going to initialize it.
+        #
         if 'rootfs' in self.requires or 'rootfs' in self.provides:
             self._root = mount_rootfs()
             assert(self._root)
 
-        self.logger.info("processing...")
         try:
             self._process(*args)
         except StepError as e:
@@ -143,10 +141,14 @@ class Step(object):
             self.logger.error("configuration error: %s" % e)
         except:
             if not self.__is_cancelled():
-                self._failed(_("failed, see logs for details."), True)
+                self._failed(_("failed, see logs for details %d."), True)
         else:
             if self.is_in_progress():
                 self._done()
+
+        if not self.is_done():
+            self._state = self._STATE_FAILED
+            self.set_completion(0)
 
         if self._root:
             unmount_rootfs()
@@ -155,11 +157,17 @@ class Step(object):
         _recalculate_step_dependencies(self)
         finished_signal.emit(self)
 
-    def process(self, *args):
+    def process_async(self, *args):
         assert(not self.is_in_progress())
         self._thread = Thread(target=self.__process, args=args)
-        self._state = self._STATE_IN_PROGRESS
         self._thread.start()
+
+    def process(self, *args):
+        # The synchronous version is still using a thread because
+        # cancel() is synchronous too: it needs to wait for __process()
+        # to finish before returning.
+        self.process_async(*args)
+        self._thread.join()
 
     def _enable(self):
         assert(self.is_disabled())

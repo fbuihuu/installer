@@ -57,7 +57,6 @@ class CommandLineUI(UI):
         self._retcode = 0
         self._args = args
         self._isatty = sys.stdout.isatty()
-        self._step_finished_event = threading.Event()
         self._loop = GLib.MainLoop()
 
         if not self._isatty:
@@ -110,9 +109,7 @@ class CommandLineUI(UI):
                 self._progress_bar = ProgressBar(step.name)
                 timer = GLib.timeout_add_seconds(1, self._on_timeout, step)
 
-            self._step_finished_event.clear()
             view.run(self._args)
-            self._step_finished_event.wait()
 
             if not step.is_done():
                 return
@@ -148,9 +145,6 @@ class CommandLineUI(UI):
     def quit(self, delay=0):
         self._quit()
         time.sleep(delay)
-
-    def _on_step_finished(self, step):
-        self._step_finished_event.set()
 
     def _on_step_completion(self, step, percent):
         if self._args.progress:

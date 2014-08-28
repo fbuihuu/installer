@@ -374,7 +374,7 @@ class StepView(View):
         return logging.getLogger(self._step.name)
 
     def run(self, *args):
-        self._step.process(*args)
+        self._step.process_async(*args)
 
     def set_completion(self, percent):
         #
