@@ -11,6 +11,14 @@ from installer.partition import mount_rootfs, unmount_rootfs
 from installer.settings import settings, SettingsError
 
 
+_STATE_DISABLED    = -1
+_STATE_INIT        = 0
+_STATE_IN_PROGRESS = 1
+_STATE_DONE        = 2
+_STATE_FAILED      = 3
+_STATE_CANCELLED   = 4
+
+
 class StepError(Exception):
     """Base class for exceptions thrown by steps."""
 
@@ -46,15 +54,15 @@ def _recalculate_step_dependencies(step):
                         # revalidated. In that case steps that depend on
                         # it should be revalidated as well.
                         if m.is_done() or m.is_failed():
-                            m._state = m._STATE_INIT
+                            m._state = _STATE_INIT
                         _recalculate_step_dependencies(m)
                     else:
-                        m._state = m._STATE_INIT
+                        m._state = _STATE_INIT
                         if m._skip:
                             _recalculate_step_dependencies(m)
                 else:
                     assert(not m.is_in_progress())
-                    m._state = m._STATE_DISABLED
+                    m._state = _STATE_DISABLED
                     _recalculate_step_dependencies(m)
 
 
@@ -68,13 +76,6 @@ class Step(object):
     provides = []
     mandatory = False
 
-    _STATE_DISABLED    = -1
-    _STATE_INIT        = 0
-    _STATE_IN_PROGRESS = 1
-    _STATE_DONE        = 2
-    _STATE_FAILED      = 3
-    _STATE_CANCELLED   = 4
-
     def __init__(self):
         self._skip = not settings.get('Steps', self.name.lower())
         self._root = None
@@ -83,7 +84,7 @@ class Step(object):
         self.provides = set(self.provides)
         self._completion = 0
         self.view_data = None # should be used by step's view only
-        self.__state = self._STATE_DISABLED
+        self.__state = _STATE_DISABLED
 
         if self._skip and self.mandatory:
             raise SettingsError(_("step '%s' can't be disabled !" % self.name))
@@ -104,7 +105,7 @@ class Step(object):
     def _state(self, state):
         self.__state = state
         if self._skip and self.is_enabled():
-            self.__state = self._STATE_DONE
+            self.__state = _STATE_DONE
 
     def __cancel(self):
         #
@@ -117,7 +118,7 @@ class Step(object):
         assert(current_thread() != self._thread)
 
         self.logger.info("aborting...")
-        self._state = self._STATE_CANCELLED
+        self._state = _STATE_CANCELLED
         kill_current(logger=self.logger)
         self._thread.join()
         self.logger.info("aborted.")
@@ -125,7 +126,7 @@ class Step(object):
     def __process(self, *args):
         self.logger.info("processing...")
 
-        self._state = self._STATE_IN_PROGRESS
+        self._state = _STATE_IN_PROGRESS
 
         #
         # Mount rootfs only if the step needs it. Also mount it in the
@@ -145,12 +146,12 @@ class Step(object):
         else:
             if self.is_in_progress():
                 self.set_completion(100)
-                self._state = self._STATE_DONE
+                self._state = _STATE_DONE
                 self.logger.info(_('done.'))
 
         if not self.is_done():
             self.set_completion(0)
-            self._state = self._STATE_FAILED
+            self._state = _STATE_FAILED
 
         if self._root:
             unmount_rootfs()
@@ -180,22 +181,22 @@ class Step(object):
         raise NotImplementedError()
 
     def is_enabled(self):
-        return self._state != self._STATE_DISABLED
+        return self._state != _STATE_DISABLED
 
     def is_disabled(self):
-        return self._state == self._STATE_DISABLED
+        return self._state == _STATE_DISABLED
 
     def is_done(self):
-        return self._state == self._STATE_DONE
+        return self._state == _STATE_DONE
 
     def is_failed(self):
-        return self._state == self._STATE_FAILED
+        return self._state == _STATE_FAILED
 
     def is_in_progress(self):
-        return self._state == self._STATE_IN_PROGRESS
+        return self._state == _STATE_IN_PROGRESS
 
     def __is_cancelled(self):
-        return self._state == self._STATE_CANCELLED
+        return self._state == _STATE_CANCELLED
 
     def set_completion(self, percent):
         if percent != self._completion:
@@ -256,5 +257,5 @@ def initialize():
 
     assert(get_steps())
     assert(not _all_steps[0].requires)
-    _all_steps[0]._state = Step._STATE_INIT
+    _all_steps[0]._state = _STATE_INIT
     _recalculate_step_dependencies(_all_steps[0])
