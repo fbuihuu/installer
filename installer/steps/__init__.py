@@ -107,22 +107,6 @@ class Step(object):
         if self._skip and self.is_enabled():
             self.__state = _STATE_DONE
 
-    def __cancel(self):
-        #
-        # This can be called by the UI thread, when a step is
-        # restarted (through the process() method) and all it's
-        # running deps are disabled (hence cancelled).
-        #
-        # But a step is never cancelled by its worker thread.
-        #
-        assert(current_thread() != self._thread)
-
-        self.logger.info("aborting...")
-        self._state = _STATE_CANCELLED
-        kill_current(logger=self.logger)
-        self._thread.join()
-        self.logger.info("aborted.")
-
     def __process(self, *args):
         self.logger.info("processing...")
 
@@ -173,7 +157,20 @@ class Step(object):
 
     def cancel(self):
         if self.is_in_progress():
-            self.__cancel()
+            #
+            # This can be called by the UI thread, when a step is
+            # restarted (through the process() method) and all it's
+            # running deps are disabled (hence cancelled).
+            #
+            # But a step is never cancelled by its worker thread.
+            #
+            assert(current_thread() != self._thread)
+
+            self.logger.info(_('aborting step...'))
+            self._state = _STATE_CANCELLED
+            kill_current(logger=self.logger)
+            self._thread.join()
+            self.logger.info(_('step aborted.'))
 
     def _process(self):
         """Implement the actual work executed asynchronously"""
