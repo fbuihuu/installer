@@ -45,14 +45,16 @@ def _recalculate_step_dependencies(step):
                         # 'step' was already in done state but has been
                         # revalidated. In that case steps that depend on
                         # it should be revalidated as well.
-                        m._reset()
+                        if m.is_done() or m.is_failed():
+                            m._state = m._STATE_INIT
                         _recalculate_step_dependencies(m)
                     else:
-                        m._enable()
+                        m._state = m._STATE_INIT
                         if m._skip:
                             _recalculate_step_dependencies(m)
                 else:
-                    m._disable()
+                    assert(not m.is_in_progress())
+                    m._state = m._STATE_DISABLED
                     _recalculate_step_dependencies(m)
 
 
@@ -169,19 +171,6 @@ class Step(object):
         self.process_async(*args)
         self._thread.join()
 
-    def _enable(self):
-        assert(self.is_disabled())
-        self._state = self._STATE_INIT
-
-    def _disable(self):
-        assert(not self.is_in_progress())
-        self._state = self._STATE_DISABLED
-
-    def _reset(self):
-        assert(not self.is_in_progress())
-        if self.is_done() or self.is_failed():
-            self._state = self._STATE_INIT
-
     def cancel(self):
         if self.is_in_progress():
             self.__cancel()
@@ -267,5 +256,5 @@ def initialize():
 
     assert(get_steps())
     assert(not _all_steps[0].requires)
-    _all_steps[0]._enable()
+    _all_steps[0]._state = Step._STATE_INIT
     _recalculate_step_dependencies(_all_steps[0])
