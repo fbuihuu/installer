@@ -19,7 +19,7 @@ class LicenseStep(Step):
 
     def _process(self):
         if settings.License.status == "accepted":
-            self._done(_("you accepted the terms of the license"))
+            self.logger.info(_("you accepted the terms of the license"))
         else:
             self._failed(_("you rejected the terms of the license, aborting"))
             self._exit = True

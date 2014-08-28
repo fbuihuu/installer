@@ -234,7 +234,6 @@ class _InstallStep(Step):
         self._do_bootloader()
         self._do_extra_packages()
         self._do_initramfs()
-        self._done()
 
     #
     # Some generic helpers

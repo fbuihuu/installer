@@ -145,7 +145,9 @@ class Step(object):
                 self._failed(_("failed, see logs for details %d."), True)
         else:
             if self.is_in_progress():
-                self._done()
+                self.set_completion(100)
+                self._state = self._STATE_DONE
+                self.logger.info(_('done.'))
 
         if not self.is_done():
             self._state = self._STATE_FAILED
@@ -186,14 +188,6 @@ class Step(object):
     def cancel(self):
         if self.is_in_progress():
             self.__cancel()
-
-    def _done(self, msg=None):
-        """Used by step thread to indicate it has finished successfully"""
-        if not msg:
-            msg = _("done.")
-        self.logger.info(msg)
-        self.set_completion(100)
-        self._state = self._STATE_DONE
 
     def _failed(self, msg=None, backtrace=False):
         """Used by step thread to indicate it has failed"""
