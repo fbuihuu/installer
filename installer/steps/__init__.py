@@ -114,12 +114,11 @@ class Step(object):
         #
         assert(current_thread() != self._thread)
 
-        if self.is_in_progress():
-            self.logger.info("aborting...")
-            self._state = self._STATE_CANCELLED
-            kill_current(logger=self.logger)
-            self._thread.join()
-            self.logger.info("aborted.")
+        self.logger.info("aborting...")
+        self._state = self._STATE_CANCELLED
+        kill_current(logger=self.logger)
+        self._thread.join()
+        self.logger.info("aborted.")
 
     def __process(self, *args):
         self.logger.info("processing...")
