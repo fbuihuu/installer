@@ -43,27 +43,27 @@ def _recalculate_step_dependencies(step):
             else:
                 _current_provides -= step.provides
 
-            for m in _all_steps:
-                if m is step:
+            for s in _all_steps:
+                if s is step:
                     continue
-                if not step.provides.intersection(m.requires):
+                if not step.provides.intersection(s.requires):
                     continue
-                if m.requires.issubset(_current_provides):
-                    if m.is_enabled():
+                if s.requires.issubset(_current_provides):
+                    if s.is_enabled():
                         # 'step' was already in done state but has been
                         # revalidated. In that case steps that depend on
                         # it should be revalidated as well.
-                        if m.is_done() or m.is_failed():
-                            m._state = _STATE_INIT
-                        _recalculate_step_dependencies(m)
+                        if s.is_done() or s.is_failed():
+                            s._state = _STATE_INIT
+                        _recalculate_step_dependencies(s)
                     else:
-                        m._state = _STATE_INIT
-                        if m._skip:
-                            _recalculate_step_dependencies(m)
+                        s._state = _STATE_INIT
+                        if s._skip:
+                            _recalculate_step_dependencies(s)
                 else:
-                    assert(not m.is_in_progress())
-                    m._state = _STATE_DISABLED
-                    _recalculate_step_dependencies(m)
+                    assert(not s.is_in_progress())
+                    s._state = _STATE_DISABLED
+                    _recalculate_step_dependencies(s)
 
 
 finished_signal = Signal()
