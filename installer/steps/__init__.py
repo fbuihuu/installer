@@ -126,10 +126,9 @@ class Step(object):
             if not self.__is_cancelled():
                 self.logger.exception(_('failed, see logs for details.'))
         else:
-            if self.is_in_progress():
-                self.set_completion(100)
-                self._state = _STATE_DONE
-                self.logger.info(_('done.'))
+            self.set_completion(100)
+            self._state = _STATE_DONE
+            self.logger.info(_('done.'))
 
         if not self.is_done():
             self.set_completion(0)
