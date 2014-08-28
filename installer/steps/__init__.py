@@ -27,6 +27,7 @@ _rlock = RLock()
 def _recalculate_step_dependencies(step):
     global _all_steps, _current_provides, _rlock
 
+    assert(not step.is_in_progress())
     if step.provides:
         with _rlock:
             if step.is_done():
@@ -42,13 +43,17 @@ def _recalculate_step_dependencies(step):
                 if m.requires.issubset(_current_provides):
                     if m.is_enabled():
                         # 'step' was already in done state but has been
-                        # revalidated. In that case step that depends on
+                        # revalidated. In that case steps that depend on
                         # it should be revalidated as well.
-                        m.reset()
+                        m._reset()
+                        _recalculate_step_dependencies(m)
                     else:
-                        m.enable()
+                        m._enable()
+                        if m._skip:
+                            _recalculate_step_dependencies(m)
                 else:
-                    m.disable()
+                    m._disable()
+                    _recalculate_step_dependencies(m)
 
 
 finished_signal = Signal()
@@ -96,7 +101,8 @@ class Step(object):
     @_state.setter
     def _state(self, state):
         self.__state = state
-        _recalculate_step_dependencies(self)
+        if self._skip and self.is_enabled():
+            self.__state = self._STATE_DONE
 
     def __cancel(self):
         #
@@ -146,6 +152,7 @@ class Step(object):
             unmount_rootfs()
             self._root = None
 
+        _recalculate_step_dependencies(self)
         finished_signal.emit(self)
 
     def process(self, *args):
@@ -154,24 +161,22 @@ class Step(object):
         self._state = self._STATE_IN_PROGRESS
         self._thread.start()
 
-    def enable(self):
-        if self._skip:
-            self._state = self._STATE_DONE
-        elif self.is_disabled():
-            self._state = self._STATE_INIT
+    def _enable(self):
+        assert(self.is_disabled())
+        self._state = self._STATE_INIT
 
-    def disable(self):
-        if len(self.requires):
-            if self.is_enabled():
-                if self.is_in_progress():
-                    self.__cancel()
-                self._state = self._STATE_DISABLED
+    def _disable(self):
+        assert(not self.is_in_progress())
+        self._state = self._STATE_DISABLED
 
-    def reset(self):
-        if self.is_in_progress():
-            self.__cancel()
+    def _reset(self):
+        assert(not self.is_in_progress())
         if self.is_done() or self.is_failed():
             self._state = self._STATE_INIT
+
+    def cancel(self):
+        if self.is_in_progress():
+            self.__cancel()
 
     def _done(self, msg=None):
         """Used by step thread to indicate it has finished successfully"""
@@ -273,4 +278,5 @@ def initialize():
 
     assert(get_steps())
     assert(not _all_steps[0].requires)
-    _all_steps[0].enable()
+    _all_steps[0]._enable()
+    _recalculate_step_dependencies(_all_steps[0])

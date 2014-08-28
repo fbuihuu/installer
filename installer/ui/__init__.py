@@ -56,8 +56,9 @@ class UI(object):
         raise NotImplementedError()
 
     def _quit(self):
+        # Stop the running step, if any.
         for s in steps.get_steps():
-            s.reset()
+            s.cancel()
         logger.info(_("exiting..."))
 
     def suspend(self):
