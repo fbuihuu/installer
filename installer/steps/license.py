@@ -2,7 +2,7 @@
 #
 
 from installer.settings import settings
-from . import Step
+from . import Step, StepError
 
 
 class LicenseStep(Step):
@@ -18,9 +18,6 @@ class LicenseStep(Step):
         return
 
     def _process(self):
-        if settings.License.status == "accepted":
-            self.logger.info(_("you accepted the terms of the license"))
-        else:
-            self._failed(_("you rejected the terms of the license, aborting"))
-            self._exit = True
-            self._exit_delay = 3
+        if settings.License.status != "accepted":
+            raise StepError(_('you rejected the terms of the license.'))
+        self.logger.info(_('you accepted the terms of the license'))

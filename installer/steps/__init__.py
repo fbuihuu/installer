@@ -137,12 +137,12 @@ class Step(object):
         try:
             self._process(*args)
         except StepError as e:
-            self._failed("%s" % e)
+            self.logger.error("%s" % e)
         except SettingsError as e:
             self.logger.error("configuration error: %s" % e)
         except:
             if not self.__is_cancelled():
-                self._failed(_("failed, see logs for details %d."), True)
+                self.logger.exception(_('failed, see logs for details.'))
         else:
             if self.is_in_progress():
                 self.set_completion(100)
@@ -188,17 +188,6 @@ class Step(object):
     def cancel(self):
         if self.is_in_progress():
             self.__cancel()
-
-    def _failed(self, msg=None, backtrace=False):
-        """Used by step thread to indicate it has failed"""
-        if not msg:
-            msg = _("failed.")
-        if backtrace:
-            self.logger.exception(msg)
-        else:
-            self.logger.error(msg)
-        self.set_completion(0)
-        self._state = self._STATE_FAILED
 
     def _process(self):
         """Implement the actual work executed asynchronously"""
