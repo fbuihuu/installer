@@ -12,7 +12,7 @@ import argparse
 from installer import l10n
 from installer import get_version
 from installer.ui import urwid, cmdline
-from installer.settings import settings, load_config_file
+from installer.settings import settings, load_config_file, SettingsError
 from installer.utils import die
 
 
@@ -138,12 +138,16 @@ def main():
     #
     # Start the frontend interface.
     #
-    if frontend == 'cmdline':
-        ui = cmdline.CommandLineUI(args)
-    elif frontend == 'urwid':
-        ui = urwid.UrwidUI(args)
-    else:
-        raise NotImplementedError()
+    try:
+        if frontend == 'cmdline':
+            ui = cmdline.CommandLineUI(args)
+        elif frontend == 'urwid':
+            ui = urwid.UrwidUI(args)
+        else:
+            raise NotImplementedError()
+    except SettingsError as e:
+        die(e)
+
     ui.language = settings.I18n.locale
     return ui.run()
 
