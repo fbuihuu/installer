@@ -134,19 +134,29 @@ def monitor(args, logger=None, stdout_handler=None, stderr_handler=None):
 # through the shell.
 #
 def monitor_chroot(rootfs, args, bind_mounts=[],
-                   with_nspawn=False, **kwargs):
+                   chrooter='chroot', **kwargs):
     mounts = []
 
     # Support of bind mounts has been added in v198
-    if (bind_mounts and systemd_version < 198):
-        with_nspawn=False
+    if chrooter == 'systemd-nspawn':
+        if bind_mounts and systemd_version < 198:
+            chrooter = 'chroot'
 
-    if with_nspawn:
+    if chrooter == 'systemd-nspawn':
         chroot  = ["systemd-nspawn", "-D", rootfs]
         for m in bind_mounts:
             chroot += ["--bind", m]
-    else:
+
+    elif chrooter == 'chroot':
         chroot = ["chroot", rootfs]
+
+    elif chrooter is None:
+        chroot = []
+
+    else:
+        raise NotImplementedError()
+
+    if chrooter in ('chroot', None):
 
         # Manually bind mount default and requested directories.o
         for src in ['/dev', '/proc', '/sys'] + bind_mounts:
