@@ -54,7 +54,9 @@ def install(pkgs, root=None, completion_start=0, completion_end=0,
                     _first_install_call = False
 
             cmd = ['urpmi', '--root', root] + urpmi_opts + pkgs
-            monitor(cmd, logger=logger, stdout_handler=stdout_handler)
+            monitor_chroot(root, cmd, chrooter=None,
+                           logger=logger,
+                           stdout_handler=stdout_handler)
 
     # Make sure to set completion level specially in the case where the
     # packages are already installed.
