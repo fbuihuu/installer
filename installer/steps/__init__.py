@@ -144,8 +144,8 @@ class Step(object):
     def process_async(self, *args):
         assert(not self.is_in_progress())
         self._thread = Thread(target=self.__process, args=args)
-        self._thread.start()
         self._state = _STATE_IN_PROGRESS
+        self._thread.start()
 
     def process(self, *args):
         # The synchronous version is still using a thread because
