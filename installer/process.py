@@ -32,13 +32,15 @@ _current = None
 def get_current():
     return _current
 
-def kill_current(sig=signal.SIGTERM, logger=None):
+
+def monitor_kill(sig=signal.SIGTERM, logger=None):
     if get_current():
         # current is the process group leader
         pid = get_current().pid
         if logger:
             logger.debug("killing spawned process group %d" % pid)
         os.killpg(pid, sig)
+
 
 def _monitor(args, logger=None, stdout_handler=None, stderr_handler=None):
     global _current

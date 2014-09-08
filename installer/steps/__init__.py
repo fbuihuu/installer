@@ -6,7 +6,7 @@ import logging
 from threading import current_thread, Thread, RLock
 from installer import distro
 from installer.utils import Signal, rsync
-from installer.process import monitor, monitor_chroot, kill_current
+from installer.process import monitor, monitor_chroot, monitor_kill
 from installer.partition import mount_rootfs, unmount_rootfs
 from installer.settings import settings, SettingsError
 
@@ -167,7 +167,7 @@ class Step(object):
 
             self.logger.info(_('aborting step...'))
             self._state = _STATE_CANCELLED
-            kill_current(logger=self.logger)
+            monitor_kill(logger=self.logger)
             self._thread.join()
             self.logger.info(_('step aborted.'))
 
