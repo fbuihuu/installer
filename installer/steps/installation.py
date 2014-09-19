@@ -425,6 +425,12 @@ class MandrivaInstallStep(_InstallStep):
             vmlinuz = vmlinuz[:-4]
         uname_r = vmlinuz
 
+        # Also retrieve the initramfs file, which can start with
+        # initrd-* or initramfs-*.
+        initramfs = 'initr*-' + uname_r + '.img'
+        initramfs = glob.glob(os.path.join(self._root, 'boot', initramfs))
+        initramfs = '/boot/' + os.path.basename(initramfs[0])
+
         #
         # Even if the initramfs has been built during kernel
         # installation, we regenerate it now so it includes all tools
@@ -432,8 +438,7 @@ class MandrivaInstallStep(_InstallStep):
         # initialized.
         #
         hostonly  = '--hostonly' if settings.Options.hostonly else '--no-hostonly'
-        self._chroot(['dracut', hostonly, '--force',
-                      '/boot/initrd-' + uname_r + '.img', uname_r])
+        self._chroot(['dracut', hostonly, '--force', initramfs, uname_r])
         self.set_completion(98)
 
 
