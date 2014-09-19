@@ -114,10 +114,10 @@ def main():
     settings.set('Options', 'frontend', frontend)
 
     #
-    # Set hostonly mode.
+    # Set hostonly mode (default being True).
     #
-    if args.hostonly:
-        settings.Options.hostonly = args.hostonly
+    if not args.hostonly:
+        settings.Options.hostonly = False
 
     #
     # Set firmware.
