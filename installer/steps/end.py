@@ -37,7 +37,7 @@ class EndStep(Step):
         elif action == 'reboot':
             func = reboot
         elif action == 'shutdown':
-            func = shutdown
+            func = poweroff
         else:
             raise SettingsError(_("Invalid end action '%s' specified" % self.name))
 
