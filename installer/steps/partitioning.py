@@ -238,7 +238,8 @@ class PartitioningStep(Step):
         for p in setup.partitions:
             #
             # - A partnum value of 0 causes the program to use the
-            #   first available partition number.
+            #   first available partition number. This feature is only
+            #   available since gdisk 0.8.10.
             #
             # - A start value of 0 specifies the default value, which
             #   is the start of the largest available.

@@ -20,7 +20,7 @@ deps:
  - python-dbus
  - python-urwid >= 1.2.0 (glib loop event)
  - python-gobject ou lib64gudev1.0_0 (from gi.repository import GUdev)
- - gdisk
+ - gdisk >= 0.8.10
  - syslinux  (BIOS or hybrid systems)
  - gummiboot (EFI)
  - lsb-release
