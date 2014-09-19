@@ -29,6 +29,7 @@ def install(pkgs, root=None, completion_start=0, completion_end=0,
 
     urpmi_opts  = settings.Urpmi.options.split()
     urpmi_opts += ["--auto", "--downloader=curl", "--curl-options='-s'"]
+    urpmi_opts += ["--rsync-options='-q'"]
 
     if settings.Urpmi.distrib_src:
         urpmi_opts += ['--use-distrib', settings.Urpmi.distrib_src]
