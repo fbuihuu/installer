@@ -4,7 +4,7 @@
 
 import os
 import re
-from subprocess import check_output, CalledProcessError
+from .process import check_output, CalledProcessError
 from .systemd import localed
 
 

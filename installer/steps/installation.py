@@ -4,7 +4,6 @@
 from __future__ import print_function
 import os
 import glob
-from subprocess import check_output, check_call
 
 from installer import disk
 from installer import l10n

@@ -8,10 +8,9 @@
 import os
 import threading
 import logging
-from subprocess import check_output, check_call, CalledProcessError
 from gi.repository import GUdev
 from .utils import pretty_size
-from .process import monitor
+from .process import monitor, check_output, CalledProcessError
 
 
 logger = logging.getLogger(__name__)

@@ -11,12 +11,24 @@ except ImportError:
     DEVNULL = open(os.devnull, 'wb')
 
 
-# An alias
+# aliases
 CalledProcessError = subprocess.CalledProcessError
+check_call = subprocess.check_call
+call = subprocess.call
 
 # figure out systemd version
 _output = subprocess.check_output(["systemctl", "--version"]).split()
 systemd_version = int(_output[1])
+
+#
+# Redefine some subprocess' helpers to make sure they use 'LC_ALL=C'
+# so we can parse/read safely their output.
+#
+def check_output(*args, **kwargs):
+    env = os.environ.copy()
+    env['LC_ALL'] = 'C'
+    kwargs['env'] = env
+    return subprocess.check_output(*args, **kwargs)
 
 #
 # This fonction can be prefered over the subprocess module helpers
@@ -173,7 +185,7 @@ def monitor_chroot(rootfs, args, bind_mounts=[],
             dst = rootfs + src
             if not os.path.exists(dst):
                 os.mkdir(dst)
-            subprocess.check_call(["mount", "-o", "bind", src, dst])
+            check_call(["mount", "-o", "bind", src, dst])
             mounts.append(dst)
 
         # Manually mount usual tmpfs directories.
@@ -181,16 +193,16 @@ def monitor_chroot(rootfs, args, bind_mounts=[],
             dst = rootfs + dst
             if not os.path.exists(dst):
                 os.mkdir(dst)
-            subprocess.check_call(["mount", "-t", "tmpfs", "none", dst])
+            check_call(["mount", "-t", "tmpfs", "none", dst])
             mounts.append(dst)
 
         # Finally copy /etc/resolv.conf into the chroot but don't barf
         # if that fails.
-        subprocess.call(["cp", "/etc/resolv.conf", rootfs + "/etc/resolv.conf"],
-                        stderr=DEVNULL)
+        call(["cp", "/etc/resolv.conf", rootfs + "/etc/resolv.conf"],
+             stderr=DEVNULL)
 
     try:
         monitor(chroot + args, **kwargs)
     finally:
         for m in reversed(mounts):
-            subprocess.check_call(["umount", "-l", m], stdout=DEVNULL)
+            check_call(["umount", "-l", m], stdout=DEVNULL)

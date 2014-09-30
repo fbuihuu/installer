@@ -2,11 +2,11 @@
 #
 
 import atexit
-from subprocess import check_call
 
 from . import Step
 from installer import partition
 from installer.settings import settings, SettingsError
+from installer.process import check_call
 
 
 def reboot():

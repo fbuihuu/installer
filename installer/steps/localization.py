@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 #
 import os
-from subprocess import CalledProcessError
 
 from . import Step, StepError
 from installer.settings import settings
 from installer import l10n
 from installer.system import distribution
+from installer.process import CalledProcessError
 
 
 class _L10nStep(Step):

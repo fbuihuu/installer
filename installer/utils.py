@@ -4,9 +4,8 @@
 from __future__ import print_function
 import sys
 import re
-from subprocess import check_output
 
-from installer.process import monitor
+from installer.process import monitor, check_output
 
 
 KB = 1000

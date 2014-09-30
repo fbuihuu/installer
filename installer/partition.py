@@ -6,11 +6,11 @@ import shutil
 import logging
 from operator import attrgetter
 from tempfile import mkdtemp
-from subprocess import check_output
 
 from .settings import settings
 from .system import distribution, get_arch
 from .utils import pretty_size, MiB, GiB
+from .process import check_output
 from . import device
 from . import disk
 
