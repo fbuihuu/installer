@@ -83,7 +83,13 @@ class I18n(Section):
         Section.__init__(self)
         # used to keep track of the options overriden by the user explicitely.
         self._explicit_settings = set()
-        self.locale = locale.getdefaultlocale()[0]
+
+        # Try to find out the default settings for I18n based on the
+        # default locale.
+        default = locale.getdefaultlocale()[0]
+        if default in (None, 'C'):
+            default = 'en_US'
+        self.locale = default
 
     @property
     def country(self):
