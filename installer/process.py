@@ -52,7 +52,8 @@ def _monitor(args, logger=None, stdout_handler=None, stderr_handler=None):
         logger.debug("running: %s", " ".join(args))
 
     if [logger, stdout_handler, stderr_handler].count(None) == 3:
-        return call(args, stdout=DEVNULL, stderr=DEVNULL)
+        check_call(args, stdout=DEVNULL, stderr=DEVNULL)
+        return
 
     #
     # Make sure the command's output is always formatted the same
