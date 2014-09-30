@@ -2,7 +2,8 @@ import os
 import signal
 import select
 import logging
-from subprocess import PIPE, Popen, call, check_call, check_output, CalledProcessError
+import subprocess
+
 
 try:
     from subprocess import DEVNULL # py3k
@@ -10,8 +11,11 @@ except ImportError:
     DEVNULL = open(os.devnull, 'wb')
 
 
+# An alias
+CalledProcessError = subprocess.CalledProcessError
+
 # figure out systemd version
-_output = check_output(["systemctl", "--version"]).split()
+_output = subprocess.check_output(["systemctl", "--version"]).split()
 systemd_version = int(_output[1])
 
 #
@@ -59,7 +63,7 @@ def _monitor(args, logger=None, stdout_handler=None, stderr_handler=None):
     env['LC_ALL'] = 'C'
 
     if [logger, stdout_handler, stderr_handler].count(None) == 3:
-        check_call(args, env=env, stdout=DEVNULL, stderr=DEVNULL)
+        subprocess.check_call(args, env=env, stdout=DEVNULL, stderr=DEVNULL)
         return
 
     #
@@ -67,7 +71,8 @@ def _monitor(args, logger=None, stdout_handler=None, stderr_handler=None):
     # it *and* all its sibling easily by sending signals to the whole
     # group. pacstrap for example needs that.
     #
-    p = Popen(args, env=env, stdout=PIPE, stderr=PIPE, preexec_fn=os.setpgrp)
+    p = subprocess.Popen(args, env=env, stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE, preexec_fn=os.setpgrp)
     _current = p
 
     if not stdout_handler:
@@ -168,7 +173,7 @@ def monitor_chroot(rootfs, args, bind_mounts=[],
             dst = rootfs + src
             if not os.path.exists(dst):
                 os.mkdir(dst)
-            check_call(["mount", "-o", "bind", src, dst])
+            subprocess.check_call(["mount", "-o", "bind", src, dst])
             mounts.append(dst)
 
         # Manually mount usual tmpfs directories.
@@ -176,16 +181,16 @@ def monitor_chroot(rootfs, args, bind_mounts=[],
             dst = rootfs + dst
             if not os.path.exists(dst):
                 os.mkdir(dst)
-            check_call(["mount", "-t", "tmpfs", "none", dst])
+            subprocess.check_call(["mount", "-t", "tmpfs", "none", dst])
             mounts.append(dst)
 
         # Finally copy /etc/resolv.conf into the chroot but don't barf
         # if that fails.
-        call(["cp", "/etc/resolv.conf", rootfs + "/etc/resolv.conf"],
-             stderr=DEVNULL)
+        subprocess.call(["cp", "/etc/resolv.conf", rootfs + "/etc/resolv.conf"],
+                        stderr=DEVNULL)
 
     try:
         monitor(chroot + args, **kwargs)
     finally:
         for m in reversed(mounts):
-            check_call(["umount", "-l", m], stdout=DEVNULL)
+            subprocess.check_call(["umount", "-l", m], stdout=DEVNULL)
