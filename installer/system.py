@@ -18,8 +18,8 @@ def is_efi():
     return os.path.exists("/sys/firmware/efi")
 
 
-def _lsb_release(o):
-    return check_output("lsb_release -s %s" % o, shell=True).decode().rstrip()
+def _lsb_release(opt):
+    return check_output(['lsb_release', '-s', opt]).decode().rstrip()
 
 class Distribution(object):
 
