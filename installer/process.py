@@ -51,20 +51,22 @@ def _monitor(args, logger=None, stdout_handler=None, stderr_handler=None):
     if logger:
         logger.debug("running: %s", " ".join(args))
 
-    if [logger, stdout_handler, stderr_handler].count(None) == 3:
-        check_call(args, stdout=DEVNULL, stderr=DEVNULL)
-        return
-
     #
     # Make sure the command's output is always formatted the same
     # regardless the current locale setting.
+    #
+    env = os.environ.copy()
+    env['LC_ALL'] = 'C'
+
+    if [logger, stdout_handler, stderr_handler].count(None) == 3:
+        check_call(args, env=env, stdout=DEVNULL, stderr=DEVNULL)
+        return
+
     #
     # Make the new created process the group leader, so we can kill
     # it *and* all its sibling easily by sending signals to the whole
     # group. pacstrap for example needs that.
     #
-    env = os.environ.copy()
-    env['LC_ALL'] = 'C'
     p = Popen(args, env=env, stdout=PIPE, stderr=PIPE, preexec_fn=os.setpgrp)
     _current = p
 
