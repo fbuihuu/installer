@@ -98,6 +98,7 @@ class UrwidUI(UI):
     _echo_area = None
 
     def __init__(self, args):
+        self._args = args
         self._uevent_handlers = []
         self._watch_pipe_fd = None
         self._watch_pipe_queue = collections.deque()
@@ -172,6 +173,9 @@ class UrwidUI(UI):
     def run(self):
         if not sys.stdout.isatty():
             utils.die(_('urwid frontend requires a tty.'))
+
+        if self._args.disks:
+            utils.die(_('You must select the cmdline frontend when specifying disk(s).'))
 
         self._create_log_view()
         self._create_echo_area()
