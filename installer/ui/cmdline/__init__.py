@@ -127,6 +127,10 @@ class CommandLineUI(UI):
     def run(self):
         self._init_logging()
 
+        if not self._args.disks:
+            logger.error(_("You must provide one or more disk(s)."))
+            return 1
+
         # Since PyGObject 3.10.2, calling GObject.threads_init() is no
         # longer needed.
         GObject.threads_init()

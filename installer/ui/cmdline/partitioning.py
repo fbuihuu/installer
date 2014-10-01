@@ -13,11 +13,10 @@ class PartitioningView(StepView):
         disks  = []
         preset = 'small'
 
-        # if no disks were passed then skip this test. The
-        # installation step will check that partitions have been
-        # specified.
-        if not args.disks:
-            return False
+        #
+        # This has been checked by the frontend previously.
+        #
+        assert(args.disks)
 
         #
         # see if the device is valid and is knonw by udev
