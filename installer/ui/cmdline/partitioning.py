@@ -19,7 +19,9 @@ class PartitioningView(StepView):
         assert(args.disks)
 
         #
-        # see if the device is valid and is knonw by udev
+        # See if the device is valid and is knonw by udev: currently,
+        # the user must pass valid disk(s). We might accept partition
+        # devs too in the future.
         #
         for path in args.disks:
             st = os.stat(path)
@@ -30,6 +32,9 @@ class PartitioningView(StepView):
             major, minor = (os.major(st.st_rdev), os.minor(st.st_rdev))
             bdev = device.find_bdev(major, minor)
             assert(bdev)
+
+            if bdev.devtype != 'disk':
+                raise ViewError(_('%s is not a disk.') % path)
 
             for group in disk.get_candidates():
                 if bdev in group:
