@@ -104,9 +104,6 @@ class UrwidUI(UI):
         UI.__init__(self)
         urwid.set_encoding("utf8")
 
-        if not sys.stdout.isatty():
-            utils.die(_("urwid frontend requires a tty"))
-
         device.listen_uevent(self._on_uevent)
 
         # Parse Urwid's specific options
@@ -173,6 +170,9 @@ class UrwidUI(UI):
         raise NotImplementedError()
 
     def run(self):
+        if not sys.stdout.isatty():
+            utils.die(_('urwid frontend requires a tty.'))
+
         self._create_log_view()
         self._create_echo_area()
         self._init_logging()
