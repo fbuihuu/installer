@@ -198,11 +198,6 @@ class PartitioningStep(Step):
     def _cancel(self):
         raise NotImplementedError()
 
-    def _monitor(self, args, **kwargs):
-        if "logger" not in kwargs:
-            kwargs["logger"] = self.logger
-        monitor(args, **kwargs)
-
     def _do_clean_disks(self):
         """wipefs all disks and their direct siblings"""
         self.logger.debug("cleaning disk(s)")
