@@ -27,9 +27,6 @@ class EndStep(Step):
     def name(self):
         return _("End")
 
-    def _cancel(self):
-        return
-
     def _process(self):
         action = settings.End.action
         if action == 'quit':

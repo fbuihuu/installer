@@ -14,9 +14,6 @@ class LicenseStep(Step):
     def name(self):
         return _("License")
 
-    def _cancel(self):
-        return
-
     def _process(self):
         if settings.License.status != "accepted":
             raise StepError(_('you rejected the terms of the license.'))

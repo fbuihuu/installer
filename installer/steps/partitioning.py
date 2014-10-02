@@ -195,9 +195,6 @@ class PartitioningStep(Step):
     def name(self):
         return _("Partitioning")
 
-    def _cancel(self):
-        raise NotImplementedError()
-
     def _do_clean_disks(self):
         """wipefs all disks and their direct siblings"""
         self.logger.debug("cleaning disk(s)")

@@ -21,9 +21,6 @@ class _L10nStep(Step):
     def name(self):
         return _("Localization")
 
-    def _cancel(self):
-        pass
-
     def _process(self):
         #
         # The installation step should had taken care of the

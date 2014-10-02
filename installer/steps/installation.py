@@ -220,9 +220,6 @@ class _InstallStep(Step):
     def _do_extra_packages(self):
         raise NotImplementedError()
 
-    def _cancel(self):
-        raise NotImplementedError()
-
     def _process(self):
         self.set_completion(1)
 

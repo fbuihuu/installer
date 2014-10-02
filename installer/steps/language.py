@@ -14,9 +14,6 @@ class LanguageStep(Step):
     def name(self):
         return _("Language")
 
-    def _cancel(self):
-        pass
-
     def _process(self):
         # Nothing to do here since most of the actions are done later
         # by localization step. Even changing the keyboard layout

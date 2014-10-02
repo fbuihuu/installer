@@ -14,9 +14,6 @@ class PasswordStep(Step):
     def name(self):
         return _("Password")
 
-    def _cancel(self):
-        pass
-
     def _process(self):
         self.logger.info(_("setting root's password"))
         password = settings.Password.root
