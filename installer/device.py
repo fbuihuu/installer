@@ -96,9 +96,12 @@ def _syspath_to_bdev(syspath):
                 return dev
 
 def _devpath_to_bdev(devpath):
+    # It's probably safer to rely on major/minor instead of devpath.
+    st = os.stat(devpath)
+    major, minor = (os.major(st.st_rdev), os.minor(st.st_rdev))
     with _bdev_lock:
         for dev in _block_devices:
-            if dev.devpath == devpath:
+            if dev.major == major and dev.minor == minor:
                 return dev
 
 def find_bdev(major, minor):
@@ -457,10 +460,7 @@ class MetadiskDevice(DiskDevice):
     @property
     def md_container(self):
         if self._gudev.get_property("MD_CONTAINER"):
-            stat  = os.stat(self._gudev.get_property("MD_CONTAINER"))
-            major = os.major(stat.st_rdev)
-            minor = os.minor(stat.st_rdev)
-            return _find_bdev(major, minor)
+            return _devpath_to_bdev(self._gudev.get_property("MD_CONTAINER"))
 
     @property
     def is_md_container(self):
