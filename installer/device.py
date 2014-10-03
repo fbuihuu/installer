@@ -90,19 +90,17 @@ def root_block_devices():
 # For now consider also bdevs which are not ready.
 def syspath_to_bdev(syspath):
     syspath = os.path.realpath(syspath)
-    with _bdev_lock:
-        for dev in block_devices():
-            if dev.syspath == syspath:
-                return dev
+    for dev in block_devices():
+        if dev.syspath == syspath:
+            return dev
 
 def devpath_to_bdev(devpath):
     # It's probably safer to rely on major/minor instead of devpath.
     st = os.stat(devpath)
     major, minor = (os.major(st.st_rdev), os.minor(st.st_rdev))
-    with _bdev_lock:
-        for dev in block_devices():
-            if dev.major == major and dev.minor == minor:
-                return dev
+    for dev in block_devices():
+        if (dev.major, dev.minor) == (major, minor):
+            return dev
 
 def _format_description(lines):
     width = max([len(line[0]) for line in lines])
