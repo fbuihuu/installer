@@ -165,7 +165,6 @@ class _InstallStep(Step):
         if wants_mdadm:
             self._extra_packages.append('mdadm')
 
-
     def _do_bootloader(self):
         #
         # We support the following cases:
