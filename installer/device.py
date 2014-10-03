@@ -468,24 +468,11 @@ class MetadiskDevice(DiskDevice):
 
     def get_parents(self):
         parents = []
-        #
-        # Accessing sysfs path directly is not a good idea because the
-        # device might have already been removed but the python udev
-        # lib is still not aware. But I don't see any other way: the
-        # exported info given by 'mdadm --detail --export' are not
-        # usable.
-        #
-        md_dir = os.path.join(self.syspath, 'md')
-        try:
-            for f in os.listdir(md_dir):
-                if f.startswith('dev-'):
-                    parent = _syspath_to_bdev(os.path.join(md_dir, f, 'block'))
-                    assert(parent)
-                    parents.append(parent)
-        except IOError:
-            parent = []
-        else:
-            assert(parents)
+        for key in self._gudev.get_property_keys():
+            if key[:10] == 'MD_DEVICE_' and key[-4:] == '_DEV':
+                bdev = _devpath_to_bdev(self._gudev.get_property(key))
+                parents.append(bdev)
+        assert(parents)
         return parents
 
     def __str__(self):
