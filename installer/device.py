@@ -104,12 +104,6 @@ def devpath_to_bdev(devpath):
             if dev.major == major and dev.minor == minor:
                 return dev
 
-def find_bdev(major, minor):
-    with _bdev_lock:
-        for dev in _block_devices:
-            if dev.major == major and dev.minor == minor:
-                return dev
-
 def _format_description(lines):
     width = max([len(line[0]) for line in lines])
     return "\n".join(["{f:<{w}} : {v}".format(f=f, v=v, w=width)

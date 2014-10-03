@@ -29,8 +29,7 @@ class PartitioningView(StepView):
             if not stat.S_ISBLK(st.st_mode):
                 raise ViewError(_("'%s' is not a block device" % path))
 
-            major, minor = (os.major(st.st_rdev), os.minor(st.st_rdev))
-            bdev = device.find_bdev(major, minor)
+            bdev = device.devpath_to_bdev(path)
             assert(bdev)
 
             if bdev.devtype != 'disk':
