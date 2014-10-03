@@ -87,11 +87,18 @@ def root_block_devices():
             roots.append(dev)
     return roots
 
+# For now consider also bdevs which are not ready.
 def _syspath_to_bdev(syspath):
     syspath = os.path.realpath(syspath)
     with _bdev_lock:
         for dev in _block_devices:
             if dev.syspath == syspath:
+                return dev
+
+def _devpath_to_bdev(devpath):
+    with _bdev_lock:
+        for dev in _block_devices:
+            if dev.devpath == devpath:
                 return dev
 
 def find_bdev(major, minor):
