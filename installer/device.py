@@ -56,13 +56,18 @@ _bdev_lock = threading.RLock()
 _block_devices = []
 
 
+def block_devices():
+    """Returns a list of the block devices ready to be used."""
+    with _bdev_lock:
+        return [bdev for bdev in _block_devices if bdev.is_ready]
+
 def leaf_block_devices():
     """Returns the list of partition devices or any block devices
     without partitions.
     """
     with _bdev_lock:
-        leaves = [bdev for bdev in _block_devices if bdev.is_ready]
-        for dev in _block_devices:
+        leaves = block_devices()
+        for dev in leaves[:]:
             for parent in dev.get_parents():
                 if parent in leaves:
                     leaves.remove(parent)
@@ -72,10 +77,8 @@ def root_block_devices():
     """Returns the list of root block devices"""
     roots = []
     with _bdev_lock:
-        for dev in _block_devices:
+        for dev in block_devices():
             if dev.devtype != 'disk':
-                continue
-            if not dev.is_ready:
                 continue
             if dev.get_parents():
                 continue
