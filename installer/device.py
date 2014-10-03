@@ -434,6 +434,13 @@ class MetadiskDevice(DiskDevice):
         return self._gudev.get_property("MD_LEVEL")
 
     @property
+    def is_ready(self):
+        # For some reasons 'array_state' property is not exported and
+        # accessing to sysfs is not allowed to avoid races. So we have
+        # to rely on the md_devices number only.
+        return self.md_devices > 0
+
+    @property
     def metadata(self):
         if self.md_container:
             return self.md_container.metadata
@@ -442,6 +449,10 @@ class MetadiskDevice(DiskDevice):
     @property
     def md_devname(self):
         return self._gudev.get_property("MD_DEVNAME")
+
+    @property
+    def md_devices(self):
+        return self._gudev.get_property_as_int("MD_DEVICES")
 
     @property
     def md_container(self):
