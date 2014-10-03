@@ -9,6 +9,7 @@ from installer import disk
 from installer import l10n
 from installer import distro
 from installer.partition import partitions
+from installer.device import MetadiskDevice
 from installer.system import distribution, is_efi
 from installer.settings import settings, SettingsError
 from . import Step, StepError
@@ -79,7 +80,7 @@ class _InstallStep(Step):
     def __init__(self):
         Step.__init__(self)
         self._fstab = {}
-        self._extra_packages = ['mdadm'] # FIXME: should test if it's a RAID setup
+        self._extra_packages = []
 
     @property
     def name(self):
@@ -142,6 +143,28 @@ class _InstallStep(Step):
             else:
                 raise StepError(_("don't know how to check fs coherency"))
         self._extra_packages.extend(pkgs)
+
+    def _do_mdadm(self):
+        # Will mdadm(8) be required by the target system ?
+        wants_mdadm = not settings.Options.hostonly
+
+        for part in partitions:
+            if wants_mdadm:
+                break
+            if part.device:
+                # MD device based on a disks' partitions
+                if type(part.device) == MetadiskDevice:
+                    wants_mdadm = True
+                else:
+                    # Or MD device based on the whole disks (ie
+                    # fake-raid).
+                    for parent in part.device.get_parents():
+                        if type(parent) == MetadiskDevice:
+                            wants_mdadm = True
+                            break
+        if wants_mdadm:
+            self._extra_packages.append('mdadm')
+
 
     def _do_bootloader(self):
         #
@@ -227,6 +250,7 @@ class _InstallStep(Step):
         self._do_rootfs(pkgs)
         self._do_i18n()
         self._do_fstab()
+        self._do_mdadm()
         self._do_bootloader()
         self._do_extra_packages()
         self._do_initramfs()
