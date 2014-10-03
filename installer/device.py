@@ -88,19 +88,19 @@ def root_block_devices():
     return roots
 
 # For now consider also bdevs which are not ready.
-def _syspath_to_bdev(syspath):
+def syspath_to_bdev(syspath):
     syspath = os.path.realpath(syspath)
     with _bdev_lock:
-        for dev in _block_devices:
+        for dev in block_devices():
             if dev.syspath == syspath:
                 return dev
 
-def _devpath_to_bdev(devpath):
+def devpath_to_bdev(devpath):
     # It's probably safer to rely on major/minor instead of devpath.
     st = os.stat(devpath)
     major, minor = (os.major(st.st_rdev), os.minor(st.st_rdev))
     with _bdev_lock:
-        for dev in _block_devices:
+        for dev in block_devices():
             if dev.major == major and dev.minor == minor:
                 return dev
 
@@ -460,7 +460,7 @@ class MetadiskDevice(DiskDevice):
     @property
     def md_container(self):
         if self._gudev.get_property("MD_CONTAINER"):
-            return _devpath_to_bdev(self._gudev.get_property("MD_CONTAINER"))
+            return devpath_to_bdev(self._gudev.get_property("MD_CONTAINER"))
 
     @property
     def is_md_container(self):
@@ -470,7 +470,7 @@ class MetadiskDevice(DiskDevice):
         parents = []
         for key in self._gudev.get_property_keys():
             if key[:10] == 'MD_DEVICE_' and key[-4:] == '_DEV':
-                bdev = _devpath_to_bdev(self._gudev.get_property(key))
+                bdev = devpath_to_bdev(self._gudev.get_property(key))
                 parents.append(bdev)
         assert(parents)
         return parents
@@ -534,7 +534,7 @@ class PartitionDevice(BlockDevice):
         return int(self._gudev.get_property("ID_PART_ENTRY_NUMBER"))
 
     def get_parents(self):
-        pdev = _syspath_to_bdev(os.path.join(self.syspath, ".."))
+        pdev = syspath_to_bdev(os.path.join(self.syspath, ".."))
         if not pdev:
             raise DeviceError(self, "partition has no direct parent !")
         return [pdev]
