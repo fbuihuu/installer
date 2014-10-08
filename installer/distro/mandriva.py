@@ -20,8 +20,11 @@ def _init_urpmi(root, logger=lambda *args: None):
     if not settings.Urpmi.distrib_src:
         monitor(["cp", '/etc/urpmi/urpmi.cfg', os.path.join(root, 'etc/urpmi/')])
 
-    # Import pub keys in the rootfs
-    monitor(['urpmi.update', '--urpmi-root', root, '-a', '--force-key', '-q'])
+    # Import pub keys in the rootfs. Don't use --urpmi-root here since
+    # a media might be protected by a password which is not
+    # installed. Passwords stored by urpmi in /etc/urpmi/netrc are not
+    # imported for safety reason.
+    monitor(['urpmi.update', '--root', root, '-a', '--force-key', '-q'])
 
 
 def install(pkgs, root=None, completion_start=0, completion_end=0,
