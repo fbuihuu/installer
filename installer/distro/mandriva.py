@@ -11,20 +11,54 @@ paths = {
     'keymaps'           : '/usr/lib/kbd/keymaps',
 }
 
+_urpmi_root_opt=None
 
-_first_install_call = True
-def _init_urpmi(root, logger=lambda *args: None):
-    #
-    # Import urpmi.cfg from host only if it was used to init the rootfs.
-    #
-    if not settings.Urpmi.distrib_src:
-        monitor(["cp", '/etc/urpmi/urpmi.cfg', os.path.join(root, 'etc/urpmi/')])
 
-    # Import pub keys in the rootfs. Don't use --urpmi-root here since
-    # a media might be protected by a password which is not
-    # installed. Passwords stored by urpmi in /etc/urpmi/netrc are not
-    # imported for safety reason.
-    monitor(['urpmi.update', '--root', root, '-a', '--force-key', '-q'])
+def add_repository(repo, root, logger):
+    #
+    # We split the operation into 2 separate steps (addmedia + update)
+    # in order to silent urpmi when it retrieve the repo metadata.
+    #
+    monitor(['urpmi.addmedia', '--raw', '--urpmi-root', root, '--distrib', repo],
+            logger=logger)
+    monitor(['urpmi.update', '-q', '--urpmi-root', root, '-a'],
+            logger=logger)
+
+
+def urpmi_init(repositories, root, logger=lambda *args: None):
+    global _urpmi_root_opt
+
+    if repositories:
+        #
+        # Distribution has been specified, setup the rootfs in order
+        # to use it.
+        #
+        for repo in repositories:
+            logger.info(_('Using repository: %s' % repo))
+            add_repository(repo, root, logger)
+
+        # Tell urpmi to pick its configuration up from the rootfs.
+        _urpmi_root_opt='--urpmi-root'
+
+    else:
+        logger.info(_('Using urpmi configuration from host'))
+        #
+        # If no repository has been specified, we use the host urpmi
+        # setup but don't import any passwords (stored in
+        # /etc/urpmi/netrc) to avoid leaking secrets.
+        #
+        if not os.path.exists(os.path.join(root, 'etc/urpmi')):
+            os.makedirs(os.path.join(root, 'etc/urpmi/'))
+        monitor(["cp", '/etc/urpmi/urpmi.cfg', os.path.join(root, 'etc/urpmi/')],
+                logger=logger)
+
+        # Import pub keys in the rootfs.
+        monitor(['urpmi.update', '--urpmi-root', root, '-a', '--force-key', '-q'],
+                logger=logger)
+
+        # Since medias might be protected by passwords, use host urpmi
+        # setup to install package.
+        _urpmi_root_opt='--root'
 
 
 def install(pkgs, root=None, completion_start=0, completion_end=0,
@@ -52,13 +86,8 @@ def install(pkgs, root=None, completion_start=0, completion_end=0,
             monitor(cmd, logger=logger, stdout_hander=stdout_hander)
 
         else:
-            if os.path.exists(os.path.join(root, 'usr/sbin/urpmi')):
-                global _first_install_call
-                if _first_install_call:
-                    _init_urpmi(root, logger)
-                    _first_install_call = False
-
-            cmd = ['urpmi', '--root', root] + urpmi_opts + pkgs
+            global _urpmi_root_opt
+            cmd = ['urpmi', _urpmi_root_opt, root] + urpmi_opts + pkgs
             monitor_chroot(root, cmd, chrooter=None,
                            logger=logger,
                            stdout_handler=stdout_handler)
@@ -66,4 +95,3 @@ def install(pkgs, root=None, completion_start=0, completion_end=0,
     # Make sure to set completion level specially in the case where the
     # packages are already installed.
     set_completion(completion_end)
-

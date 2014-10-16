@@ -176,6 +176,7 @@ class Options(Section):
 
 class Installation(Section):
     _packages = []
+    repositories = []
 
     @property
     def packages(self):

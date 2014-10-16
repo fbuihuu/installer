@@ -399,7 +399,8 @@ class MandrivaInstallStep(_InstallStep):
         self._urpmi = self._chroot_install # alias
 
     def _do_rootfs(self, pkgs):
-        self.logger.info("Initializing rootfs with urpmi...")
+        distro.urpmi_init(settings.Installation.repositories,
+                          self._root, self.logger)
         self._urpmi(['basesystem-minimal'] + pkgs, 60)
 
     def _do_bootloader_on_efi(self):
