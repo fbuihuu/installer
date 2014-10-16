@@ -1,7 +1,7 @@
 import os
 import re
 
-from installer.settings import settings
+from installer.settings import settings, SettingsError
 from installer.process import monitor, monitor_chroot
 
 
@@ -12,6 +12,44 @@ paths = {
 }
 
 _urpmi_root_opt=None
+
+# This assumes that the global options section is empty and is at the
+# start of the file.
+def _urpmi_config_set_options(options, urpmi_cfg):
+
+    with open(urpmi_cfg, 'r') as f:
+        contents = f.readlines()
+
+    while contents[0].strip() == '':
+        contents.pop(0)
+
+    if contents[0] != '{\n':
+        # FIXME: another type of exception should be raised.
+        raise SettingsError("%s is malformated: missing opening '{'." % urpmi_cfg)
+
+    while contents[1].strip() == '':
+        contents.pop(1)
+
+    if contents[1] != '}\n':
+        # missing the closing brace or urpmi.cfg already has some
+        # options, this shouldn't be the case since it has just been
+        # created.
+        raise SettingsError("some global options are already present in %s" % urpmi_cfg)
+
+    # Insert the user's options
+    lst = []
+    for option in options + ['--']:
+        if not option.startswith('--'):
+            lst.append(option)
+            continue
+        if lst:
+            if len(lst) > 1:
+                lst[0] = lst[0] + ':'
+            contents.insert(1, " ".join(lst) + '\n')
+        lst = ['  ' + option[2:]]
+
+    with open(urpmi_cfg, 'w') as f:
+        f.writelines(contents)
 
 
 def add_repository(repo, root, logger):
@@ -60,12 +98,20 @@ def urpmi_init(repositories, root, logger=lambda *args: None):
         # setup to install package.
         _urpmi_root_opt='--root'
 
+    #
+    # Import the user's options as default urpmi options for the
+    # target system.
+    #
+    if settings.Urpmi.options:
+        logger.debug('Adding user options in urpmi.cfg')
+        _urpmi_config_set_options(settings.Urpmi.options.split(),
+                                  root + '/etc/urpmi/urpmi.cfg')
+
 
 def install(pkgs, root=None, completion_start=0, completion_end=0,
           set_completion=lambda *args: None, logger=None, options=[]):
 
-    urpmi_opts  = settings.Urpmi.options.split()
-    urpmi_opts += ["--auto", "--downloader=curl", "--curl-options='-s'"]
+    urpmi_opts  = ["--auto", "--downloader=curl", "--curl-options='-s'"]
     urpmi_opts += ["--rsync-options='-q'"]
     urpmi_opts += options
 
