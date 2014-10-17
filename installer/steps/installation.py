@@ -95,7 +95,7 @@ class _InstallStep(Step):
 
     def _do_read_package_list(self):
         lst = []
-        for pkgfile in settings.Packages.extras:
+        for pkgfile in settings.Installation.packages:
             self.logger.info("reading package list")
             try:
                 with open(pkgfile, 'r') as f:
@@ -105,8 +105,7 @@ class _InstallStep(Step):
                         if line:
                             lst.append(line)
             except IOError:
-                self.logger.error("Failed to read package list %s" %
-                                  settings.Package.list)
+                self.logger.error("Failed to read package list %s" % pkgfile)
         return lst
 
     def _do_rootfs(self):

@@ -174,21 +174,21 @@ class Options(Section):
         self._firmware = fw
 
 
-class Packages(Section):
-    _extras = []
+class Installation(Section):
+    _packages = []
 
     @property
-    def extras(self):
-        return self._extras
+    def packages(self):
+        return self._packages
 
-    @extras.setter
-    def extras(self, pkgfiles):
+    @packages.setter
+    def packages(self, pkgfiles):
         #
         # Relative path is relative to the directory
         # containing the config file.
         #
         for f in pkgfiles:
-            self._extras.append(check_file(f))
+            self._packages.append(check_file(f))
 
 
 class Steps(Section):
@@ -216,15 +216,15 @@ class _Settings(object):
 
     def __init__(self):
         self._sections = {
-            'End'        : End(),
-            'I18n'       : I18n(),
-            'Kernel'     : Kernel(),
-            'License'    : License(),
-            'Options'    : Options(),
-            'Packages'   : Packages(),
-            'Steps'      : Steps(),
-            'Urpmi'      : Urpmi(),
-            'Urwid'      : Urwid(),
+            'End'              : End(),
+            'I18n'             : I18n(),
+            'Installation'     : Installation(),
+            'Kernel'           : Kernel(),
+            'License'          : License(),
+            'Options'          : Options(),
+            'Steps'            : Steps(),
+            'Urpmi'            : Urpmi(),
+            'Urwid'            : Urwid(),
         }
 
     @property
