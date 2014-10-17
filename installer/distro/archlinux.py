@@ -12,9 +12,9 @@ paths = {
 
 
 def install(pkgs, root=None, completion_start=0, completion_end=0,
-          set_completion=lambda *args: None, logger=None):
+          set_completion=lambda *args: None, logger=None, options=[]):
 
-    pacman_opts = ['--needed']
+    pacman_opts = ['--needed'] + options
 
     def stdout_handler(p, line, data):
         if data is None:

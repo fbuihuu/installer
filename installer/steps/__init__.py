@@ -223,9 +223,9 @@ class Step(object):
             self.logger.info("importing from host: %s", src)
             self._monitor(["cp", src, dst])
 
-    def _chroot_install(self, pkgs, completion):
+    def _chroot_install(self, pkgs, completion, options=[]):
         distro.install(pkgs, self._root, self._completion, completion,
-                       self.set_completion, self.logger)
+                       self.set_completion, self.logger, options)
 
 #
 # Step instantiations requires working translation.
