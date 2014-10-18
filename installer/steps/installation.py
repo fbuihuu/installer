@@ -8,6 +8,7 @@ import glob
 from installer import disk
 from installer import l10n
 from installer import distro
+from installer import utils
 from installer.partition import partitions
 from installer.device import MetadiskDevice
 from installer.system import distribution, is_efi
@@ -96,16 +97,10 @@ class _InstallStep(Step):
     def _do_read_package_list(self):
         lst = []
         for pkgfile in settings.Installation.packages:
-            self.logger.info("reading package list")
             try:
-                with open(pkgfile, 'r') as f:
-                    for line in f:
-                        line = line.partition('#')[0]
-                        line = line.strip()
-                        if line:
-                            lst.append(line)
+                lst += utils.read_package_list(pkgfile, self.logger)
             except IOError:
-                self.logger.error("Failed to read package list %s" % pkgfile)
+                raise StepError(_("Failed to read package list from %s" % pkgfile))
         return lst
 
     def _do_rootfs(self):
