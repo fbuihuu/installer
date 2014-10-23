@@ -248,20 +248,23 @@ from .language import LanguageStep
 from .license import LicenseStep
 from .partitioning import PartitioningStep
 from .installation import InstallStep
-from .download import DownloadStep
+from .local_media import LocalMediaStep
 from .localization import LocalizationStep
 from .password import PasswordStep
 from .end import EndStep
 
-
+#
+# 'local-media' step must be the last but one since all packages must
+# have been downloaded before creating the local media.
+#
 def initialize():
     _all_steps.append(LanguageStep())
     _all_steps.append(LicenseStep())
     _all_steps.append(PartitioningStep())
     _all_steps.append(InstallStep())
-    _all_steps.append(DownloadStep())
     _all_steps.append(LocalizationStep())
     _all_steps.append(PasswordStep())
+    _all_steps.append(LocalMediaStep()) # keep last but one
     _all_steps.append(EndStep())
 
     assert(get_steps())

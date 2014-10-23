@@ -1,8 +1,40 @@
+#
+# We manually install urpmi.cfg from the host into the target system
+# so all repositories available from the host will be from the target
+# too except for remote repositories protected by a password.
+#
+# We choose, at least for now, to not propagate secrets into the
+# target to avoid leaking passwords by mistake. Maybe we'll introduce
+# a new option to do that. Note that secrets are stored in
+# /etc/urpmi/netrc.
+#
+# Therefore repository protected by a password couldn't be used for
+# installation.
+#
+# Since urpmi.cfg is installed into the target system, we can use
+# --urpmi-root option when installing packages. The table below shows
+# the different urpmi behaviours between '--root' and '--urpmi-root':
+#
+# |--------------+-----------+-------------+----------------|
+# |              | urpmi.cfg | local media | --noclean      |
+# |--------------+-----------+-------------+----------------|
+# | --urpmi-root | target    | host        | rpms in target |
+# | --root       | host      | host        | rpms in host   |
+# |--------------+-----------+-------------+----------------|
+#
+# '--urpmi-root' allows one to create a local media easily since rpms
+# will always be stored directly in the target system when '--noclean'
+# is used.
+#
+# Unfortunately it won't work if a local media is also used by the
+# host because for some reasons urpmi won't store packages in
+# /var/cache/urpmi/rpms directory (target or host).
+#
 import os
 import re
 
 from installer.settings import settings, SettingsError
-from installer.process import monitor, monitor_chroot
+from installer.process import monitor, monitor_chroot, CalledProcessError
 
 
 paths = {
@@ -11,7 +43,16 @@ paths = {
     'keymaps'           : '/usr/lib/kbd/keymaps',
 }
 
-_urpmi_root_opt=None
+#
+# This can be used by steps to pass extra options to urpmi. Those
+# options won't be part of the urpmi global options like the options
+# specified by the users.
+#
+_urpmi_extra_options = []
+
+def urpmi_add_extra_options(options):
+    _urpmi_extra_options.extend(options)
+
 
 # This assumes that the global options section is empty and is at the
 # start of the file.
@@ -53,51 +94,55 @@ def _urpmi_config_set_options(options, urpmi_cfg):
 
 
 def add_repository(repo, root, logger):
-    #
-    # We split the operation into 2 separate steps (addmedia + update)
-    # in order to silent urpmi when it retrieve the repo metadata.
-    #
-    monitor(['urpmi.addmedia', '--raw', '--urpmi-root', root, '--distrib', repo],
-            logger=logger)
-    monitor(['urpmi.update', '-q', '--urpmi-root', root, '-a'],
-            logger=logger)
+    cmd  = ['urpmi.addmedia', '--urpmi-root', root]
+    cmd += ['--curl', '--curl-options=-s', '--rsync-options=-q']
+    cmd += ['--distrib', repo]
+    monitor(cmd, logger=logger)
+
+
+def add_media(name, media, root, logger, options=[]):
+    cmd  = ['urpmi.addmedia'] + options
+    cmd += ['--curl', '--curl-options=-s', '--rsync-options=-q']
+    cmd += ['--urpmi-root', root, name, media]
+    monitor(cmd, logger=logger)
+
+
+def del_media(name, root, logger, ignore_error=False):
+    try:
+        monitor(['urpmi.removemedia', '--urpmi-root', root, name], logger=logger)
+    except CalledProcessError:
+        if not ignore_error:
+            raise
 
 
 def urpmi_init(repositories, root, logger=lambda *args: None):
-    global _urpmi_root_opt
-
     if repositories:
         #
-        # Distribution has been specified, setup the rootfs in order
-        # to use it.
+        # A distribution has been specified, configure the rootfs in
+        # order to use it.
         #
         for repo in repositories:
             logger.info(_('Using repository: %s' % repo))
             add_repository(repo, root, logger)
-
-        # Tell urpmi to pick its configuration up from the rootfs.
-        _urpmi_root_opt='--urpmi-root'
-
     else:
-        logger.info(_('Using urpmi configuration from host'))
         #
         # If no repository has been specified, we use the host urpmi
-        # setup but don't import any passwords (stored in
-        # /etc/urpmi/netrc) to avoid leaking secrets.
+        # setup but don't import any passwords to avoid leaking
+        # secrets.
         #
+        logger.info(_('Using urpmi configuration from host'))
+
+        # The directory can exist already, when retrying an
+        # installation.
         if not os.path.exists(os.path.join(root, 'etc/urpmi')):
             os.makedirs(os.path.join(root, 'etc/urpmi/'))
+
         monitor(["cp", '/etc/urpmi/urpmi.cfg', os.path.join(root, 'etc/urpmi/')],
                 logger=logger)
 
-        # Import pub keys in the rootfs.
+        logger.info(_('Retrieving repository public keys'))
         monitor(['urpmi.update', '--urpmi-root', root, '-a', '--force-key', '-q'],
                 logger=logger)
-
-        # Since medias might be protected by passwords, use host urpmi
-        # setup to install package.
-        _urpmi_root_opt='--root'
-
     #
     # Import the user's options as default urpmi options for the
     # target system.
@@ -109,14 +154,12 @@ def urpmi_init(repositories, root, logger=lambda *args: None):
 
 
 def install(pkgs, root=None, completion_start=0, completion_end=0,
-          set_completion=lambda *args: None, logger=None, options=[]):
+            set_completion=lambda *args: None, logger=None, options=[]):
 
-    urpmi_opts  = ["--auto", "--downloader=curl", "--curl-options='-s'"]
-    urpmi_opts += ["--rsync-options='-q'"]
+    urpmi_opts  = _urpmi_extra_options
+    urpmi_opts += ["--auto", "--downloader=curl", "--curl-options='-s'"]
+    urpmi_opts += ["--rsync-options=-q"]
     urpmi_opts += options
-
-    if settings.Urpmi.distrib_src:
-        urpmi_opts += ['--use-distrib', settings.Urpmi.distrib_src]
 
     def stdout_handler(p, line, data):
         pattern = re.compile(r'\s+([0-9]+)/([0-9]+): ')
@@ -132,8 +175,7 @@ def install(pkgs, root=None, completion_start=0, completion_end=0,
             monitor(cmd, logger=logger, stdout_hander=stdout_hander)
 
         else:
-            global _urpmi_root_opt
-            cmd = ['urpmi', _urpmi_root_opt, root] + urpmi_opts + pkgs
+            cmd = ['urpmi', '--urpmi-root', root] + urpmi_opts + pkgs
             monitor_chroot(root, cmd, chrooter=None,
                            logger=logger,
                            stdout_handler=stdout_handler)

@@ -10,13 +10,13 @@ from installer import l10n
 from installer.settings import settings
 
 
-class DownloadView(StepView):
+class LocalMediaView(StepView):
 
     def __init__(self, ui, step):
         StepView.__init__(self, ui, step)
 
-        self.page  = widgets.Page(_("Import package repository"))
-        self._f1   = widgets.Field(_("Destination"), settings.Urpmi.distrib_dst)
+        self.page  = widgets.Page(_("Create a local media"))
+        self._f1   = widgets.Field(_("Destination"), settings.LocalMedia.location)
         self._pile = urwid.Pile([self._f1])
         attrmap = urwid.Padding(self._pile, align='center', width=('relative', 70))
         self.page.body   = urwid.Filler(attrmap, 'middle')

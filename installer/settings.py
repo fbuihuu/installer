@@ -192,12 +192,29 @@ class Installation(Section):
             self._packages.append(check_file(f))
 
 
+class LocalMedia(Section):
+    _packages = []
+
+    @property
+    def packages(self):
+        return self._packages
+
+    @packages.setter
+    def packages(self, pkgfiles):
+        #
+        # Relative path is relative to the directory
+        # containing the config file.
+        #
+        for f in pkgfiles:
+            self._packages.append(check_file(f))
+
+
 class Steps(Section):
     language     = True
     license      = True
     partitioning = True
     installation = True
-    download     = True
+    local_media  = False
     localization = True
     password     = True
     end          = True
@@ -205,8 +222,6 @@ class Steps(Section):
 
 class Urpmi(Section):
     options  = ''
-    distrib_src = ''
-    distrib_dst = ''
 
 
 class Urwid(Section):
@@ -222,6 +237,7 @@ class _Settings(object):
             'Installation'     : Installation(),
             'Kernel'           : Kernel(),
             'License'          : License(),
+            'LocalMedia'       : LocalMedia(),
             'Options'          : Options(),
             'Steps'            : Steps(),
             'Urpmi'            : Urpmi(),
