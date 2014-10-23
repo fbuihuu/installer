@@ -18,7 +18,6 @@ class UI(object):
 
     def __init__(self):
         self._current_step = None
-
         steps.initialize()
         steps.finished_signal.connect(self._on_step_finished)
         steps.completion_signal.connect(self._on_step_completion)
@@ -34,22 +33,17 @@ class UI(object):
 
     def _load_step_views(self):
         for step in steps.get_steps():
-            # Dynamic loading of view modules is based on the english name
-            # of the step.
-            lang = l10n.language
-            l10n.set_translation(None)
-            name = step.name
-            l10n.set_translation(lang)
-
+            # Be carefull when using step.name since it can use the
+            # translated for.
             try:
                 # Import view's module if available
-                mod = import_module('.' + name.lower(), self.__module__)
+                mod = import_module('.' + step.view_module_name, self.__module__)
             except ImportError:
-                logger.debug("no module view for step '%s'" % name)
+                logger.debug("no module view for step '%s'" % step.name)
                 step.view_data = None
             else:
                 # Retrieve view's class and instantiate it.
-                view = getattr(mod, name + 'View')(self, step)
+                view = getattr(mod, step.view_class_name + 'View')(self, step)
                 step.view_data = view
 
     def run(self):
