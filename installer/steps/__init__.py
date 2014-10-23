@@ -102,11 +102,11 @@ class Step(object):
         step. This name is also used by the 'Steps' section from the
         settings module.
         """
-        return self._name.lower()
+        return self._name.replace(' ', '_').lower()
 
     @property
     def view_class_name(self):
-        return self._name
+        return self._name.replace(' ', '')
 
     @property
     def logger(self):
