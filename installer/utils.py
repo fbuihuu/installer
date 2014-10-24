@@ -63,10 +63,6 @@ def rsync(src, dst, completion_start=0, completion_end=0,
         src = rootfs + src
         dst = rootfs + dst
 
-    # log the command since we're going to disable logging for
-    # monitor(), see below.
-    logger.debug('running: rsync -a --ouput-format=%%b %s %s' % (src, dst))
-
     #
     # This is used to get the total number of files created by rsync
     #
@@ -92,7 +88,8 @@ def rsync(src, dst, completion_start=0, completion_end=0,
     #
     # Don't log rsync's output since it's not really interesting for
     # the user as we report the number of bytes actually transferred
-    # for reporting progression.
+    # for reporting progression. But log the command run.
     #
-    monitor(['rsync', '-a', '--out-format=%b', src, dst], logger=None,
-             stdout_handler=stdout_handler)
+    cmd = ['rsync', '-a', '--out-format=%b', src, dst]
+    logger.debug('running: %s' % ' '.join(cmd))
+    monitor(cmd, logger=None, stdout_handler=stdout_handler)
