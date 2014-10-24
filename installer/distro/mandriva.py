@@ -121,8 +121,11 @@ def urpmi_init(repositories, root, logger=lambda *args: None):
     if repositories:
         #
         # A distribution has been specified, configure the rootfs in
-        # order to use it.
+        # order to use it. If the installation step has been restarted
+        # the config file already exists.
         #
+        monitor(['rm', '-f', root + '/etc/urpmi/urpmi.cfg'], logger=logger)
+
         for repo in repositories:
             logger.info(_('Using repository: %s' % repo))
             add_repository(repo, root, logger)
