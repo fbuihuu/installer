@@ -38,7 +38,23 @@ class AttributeSettingsError(SettingsError, AttributeError):
     def __str__(self):
         return "missing option '%s' in section '%s'" % (self.attr, self. section)
 
+#
+# Helpers
+#
+def read_package_list(filename):
+    """Read a package list given by a file"""
+    lst = []
+    with open(filename, 'r') as f:
+        for line in f:
+            line = line.partition('#')[0]
+            line = line.strip()
+            if line:
+                lst.append(line)
+    return lst
 
+#
+#
+#
 class Section(object):
 
     def __init__(self, name=None):
@@ -175,12 +191,17 @@ class Options(Section):
 
 
 class Installation(Section):
-    _packages = []
     repositories = []
+    _pkgfiles = []
 
     @property
     def packages(self):
-        return self._packages
+        # Read the files lately so the user can modify them without
+        # restarting the installer.
+        lst = []
+        for f in self._pkgfiles:
+            lst += read_package_list(f)
+        return lst
 
     @packages.setter
     def packages(self, pkgfiles):
@@ -189,15 +210,20 @@ class Installation(Section):
         # containing the config file.
         #
         for f in pkgfiles:
-            self._packages.append(check_file(f))
+            self._pkgfiles.append(check_file(f))
 
 
 class LocalMedia(Section):
-    _packages = []
+    _pkgfiles = []
 
     @property
     def packages(self):
-        return self._packages
+        # Read the files lately so the user can modify them without
+        # restarting the installer.
+        lst = []
+        for f in self._pkgfiles:
+            lst += read_package_list(f)
+        return lst
 
     @packages.setter
     def packages(self, pkgfiles):
@@ -206,7 +232,7 @@ class LocalMedia(Section):
         # containing the config file.
         #
         for f in pkgfiles:
-            self._packages.append(check_file(f))
+            self._pkgfiles.append(check_file(f))
 
 
 class Steps(Section):

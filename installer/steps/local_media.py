@@ -15,7 +15,7 @@ import os
 from installer import distro
 from installer.system import distribution
 from installer.settings import settings, SettingsError
-from installer.utils import rsync, read_package_list
+from installer.utils import rsync
 from . import Step
 
 
@@ -61,9 +61,7 @@ class MandrivaLocalMediaStep(_LocalMediaStep):
         dst = settings.LocalMedia.location
 
         if settings.LocalMedia.packages:
-            for pkgfile in settings.LocalMedia.packages:
-                self._urpmi(read_package_list(pkgfile, self.logger), 50,
-                            ['--no-install'])
+            self._urpmi(settings.LocalMedia.packages, 50, ['--no-install'])
 
         self._chroot(['mkdir', '-p', dst])
         self._rsync(self._root + '/var/cache/urpmi/rpms/', self._root + dst, 60)

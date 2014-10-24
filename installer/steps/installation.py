@@ -94,15 +94,6 @@ class _InstallStep(Step):
             return cmdline
         return "root=" + self._fstab["/"].source + " " + cmdline
 
-    def _do_read_package_list(self):
-        lst = []
-        for pkgfile in settings.Installation.packages:
-            try:
-                lst += utils.read_package_list(pkgfile, self.logger)
-            except IOError:
-                raise StepError(_("Failed to read package list from %s" % pkgfile))
-        return lst
-
     def _do_rootfs(self):
         raise NotImplementedError()
 
@@ -239,8 +230,7 @@ class _InstallStep(Step):
     def _process(self):
         self.set_completion(1)
 
-        pkgs = self._do_read_package_list()
-        self._do_rootfs(pkgs)
+        self._do_rootfs(settings.Installation.packages)
         self._do_i18n()
         self._do_fstab()
         self._do_mdadm()

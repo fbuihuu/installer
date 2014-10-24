@@ -90,15 +90,3 @@ def rsync(src, dst, completion_start=0, completion_end=0,
     # for reporting progression.
     monitor(['rsync', '-a', '--out-format=%b', src, dst], logger=None,
              stdout_handler=stdout_handler)
-
-def read_package_list(filename, logger):
-    """Read a package list given by a file"""
-    logger.debug("reading package list from %s" % filename)
-    lst = []
-    with open(filename, 'r') as f:
-        for line in f:
-            line = line.partition('#')[0]
-            line = line.strip()
-            if line:
-                lst.append(line)
-    return lst
