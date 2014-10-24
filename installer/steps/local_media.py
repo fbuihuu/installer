@@ -64,7 +64,7 @@ class MandrivaLocalMediaStep(_LocalMediaStep):
             self._urpmi(settings.LocalMedia.packages, 50, ['--no-install'])
 
         self._chroot(['mkdir', '-p', dst])
-        self._rsync(self._root + '/var/cache/urpmi/rpms/', self._root + dst, 60)
+        self._rsync('/var/cache/urpmi/rpms/', dst, 60, rootfs=self._root)
         self._chroot(['sh', '-c', 'rm -f /var/cache/urpmi/rpms/*.rpm'])
 
         self._urpmi(['genhdlist2'], 70)

@@ -56,7 +56,12 @@ class Signal(object):
 # rsync. Note this supports at rsync v3.0 and v3.1.
 #
 def rsync(src, dst, completion_start=0, completion_end=0,
-          set_completion=lambda *args: None, logger=None):
+          set_completion=lambda *args: None, logger=None,
+          rootfs=None):
+
+    if rootfs:
+        src = rootfs + src
+        dst = rootfs + dst
 
     # log the command since we're going to disable logging for
     # monitor(), see below.
@@ -84,9 +89,10 @@ def rsync(src, dst, completion_start=0, completion_end=0,
         delta = completion_end - completion_start
         set_completion(completion_start + int(delta * bytes / total))
         return bytes
-
-    # don't log rsync's output since it's not really interesting for
+    #
+    # Don't log rsync's output since it's not really interesting for
     # the user as we report the number of bytes actually transferred
     # for reporting progression.
+    #
     monitor(['rsync', '-a', '--out-format=%b', src, dst], logger=None,
              stdout_handler=stdout_handler)
