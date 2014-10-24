@@ -101,10 +101,12 @@ def add_repository(repo, root, logger):
 
 
 def add_media(name, media, root, logger, options=[]):
+    # Use monitor_chroot() here since the path of the media must be
+    # resolved inside the rootfs.
     cmd  = ['urpmi.addmedia'] + options
     cmd += ['--curl', '--curl-options=-s', '--rsync-options=-q']
-    cmd += ['--urpmi-root', root, name, media]
-    monitor(cmd, logger=logger)
+    cmd += [name, media]
+    monitor_chroot(root, cmd, logger=logger)
 
 
 def del_media(name, root, logger, ignore_error=False):
