@@ -64,12 +64,13 @@ class MandrivaLocalMediaStep(_LocalMediaStep):
             self._urpmi(settings.LocalMedia.packages, 50, ['--no-install'])
 
         self._chroot(['mkdir', '-p', dst])
-        self._rsync('/var/cache/urpmi/rpms/', dst, 60, rootfs=self._root)
-        self._chroot(['sh', '-c', 'rm -f /var/cache/urpmi/rpms/*.rpm'])
+        self._rsync('/var/cache/urpmi/rpms/', dst, 60, rootfs=self._root,
+                    options=['--remove-source-files'])
 
         self._urpmi(['genhdlist2'], 70)
         self._chroot(['genhdlist2', '--xml-info', '--clean', dst])
         self.set_completion(90)
+
         # Delete local media just in case it's already registered, so
         # we can add it (back) safely.
         distro.del_media('Local Media', self._root, self.logger, ignore_error=True)
