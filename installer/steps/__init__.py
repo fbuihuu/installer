@@ -218,10 +218,9 @@ class Step(object):
             kwargs["logger"] = self.logger
         monitor(args, **kwargs)
 
-    def _rsync(self, *args, **kwargs):
-        if "logger" not in kwargs:
-            kwargs["logger"] = self.logger
-        rsync(*args, set_completion=self.set_completion, **kwargs)
+    def _rsync(self, src, dst, completion_end, **kwargs):
+        rsync(src, dst, self._completion, completion_end,
+              self.set_completion, self.logger, **kwargs)
 
     def _chroot(self, args, **kwargs):
         if "logger" not in kwargs:
