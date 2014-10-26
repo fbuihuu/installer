@@ -57,7 +57,7 @@ class Signal(object):
 #
 def rsync(src, dst, completion_start=0, completion_end=0,
           set_completion=lambda *args: None, logger=None,
-          rootfs=None):
+          rootfs=None, options=[]):
 
     if rootfs:
         src = rootfs + src
@@ -90,6 +90,7 @@ def rsync(src, dst, completion_start=0, completion_end=0,
     # the user as we report the number of bytes actually transferred
     # for reporting progression. But log the command run.
     #
-    cmd = ['rsync', '-a', '--out-format=%b', src, dst]
+    cmd = ['rsync'] + options + ['-a', '--out-format=%b', src, dst]
     logger.debug('running: %s' % ' '.join(cmd))
     monitor(cmd, logger=None, stdout_handler=stdout_handler)
+
