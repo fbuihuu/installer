@@ -54,8 +54,6 @@ def urpmi_add_extra_options(options):
     _urpmi_extra_options.extend(options)
 
 
-# This assumes that the global options section is empty and is at the
-# start of the file.
 def _urpmi_config_set_options(options, urpmi_cfg):
 
     with open(urpmi_cfg, 'r') as f:
@@ -70,18 +68,19 @@ def _urpmi_config_set_options(options, urpmi_cfg):
 
     while contents[1].strip() == '':
         contents.pop(1)
-
-    if contents[1] != '}\n':
-        # missing the closing brace or urpmi.cfg already has some
-        # options, this shouldn't be the case since it has just been
-        # created.
-        raise SettingsError("some global options are already present in %s" % urpmi_cfg)
+    #
+    # In case we're reusing the host config, some global options might
+    # be present already. If so they're simply discarded and the
+    # options given by the user are added instead.
+    #
+    while contents[1] != '}\n':
+        contents.pop(1)
 
     # Insert the user's options
     lst = []
     for option in options + ['--']:
         if not option.startswith('--'):
-            lst.append(option)
+            lst.append(option)          # value of current option
             continue
         if lst:
             if len(lst) > 1:
