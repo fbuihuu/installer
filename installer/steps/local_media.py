@@ -16,7 +16,7 @@ from installer import distro
 from installer.system import distribution
 from installer.settings import settings, SettingsError
 from installer.utils import rsync
-from . import Step
+from . import Step, StepError
 
 
 class _LocalMediaStep(Step):
@@ -39,6 +39,12 @@ class ArchLocalMediaStep(_LocalMediaStep):
 
 class MandrivaLocalMediaStep(_LocalMediaStep):
 
+    _BROKEN_URPMI_MSG = _("""Local media can't be created on the target.
+
+Some medias/repos used during the installation process were also local.
+Due to a limitation (or a bug ?) of urpmi(1), packages installed on the
+target system can't be found.""")
+
     def __init__(self):
         #
         # By default this step is disabled, the user has to enable it
@@ -53,6 +59,18 @@ class MandrivaLocalMediaStep(_LocalMediaStep):
             distro.urpmi_add_extra_options(['--noclean'])
 
     def _process(self):
+        #
+        # For some reasons, urpmi won't populate /var/cache/urpmi/rpms
+        # dir of the target if the repo used during the installation
+        # is local (even though we used --no-clean and --urpmi-root
+        # options. This behaviour breaks this step, so inform the user:
+        #
+        # Unfortunately this won't trap the case where local *and*
+        # remote repositories are used together.
+        #
+        if not os.listdir(self._root + '/var/cache/urpmi/rpms'):
+            raise StepError(self._BROKEN_URPMI_MSG)
+
         #
         # Since 'location' has no default value, it will raise a
         # SettingsError exception if the user did not set it up
