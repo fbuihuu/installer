@@ -300,6 +300,7 @@ def load_config_file(fp):
     settings.set('Options', 'config', os.path.abspath(fp.name))
 
     config = ConfigParser()
+    config.optionxform = str # make it case-sensitive
     config.readfp(fp)
 
     for section in config.sections():
