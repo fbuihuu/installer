@@ -80,7 +80,7 @@ class Step(object):
         # _name is the untranslated version of self.name(): we assume
         # that translation is still off.
         self._name = self.name
-        self._skip = not settings.get('Steps', self.view_module_name)
+        self._skip = not settings.get('Steps', self.view_class_name)
         self._root = None
         self._thread = None
         self.requires = set(self.requires)

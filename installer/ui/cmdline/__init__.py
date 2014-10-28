@@ -52,7 +52,7 @@ class CommandLineUI(UI):
 
     def __init__(self, args):
         # For now, no need to accept the license with the cmdline frontend.
-        settings.Steps.license = False
+        settings.Steps.License = False
         UI.__init__(self)
         self._retcode = 0
         self._args = args

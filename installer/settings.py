@@ -232,14 +232,14 @@ class LocalMedia(Section):
 
 
 class Steps(Section):
-    language     = True
-    license      = True
-    partitioning = True
-    installation = True
-    local_media  = False
-    localization = True
-    password     = True
-    end          = True
+    Language     = True
+    License      = True
+    Partitioning = True
+    Installation = True
+    LocalMedia   = False
+    Localization = True
+    Password     = True
+    End          = True
 
 
 class Urpmi(Section):
