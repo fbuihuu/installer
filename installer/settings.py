@@ -92,7 +92,7 @@ class End(Section):
         self._action = a
 
 
-class I18n(Section):
+class Localization(Section):
     _country  = ''
     _timezone = ''
     _keymap   = ''
@@ -103,8 +103,8 @@ class I18n(Section):
         # used to keep track of the options overriden by the user explicitely.
         self._explicit_settings = set()
 
-        # Try to find out the default settings for I18n based on the
-        # default locale.
+        # Try to find out the default settings based on the default
+        # locale.
         default = locale.getdefaultlocale()[0]
         if default in (None, 'C'):
             default = 'en_US'
@@ -255,7 +255,7 @@ class _Settings(object):
     def __init__(self):
         self._sections = {
             'End'              : End(),
-            'I18n'             : I18n(),
+            'Localization'     : Localization(),
             'Installation'     : Installation(),
             'Kernel'           : Kernel(),
             'License'          : License(),

@@ -145,7 +145,7 @@ def main():
     except SettingsError as e:
         die(e)
 
-    ui.language = settings.I18n.locale
+    ui.language = settings.Localization.locale
     return ui.run()
 
 

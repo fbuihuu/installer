@@ -29,9 +29,9 @@ class _L10nStep(Step):
         # Don't rely on localectl(1), it may be missing on old
         # systems.
         #
-        locale = settings.I18n.locale
-        keymap = settings.I18n.keymap
-        tzone  = settings.I18n.timezone
+        locale = settings.Localization.locale
+        keymap = settings.Localization.keymap
+        tzone  = settings.Localization.timezone
 
         if not '.' in locale:
             # default charmap is utf-8

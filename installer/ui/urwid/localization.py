@@ -75,15 +75,15 @@ class TimezoneSelectionPage(SelectionPage):
                                _('Select a time zone'))
 
     def _on_selected(self, tz):
-        settings.I18n.timezone = tz
+        settings.Localization.timezone = tz
         urwid.emit_signal(self, "done")
 
     def _redraw_body(self):
         prefix = None
-        if not self._show_all and '/' in settings.I18n.timezone:
-            prefix = settings.I18n.timezone.split('/')[0]
+        if not self._show_all and '/' in settings.Localization.timezone:
+            prefix = settings.Localization.timezone.split('/')[0]
         self._tz_list.update(l10n.timezones, prefix)
-        self._tz_list.set_focus(settings.I18n.timezone)
+        self._tz_list.set_focus(settings.Localization.timezone)
 
 
 class KeymapSelectionPage(SelectionPage):
@@ -93,13 +93,13 @@ class KeymapSelectionPage(SelectionPage):
                                _('Select a keyboard layout'))
 
     def _on_selected(self, kmap):
-        settings.I18n.keymap = kmap
+        settings.Localization.keymap = kmap
         urwid.emit_signal(self, "done")
 
     def _redraw_body(self):
-        prefix = None if self._show_all else settings.I18n.keymap
+        prefix = None if self._show_all else settings.Localization.keymap
         self._tz_list.update(l10n.keymaps, prefix)
-        self._tz_list.set_focus(settings.I18n.keymap)
+        self._tz_list.set_focus(settings.Localization.keymap)
 
 
 class LocalizationPage(widgets.Page):
@@ -121,8 +121,8 @@ class LocalizationPage(widgets.Page):
         urwid.connect_signal(self._keymap, 'click', self._on_keymap_click)
 
     def redraw(self):
-        self._timezone.value = settings.I18n.timezone
-        self._keymap.value   = settings.I18n.keymap
+        self._timezone.value = settings.Localization.timezone
+        self._keymap.value   = settings.Localization.keymap
 
     def _on_timezone_click(self):
         urwid.emit_signal(self, 'timezone')

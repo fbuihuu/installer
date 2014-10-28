@@ -27,7 +27,7 @@ class LanguageView(StepView):
         body = widgets.ClickableTextList(countries, self.on_click)
         # Try to move the focus on the entry that matches (roughly)
         # the current locale.
-        body.set_focus(l10n.country_names[settings.I18n.country])
+        body.set_focus(l10n.country_names[settings.Localization.country])
         body = urwid.Filler(body, 'middle', height=('relative', 40))
         body = urwid.Padding(body,'center', width=('relative', 60))
         self.page.body = body
@@ -44,7 +44,8 @@ class LanguageView(StepView):
         # translation is available for this lang.
         self._ui.language = zi.locale
 
-        # This only inits the others I18n settings if the user didn't already.
-        settings.I18n.locale = zi.locale
+        # This only inits the others l10n settings if the user didn't
+        # already.
+        settings.Localization.locale = zi.locale
 
         self.run()
