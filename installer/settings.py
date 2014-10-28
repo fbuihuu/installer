@@ -63,6 +63,9 @@ class Section(object):
     def __init__(self, name=None):
         self.name = name if name else self.__class__.__name__
 
+    def _is_enabled(self):
+        return True
+
     @property
     def entries(self):
         lst = []
@@ -77,8 +80,21 @@ class Section(object):
     def __getattr__(self, attr):
         raise AttributeSettingsError(self.name, attr)
 
+#
+# This describes a section used to configure a specific step. Thus the
+# section can be disabled if the step is skipped. This avoids to parse
+# a section in an inconsistent state which is acceptable if the step is
+# disabled.
+#
+class StepSection(Section):
 
-class End(Section):
+    def _is_enabled(self):
+        return settings.get('Steps', self.name)
+
+#
+# Step sections
+#
+class End(StepSection):
     _action = 'quit'
 
     @property
@@ -92,7 +108,31 @@ class End(Section):
         self._action = a
 
 
-class Localization(Section):
+class Installation(StepSection):
+    repositories = []
+    _pkgfiles = []
+
+    @property
+    def packages(self):
+        # Read the files lately so the user can modify them without
+        # restarting the installer.
+        lst = []
+        for f in self._pkgfiles:
+            lst += read_package_list(f)
+        return lst
+
+    @packages.setter
+    def packages(self, pkgfiles):
+        for f in pkgfiles:
+            # absolute_path() doesn't do any sanity checkings on 'f'
+            self._pkgfiles.append(absolute_path(f))
+
+
+class License(StepSection):
+    dir = ''
+
+
+class Localization(StepSection):
     _country  = ''
     _timezone = ''
     _keymap   = ''
@@ -169,12 +209,29 @@ class Localization(Section):
             self._keymap = found[1].keymap
 
 
+class LocalMedia(StepSection):
+    _pkgfiles = []
+
+    @property
+    def packages(self):
+        # Read the files lately so the user can modify them without
+        # restarting the installer.
+        lst = []
+        for f in self._pkgfiles:
+            lst += read_package_list(f)
+        return lst
+
+    @packages.setter
+    def packages(self, pkgfiles):
+        for f in pkgfiles:
+            self._pkgfiles.append(absolute_path(f))
+
+
+#
+# Other sections.
+#
 class Kernel(Section):
     cmdline  = 'rw quiet'
-
-
-class License(Section):
-    dir = ''
 
 
 class Options(Section):
@@ -191,44 +248,6 @@ class Options(Section):
     @firmware.setter
     def firmware(self, fw):
         self._firmware = fw
-
-
-class Installation(Section):
-    repositories = []
-    _pkgfiles = []
-
-    @property
-    def packages(self):
-        # Read the files lately so the user can modify them without
-        # restarting the installer.
-        lst = []
-        for f in self._pkgfiles:
-            lst += read_package_list(f)
-        return lst
-
-    @packages.setter
-    def packages(self, pkgfiles):
-        for f in pkgfiles:
-            # absolute_path() doesn't do any sanity checkings on 'f'
-            self._pkgfiles.append(absolute_path(f))
-
-
-class LocalMedia(Section):
-    _pkgfiles = []
-
-    @property
-    def packages(self):
-        # Read the files lately so the user can modify them without
-        # restarting the installer.
-        lst = []
-        for f in self._pkgfiles:
-            lst += read_package_list(f)
-        return lst
-
-    @packages.setter
-    def packages(self, pkgfiles):
-        for f in pkgfiles:
-            self._pkgfiles.append(absolute_path(f))
 
 
 class Steps(Section):
@@ -268,7 +287,7 @@ class _Settings(object):
 
     @property
     def sections(self):
-        return [s for s in self._sections.values() if s.entries]
+        return [s for s in self._sections.values() if s.entries and s._is_enabled()]
 
     def __getattr__(self, section):
         try:
