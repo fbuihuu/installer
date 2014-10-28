@@ -57,6 +57,10 @@ target system can't be found.""")
         if not self._skip:
             # Inform urpmi to keep all installed packages
             distro.urpmi_add_extra_options(['--noclean'])
+            # Do sanity checkings early on the packages file list but
+            # don't store the result to allow the user to do late
+            # modification without the need to restart the installer.
+            settings.LocalMedia.packages
 
     def _process(self):
         #

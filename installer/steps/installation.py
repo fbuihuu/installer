@@ -82,6 +82,10 @@ class _InstallStep(Step):
         Step.__init__(self)
         self._fstab = {}
         self._extra_packages = []
+        # Do sanity checkings early on the packages file list but
+        # don't store the result to allow the user to do late
+        # modification without the need to restart the installer.
+        settings.Installation.packages
 
     @property
     def name(self):

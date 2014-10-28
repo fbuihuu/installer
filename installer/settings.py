@@ -44,12 +44,15 @@ class AttributeSettingsError(SettingsError, AttributeError):
 def read_package_list(filename):
     """Read a package list given by a file"""
     lst = []
-    with open(filename, 'r') as f:
-        for line in f:
-            line = line.partition('#')[0]
-            line = line.strip()
-            if line:
-                lst.append(line)
+    try:
+        with open(filename, 'r') as f:
+            for line in f:
+                line = line.partition('#')[0]
+                line = line.strip()
+                if line:
+                    lst.append(line)
+    except IOError:
+        raise SettingsError(_('Failed to read package list: %s' % filename))
     return lst
 
 #
@@ -205,12 +208,9 @@ class Installation(Section):
 
     @packages.setter
     def packages(self, pkgfiles):
-        #
-        # Relative path is relative to the directory
-        # containing the config file.
-        #
         for f in pkgfiles:
-            self._pkgfiles.append(check_file(f))
+            # absolute_path() doesn't do any sanity checkings on 'f'
+            self._pkgfiles.append(absolute_path(f))
 
 
 class LocalMedia(Section):
@@ -227,12 +227,8 @@ class LocalMedia(Section):
 
     @packages.setter
     def packages(self, pkgfiles):
-        #
-        # Relative path is relative to the directory
-        # containing the config file.
-        #
         for f in pkgfiles:
-            self._pkgfiles.append(check_file(f))
+            self._pkgfiles.append(absolute_path(f))
 
 
 class Steps(Section):
@@ -327,14 +323,12 @@ def load_config_file(fp):
             settings.set(section, entry, value)
 
 
-def check_file(f):
-    """Helper to do basic sanity checks on files specified in the
-    config file.
+def absolute_path(f):
+    """Helper to convert a relative path into an absolute
+    one. Relative paths are relative to the directory containing the
+    config file. It doesn't do any sanity checkings on the file.
     """
-    f = os.path.join(os.path.dirname(settings.Options.config), f)
-    if not os.path.exists(f):
-        raise SettingsError("Can't find file %s" % f)
-    return f
+    return os.path.join(os.path.dirname(settings.Options.config), f)
 
 
 settings = _Settings()
