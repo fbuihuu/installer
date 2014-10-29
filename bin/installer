@@ -17,13 +17,11 @@ from installer.utils import die
 
 
 def parse_cmdline():
-    """Parses the relevant cmdline arguments"""
+    """Parses the relevant cmdline arguments, default values are defined in
+    the 'settings' module.
+    """
 
     parser = argparse.ArgumentParser(description="An easy way to install your favorite distribution")
-    parser.add_argument("-c", "--config",
-                        metavar='FILE',
-                        type=argparse.FileType('r'),
-                        help="specify a configuration file")
     parser.add_argument("--frontend",
                         choices=['cmdline', 'urwid'],
                         help="force the frontend to use"),
@@ -54,6 +52,15 @@ def parse_cmdline():
                         action='version',
                         version=get_version())
 
+    # Mutually exclusive options
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("--profile",
+                        help="Specify the profile of the target system")
+    group.add_argument("-c", "--config",
+                        metavar='FILE',
+                        type=argparse.FileType('r'),
+                        help="specify a configuration file")
+
     cmdline.parse_cmdline(parser)
     urwid.parse_cmdline(parser)
 
@@ -64,17 +71,25 @@ def main():
     args = parse_cmdline()
 
     #
-    # Config file must be valid if specified by the user. If not
-    # set, we don't really care.
+    # --profile option is simply a shorcut to avoid specifying the
+    # path of the profiles directory with --config option.
     #
-    if not args.config:
-        try:
-            args.config = open('/etc/installer/installer.conf', 'r')
-        except IOError:
-            args.config = None
+    config = args.config
 
-    if args.config:
-        load_config_file(args.config)
+    if not config:
+        profile = args.profile if args.profile else settings.Option.profile
+        config  = '/etc/installer/profiles.d/%s/installer.conf' % profile
+        #
+        # When no profile is passed, don't fail if the default config
+        # file doesn't exist.
+        #
+        if not args.profile and not os.path.exists(config):
+            config = None
+        if config:
+            config = open(config, 'r')
+
+    if config:
+        load_config_file(config)
 
     #
     # Setting up the default logging facility: it uses a log file. If
