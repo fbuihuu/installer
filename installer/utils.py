@@ -94,3 +94,24 @@ def rsync(src, dst, completion_start=0, completion_end=0,
     logger.debug('running: %s' % ' '.join(cmd))
     monitor(cmd, logger=None, stdout_handler=stdout_handler)
 
+
+def sed(pattern, replacement, file):
+    """Equivalent of 'sed -i s/<pattern>/<replacement>/ <file>'.
+    Return True if a substitution happened otherwise False.
+    Work for small files only.
+    """
+    contents = []
+    pattern  = re.compile(pattern)
+    count = 0
+
+    with open(file, 'r') as f:
+        for line in f:
+            if pattern.search(line):
+                count += 1
+            contents.append(pattern.sub(replacement, line))
+
+    if count > 0:
+        with open(file, 'w') as f:
+            f.writelines(contents)
+
+    return count > 0
