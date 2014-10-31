@@ -3,12 +3,13 @@
 
 from __future__ import print_function
 import os
+import re
 import glob
 
 from installer import disk
 from installer import l10n
 from installer import distro
-from installer import utils
+from installer.utils import sed
 from installer.partition import partitions
 from installer.device import MetadiskDevice
 from installer.system import distribution, is_efi
@@ -201,17 +202,36 @@ class _InstallStep(Step):
 
         self._do_bootloader_finish()
 
-        # Fix the kernel command line in syslinux config file.
-        append = "    APPEND      %s" % self._kernel_cmdline
+        #
+        # Set the kernel command line in the bootloaders config
+        # files. Note that if the config files were already updated
+        # running this one more time doesn't hurt.
+        #
+        self.logger.debug('Using kernel cmdline: %s' % self._kernel_cmdline)
+
         for cfg in glob.glob(self._root + distro.paths['syslinux.cfg']):
-            self._monitor(["sed", "-i", "/[[:space:]]*APPEND[[:space:]]+/d", cfg])
-            self._monitor(["sed", "-i", "$a%s" % append, cfg])
+            self.logger.debug('Updating %s' % cfg)
+
+            if not sed(r'^(\s*APPEND\s+).*', '\\1%s' % self._kernel_cmdline, cfg):
+                #
+                # The syntax used by syslinux.cfg is a pain to parse
+                # for scripts. We simply fail if we don't know where
+                # to put our kernel cmdline.
+                #
+                raise StepError(_('Failed to set the kernel cmdline in %s') % cfg)
 
         # Fix the kernel command line in gummiboot config file.
-        options = "options     %s" % self._kernel_cmdline
         for cfg in glob.glob(self._root + '/boot/loader/entries/*.conf'):
-            self._monitor(["sed", "-i", "/^options/d", cfg])
-            self._monitor(["sed", "-i", "$a%s" % options, cfg])
+            self.logger.debug('Updating %s' % cfg)
+
+            if not sed(r'^(\s*options\s+).*', '\\1%s' % self._kernel_cmdline, cfg):
+                #
+                # Unlike syslinux, gummy boot makes the parsing of its
+                # config files easier: if not current kernel cmldine
+                # was found simply appends it.
+                #
+                with open(cfg, 'a') as f:
+                    f.write('options     %s\n' % self._kernel_cmdline)
 
     def _do_initramfs(self):
         raise NotImplementedError()
