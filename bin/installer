@@ -77,7 +77,7 @@ def main():
     config = args.config
 
     if not config:
-        profile = args.profile if args.profile else settings.Option.profile
+        profile = args.profile if args.profile else settings.Options.profile
         config  = '/etc/installer/profiles.d/%s/installer.conf' % profile
         #
         # When no profile is passed, don't fail if the default config
