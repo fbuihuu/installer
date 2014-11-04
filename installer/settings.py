@@ -246,7 +246,7 @@ class Kernel(Section):
 class Options(Section):
     level    = 1
     profile  = 'default'
-    logfile  = '/tmp/installer.log'
+    logfile  = '/var/log/installer/installer.log'
     hostonly = True
     _firmware = []
 
