@@ -22,6 +22,9 @@ def parse_cmdline():
     """
 
     parser = argparse.ArgumentParser(description="An easy way to install your favorite distribution")
+    parser.add_argument("--level",
+                        type=int,
+                        help="Set the level of installation"),
     parser.add_argument("--frontend",
                         choices=['cmdline', 'urwid'],
                         help="force the frontend to use"),
@@ -146,6 +149,12 @@ def main():
     if args.forced_steps:
         for s in args.forced_steps:
             settings.set('Steps', s, True)
+
+    #
+    # Installation level
+    #
+    if args.level is not None:
+        settings.Options.level = args.level
 
     #
     # Start the frontend interface.

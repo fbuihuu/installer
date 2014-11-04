@@ -2,6 +2,7 @@
 #
 
 import os
+import re
 import locale
 
 from installer.system import is_efi
@@ -41,6 +42,8 @@ class AttributeSettingsError(SettingsError, AttributeError):
 #
 # Helpers
 #
+_package_pattern = re.compile(r'([0-9]+):(\w+)')
+
 def read_package_list(filename):
     """Read a package list given by a file"""
     lst = []
@@ -50,7 +53,13 @@ def read_package_list(filename):
                 line = line.partition('#')[0]
                 line = line.strip()
                 if line:
-                    lst.append(line)
+                    level = 1 # default package level
+                    match = _package_pattern.match(line)
+                    if match:
+                        level = int(match.group(1))
+                        line  = match.group(2)
+                    if level >= settings.Options.level:
+                        lst.append(line)
     except IOError:
         raise SettingsError(_('Failed to read package list: %s' % filename))
     return lst
@@ -235,6 +244,7 @@ class Kernel(Section):
 
 
 class Options(Section):
+    level    = 1
     profile  = 'default'
     logfile  = '/tmp/installer.log'
     hostonly = True
