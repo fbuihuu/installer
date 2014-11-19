@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-08-27 14:25+0200\n"
+"POT-Creation-Date: 2014-11-19 17:31+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,38 +17,38 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../installer/device.py:255 ../installer/device.py:356
-#: ../installer/device.py:472 ../installer/ui/urwid/partitioning.py:70
+#: ../installer/device.py:259 ../installer/device.py:360
+#: ../installer/device.py:471 ../installer/ui/urwid/partitioning.py:70
 #: ../installer/ui/urwid/partitioning.py:236
 msgid "Model"
 msgstr ""
 
-#: ../installer/device.py:256 ../installer/ui/urwid/partitioning.py:69
+#: ../installer/device.py:260 ../installer/ui/urwid/partitioning.py:69
 msgid "Bus"
 msgstr ""
 
-#: ../installer/device.py:257 ../installer/device.py:358
-#: ../installer/device.py:474
+#: ../installer/device.py:261 ../installer/device.py:362
+#: ../installer/device.py:473
 msgid "Filesystem"
 msgstr ""
 
-#: ../installer/device.py:258 ../installer/device.py:359
-#: ../installer/device.py:475 ../installer/ui/urwid/partitioning.py:71
+#: ../installer/device.py:262 ../installer/device.py:363
+#: ../installer/device.py:474 ../installer/ui/urwid/partitioning.py:71
 #: ../installer/ui/urwid/partitioning.py:237
 #: ../installer/ui/urwid/partitioning.py:248
 msgid "Size"
 msgstr ""
 
-#: ../installer/device.py:259 ../installer/device.py:360
-#: ../installer/device.py:476
+#: ../installer/device.py:263 ../installer/device.py:364
+#: ../installer/device.py:475
 msgid "Scheme"
 msgstr ""
 
-#: ../installer/device.py:357
+#: ../installer/device.py:361
 msgid "Backing File"
 msgstr ""
 
-#: ../installer/device.py:473
+#: ../installer/device.py:472
 msgid "Metadata"
 msgstr ""
 
@@ -84,6 +84,24 @@ msgstr ""
 
 #: ../installer/disk.py:146
 msgid "has at least one mounted partition"
+msgstr ""
+
+#: ../installer/distro/mandriva.py:129
+#, python-format
+msgid "Using repository: %s"
+msgstr ""
+
+#.
+#. If no repository has been specified, we use the host urpmi
+#. setup but don't import any passwords to avoid leaking
+#. secrets.
+#.
+#: ../installer/distro/mandriva.py:137
+msgid "Using urpmi configuration from host"
+msgstr ""
+
+#: ../installer/distro/mandriva.py:147
+msgid "Retrieving repository public keys"
 msgstr ""
 
 #: ../installer/l10n.py:96
@@ -147,46 +165,70 @@ msgstr ""
 msgid "doesn't use metadata 0.9 or 1.0"
 msgstr ""
 
-#: ../installer/steps/__init__.py:82
+#: ../installer/settings.py:64
+#, python-format
+msgid "Failed to read package list: %s"
+msgstr ""
+
+#: ../installer/steps/__init__.py:93
 #, python-format
 msgid "step '%s' can't be disabled !"
 msgstr ""
 
-#: ../installer/steps/__init__.py:140
+#: ../installer/steps/__init__.py:142
 msgid "failed, see logs for details."
 msgstr ""
 
-#: ../installer/steps/__init__.py:179
+#: ../installer/steps/__init__.py:146
 msgid "done."
 msgstr ""
 
-#: ../installer/steps/__init__.py:187
-msgid "failed."
+#: ../installer/steps/__init__.py:183
+msgid "aborting step..."
 msgstr ""
 
-#: ../installer/steps/end.py:17
+#: ../installer/steps/__init__.py:187
+msgid "step aborted."
+msgstr ""
+
+#: ../installer/steps/end.py:28
 msgid "End"
+msgstr ""
+
+#: ../installer/steps/end.py:39
+#, python-format
+msgid "Invalid end action '%s' specified"
 msgstr ""
 
 #. We're probabling generating a generic image that
 #. should be transparently used on any devices.
-#: ../installer/steps/installation.py:61
+#: ../installer/steps/installation.py:63
 msgid "Failed to generate fstab for a portable image."
 msgstr ""
 
-#: ../installer/steps/installation.py:87
+#: ../installer/steps/installation.py:93
 msgid "Installation"
 msgstr ""
 
-#: ../installer/steps/installation.py:144
+#: ../installer/steps/installation.py:134
 msgid "don't know how to check fs coherency"
+msgstr ""
+
+#.
+#. The syntax used by syslinux.cfg is a pain to parse
+#. for scripts. We simply fail if we don't know where
+#. to put our kernel cmdline.
+#.
+#: ../installer/steps/installation.py:221
+#, python-format
+msgid "Failed to set the kernel cmdline in %s"
 msgstr ""
 
 #: ../installer/steps/language.py:15
 msgid "Language"
 msgstr ""
 
-#: ../installer/steps/language.py:25
+#: ../installer/steps/language.py:22
 #, python-format
 msgid "set location to %s"
 msgstr ""
@@ -195,12 +237,12 @@ msgstr ""
 msgid "License"
 msgstr ""
 
-#: ../installer/steps/license.py:22
-msgid "you accepted the terms of the license"
+#: ../installer/steps/license.py:19
+msgid "you rejected the terms of the license."
 msgstr ""
 
-#: ../installer/steps/license.py:24
-msgid "you rejected the terms of the license, aborting"
+#: ../installer/steps/license.py:20
+msgid "you accepted the terms of the license"
 msgstr ""
 
 #: ../installer/steps/localization.py:22
@@ -220,58 +262,71 @@ msgstr ""
 msgid "Password"
 msgstr ""
 
-#: ../installer/steps/password.py:21
+#: ../installer/steps/password.py:18
 msgid "setting root's password"
 msgstr ""
 
-#: ../installer/ui/__init__.py:61
+#: ../installer/ui/__init__.py:56
 msgid "exiting..."
 msgstr ""
 
-#: ../installer/ui/cmdline/__init__.py:142
+#: ../installer/ui/cmdline/__init__.py:131
+msgid "You must provide one or more disk(s)."
+msgstr ""
+
+#: ../installer/ui/cmdline/__init__.py:143
 msgid "Interrupt signal received, aborting..."
 msgstr ""
 
-#: ../installer/ui/cmdline/partitioning.py:29
+#: ../installer/ui/cmdline/partitioning.py:30
 #, python-format
 msgid "'%s' is not a block device"
 msgstr ""
 
-#: ../installer/ui/cmdline/partitioning.py:39
+#: ../installer/ui/cmdline/partitioning.py:36
+#, python-format
+msgid "%s is not a disk."
+msgstr ""
+
+#: ../installer/ui/cmdline/partitioning.py:42
 msgid "device is not valid for an installation"
 msgstr ""
 
-#: ../installer/ui/cmdline/partitioning.py:51
+#: ../installer/ui/cmdline/partitioning.py:54
 #: ../installer/ui/urwid/partitioning.py:321
 #, python-format
 msgid "disk(s) too small for a %s server setup"
 msgstr ""
 
-#: ../installer/ui/urwid/__init__.py:108
-msgid "urwid frontend requires a tty"
+#: ../installer/ui/urwid/__init__.py:175
+msgid "urwid frontend requires a tty."
 msgstr ""
 
-#: ../installer/ui/urwid/__init__.py:370
+#: ../installer/ui/urwid/__init__.py:178
+msgid "You must select the cmdline frontend when specifying disk(s)."
+msgstr ""
+
+#: ../installer/ui/urwid/__init__.py:374
 msgid "Press <F3> to see logs"
 msgstr ""
 
-#: ../installer/ui/urwid/__init__.py:403 ../installer/ui/urwid/__init__.py:564
+#: ../installer/ui/urwid/__init__.py:407 ../installer/ui/urwid/__init__.py:568
 msgid "Logs"
 msgstr ""
 
-#: ../installer/ui/urwid/__init__.py:419 ../installer/ui/urwid/__init__.py:564
+#: ../installer/ui/urwid/__init__.py:423 ../installer/ui/urwid/__init__.py:568
 msgid "Summary"
 msgstr ""
 
-#: ../installer/ui/urwid/__init__.py:441 ../installer/ui/urwid/__init__.py:564
+#: ../installer/ui/urwid/__init__.py:445 ../installer/ui/urwid/__init__.py:568
 msgid "Help"
 msgstr ""
 
-#: ../installer/ui/urwid/__init__.py:564
+#: ../installer/ui/urwid/__init__.py:568
 msgid "Main"
 msgstr ""
 
-#: ../installer/ui/urwid/__init__.py:564
+#: ../installer/ui/urwid/__init__.py:568
 msgid "Exit"
 msgstr ""
 
