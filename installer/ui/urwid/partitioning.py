@@ -244,22 +244,25 @@ class ReviewPage(widgets.Page):
         #
         # Partition Table
         #
-        fields = [(_("Part. #"), 'center', 10),
-                  (_("Name"),    'left',   10),
-                  (_("Size"),    'right',   9),
-                  (_("FS"),      'right',  10)]
         if has_raid:
-            fields.append((_("RAID"), 'right', 15))
+            fields = [(_("Mount Point"), 'center', 14),
+                      (_("FS"),          'right',  10),
+                      (_("RAID"),        'right',  13),
+                      (_("Size"),        'right',  15)]
+        else:
+            fields = [(_("Mount Point"), 'center', 16),
+                      (_("FS"),          'right',  14),
+                      (_("Size"),        'right',  23)]
         t2 = widgets.Table(fields)
 
         for i, part in enumerate(setup.partitions, 1):
             fs = widgets.ClickableText(part.setup.fs)
             urwid.connect_signal(fs, 'click', self._on_modify_fs, part)
 
-            fields = [urwid.Text(str(i)), urwid.Text(part.name),
-                      urwid.Text(part.setup.estimate_size(pretty=True)), fs]
+            fields = [urwid.Text(part.name), fs]
             if has_raid:
-                fields.append(urwid.Text(part.setup.raid_level[0]))
+                fields += [urwid.Text(part.setup.raid_level[0])]
+            fields += [urwid.Text(part.setup.estimate_size(pretty=True))]
             t2.append_row(fields)
 
         self.body = urwid.Filler(urwid.Pile([t1, t2]), 'middle',
