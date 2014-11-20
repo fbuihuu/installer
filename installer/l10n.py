@@ -1,6 +1,7 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
 #
+from __future__ import unicode_literals
+
 import os
 import sys
 import logging
@@ -52,6 +53,12 @@ def set_translation(lang):
     # Try changing the prog current locale but that's really not a big
     # deal if that fails.
     try:
+        # On Python 2.7, locale can't be unicode: basically it should
+        # had been allowed but it's too late, see link below for
+        # details: http://bugs.python.org/issue3067)
+        if sys.version_info[0] < 3:
+            lang = lang.encode('ascii')
+
         locale.setlocale(locale.LC_ALL, lang)
     except locale.Error:
         logger.debug("failed to set current locale to %s" % lang)

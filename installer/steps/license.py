@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 #
+from __future__ import unicode_literals
 
 from installer.settings import settings
 from . import Step, StepError

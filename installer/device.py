@@ -3,7 +3,7 @@
 # More information on GUdev can be found here:
 # http://www.freedesktop.org/software/systemd/gudev/
 #
-
+from __future__ import unicode_literals
 
 import os
 import threading
@@ -608,7 +608,8 @@ def __on_uevent(client, action, gudev):
     if action == "change":
         __on_change_uevent(gudev)
 
-__client = GUdev.Client(subsystems=["block"])
+# It looks like GUDev doesn't expect unicode for subsystems on python 2.7
+__client = GUdev.Client(subsystems=[b'block'])
 __client.connect("uevent", __on_uevent)
 for gudev in __client.query_by_subsystem("block"):
     __on_add_uevent(gudev)

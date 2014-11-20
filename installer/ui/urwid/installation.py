@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 #
+from __future__ import unicode_literals
 
 import urwid
 
@@ -153,7 +154,7 @@ class InstallationView(StepView):
 
         urwid.connect_signal(self._devlist, 'click', self._on_select_device)
         urwid.connect_signal(self._devlist, 'focus_changed',
-                             lambda dev: footer.set_text(str(dev)))
+                             lambda dev: footer.set_text('%s' % dev))
 
         ui.register_uevent_handler(self._on_uevent)
 

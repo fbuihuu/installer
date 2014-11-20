@@ -9,6 +9,7 @@
 # install additionnal (specified during the installation) packages
 # without the needs of physical access to the target system.
 #
+from __future__ import unicode_literals
 
 import os
 

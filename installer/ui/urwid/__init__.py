@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 #
+from __future__ import unicode_literals
 
 import os
 import sys
@@ -570,7 +571,7 @@ class TopBar(urwid.WidgetWrap):
         for (i, item) in enumerate(items, 1):
             if i > 1:
                 txt.append("  ")
-            txt.append(('top.bar.hotkey', "F"+str(i)+" "))
+            txt.append(('top.bar.hotkey', "F%d " % i))
             txt.append(item)
         self._text.set_text(txt)
 
