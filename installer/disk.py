@@ -171,13 +171,13 @@ def check_candidates(bdevs, RAID=True):
     bus = bdevs[0].bus
     for d in bdevs[1:]:
         if d.bus != bus:
-            raise DiskRaidError("disks can be combined into a RAID array")
+            raise DiskRaidError(_("disks can be combined into a RAID array"))
 
     # don't mix SSD and HDD
     is_rotational = bdevs[0].is_rotational
     for d in bdevs[1:]:
         if d.is_rotational != is_rotational:
-            raise DiskRaidError("can't mix SSD with rotational disk")
+            raise DiskRaidError(_("can't mix SSD with rotational disk"))
 
     # same size
     maxsize = 0
@@ -187,7 +187,7 @@ def check_candidates(bdevs, RAID=True):
 
     for d in bdevs:
         if (maxsize - d.size) * 100 > maxsize:
-            raise DiskRaidError("largest drive exceeds size by more than 1%")
+            raise DiskRaidError(_("largest drive exceeds size by more than 1%"))
 
 
 def select_candidates(bdevs):

@@ -316,7 +316,7 @@ class PartitioningView(StepView):
     def _on_page2_done(self, disks):
         # create a disk template and pass it to the reviewer.
         if not disks:
-            self.logger.error("you must select at least 1 disk")
+            self.logger.error(_("you must select at least 1 disk"))
             return
 
         try:

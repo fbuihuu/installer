@@ -119,15 +119,15 @@ class Partition(object):
     def _validate_fs(self, fs):
         """Check the passed fs matches this partition requirements"""
         if not fs:
-            raise PartitionError("device is not formatted")
+            raise PartitionError(_("device is not formatted"))
         if fs in self._invalid_fs:
-            raise PartitionError("%s is an invalid filesystem" % fs)
+            raise PartitionError(_("%s is an invalid filesystem") % fs)
 
     def _validate_dev(self, dev):
         """Check the passed device matches partition requirements"""
         if dev.size < self._minsize:
             minsize = pretty_size(self._minsize, KiB=False)
-            raise PartitionError("you need at least %s" % minsize)
+            raise PartitionError(_("you need at least %s") % minsize)
 
     @property
     def device(self):
@@ -256,7 +256,7 @@ class RootPartition(Partition):
             return "4f68bce3-e8cd-4db1-96e7-fbcaf984b709"
         if arch == "x86_32":
             return "44479540-f297-41b2-9af7-d131d5f0458a"
-        raise PartitionError("not yet supported architecture %s" % arch)
+        raise PartitionError(_("not yet supported architecture %s") % arch)
 
     def _validate_fs(self, fs):
         Partition._validate_fs(self, fs)
@@ -321,7 +321,7 @@ class BootPartition(Partition):
             if not p.scheme:
                 raise BootPartitionError(_("must be on a disk with a table partition"))
             if "uefi" in settings.Options.firmware and p.scheme != 'gpt':
-                raise PartitionError("GPT is required on UEFI systems")
+                raise PartitionError(_("GPT is required on UEFI systems"))
 
         if type(dev) is device.MetadiskDevice:
             #
@@ -454,7 +454,7 @@ def __uevent_callback(action, bdev):
         for part in partitions:
             if part.device == bdev:
                 part.device = None
-                logger.warn("device %s used by partition %s has disappeared",
+                logger.warn(_("device %s used by partition %s has disappeared"),
                             bdev.devpath, part.name)
     #
     # On 'change' event, a device that was previously assigned to a
@@ -468,7 +468,7 @@ def __uevent_callback(action, bdev):
                     try:
                         part.device = bdev
                     except PartitionError:
-                        logger.warn("incompatible changes in device %s for %s",
+                        logger.warn(_("incompatible changes in device %s for %s"),
                                     bdev.devpath, part.name)
 
 device.listen_uevent(__uevent_callback)

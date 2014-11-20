@@ -122,7 +122,7 @@ class DeviceError(Exception):
 class SignatureDeviceError(DeviceError):
 
     def __init__(self, dev, *args):
-        message = "disk has multiple signatures making it hazardous to use"
+        message = _("disk has multiple signatures making it hazardous to use")
         DeviceError.__init__(self, dev, message)
 
 
