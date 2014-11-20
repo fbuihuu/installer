@@ -171,7 +171,7 @@ def check_candidates(bdevs, RAID=True):
     bus = bdevs[0].bus
     for d in bdevs[1:]:
         if d.bus != bus:
-            raise DiskRaidError(_("disks can be combined into a RAID array"))
+            raise DiskRaidError(_("disks can't be combined into a RAID array"))
 
     # don't mix SSD and HDD
     is_rotational = bdevs[0].is_rotational
