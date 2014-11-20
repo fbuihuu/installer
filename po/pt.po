@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-11-19 17:31+0100\n"
+"POT-Creation-Date: 2014-11-21 12:10+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,13 +17,17 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+#: ../installer/device.py:125
+msgid "disk has multiple signatures making it hazardous to use"
+msgstr ""
+
 #: ../installer/device.py:259 ../installer/device.py:360
-#: ../installer/device.py:471 ../installer/ui/urwid/partitioning.py:70
-#: ../installer/ui/urwid/partitioning.py:236
+#: ../installer/device.py:471 ../installer/ui/urwid/disk.py:71
+#: ../installer/ui/urwid/disk.py:237
 msgid "Model"
 msgstr ""
 
-#: ../installer/device.py:260 ../installer/ui/urwid/partitioning.py:69
+#: ../installer/device.py:260 ../installer/ui/urwid/disk.py:70
 msgid "Bus"
 msgstr ""
 
@@ -33,9 +37,9 @@ msgid "Filesystem"
 msgstr ""
 
 #: ../installer/device.py:262 ../installer/device.py:363
-#: ../installer/device.py:474 ../installer/ui/urwid/partitioning.py:71
-#: ../installer/ui/urwid/partitioning.py:237
-#: ../installer/ui/urwid/partitioning.py:248
+#: ../installer/device.py:474 ../installer/ui/urwid/disk.py:72
+#: ../installer/ui/urwid/disk.py:238 ../installer/ui/urwid/disk.py:251
+#: ../installer/ui/urwid/disk.py:255
 msgid "Size"
 msgstr ""
 
@@ -52,12 +56,8 @@ msgstr ""
 msgid "Metadata"
 msgstr ""
 
-#: ../installer/disk.py:21
+#: ../installer/disk.py:22
 msgid "invalid for installation usage"
-msgstr ""
-
-#: ../installer/disk.py:32
-msgid "RAID error, "
 msgstr ""
 
 #: ../installer/disk.py:39
@@ -86,6 +86,18 @@ msgstr ""
 msgid "has at least one mounted partition"
 msgstr ""
 
+#: ../installer/disk.py:173
+msgid "disks can't be combined into a RAID array"
+msgstr ""
+
+#: ../installer/disk.py:179
+msgid "can't mix SSD with rotational disk"
+msgstr ""
+
+#: ../installer/disk.py:189
+msgid "largest drive exceeds size by more than 1%"
+msgstr ""
+
 #: ../installer/distro/mandriva.py:129
 #, python-format
 msgid "Using repository: %s"
@@ -104,44 +116,63 @@ msgstr ""
 msgid "Retrieving repository public keys"
 msgstr ""
 
-#: ../installer/l10n.py:96
+#: ../installer/l10n.py:103
 msgid "Curitiba"
 msgstr ""
 
-#: ../installer/l10n.py:97
+#: ../installer/l10n.py:104
 msgid "Sao Paulo"
 msgstr ""
 
-#: ../installer/l10n.py:100
+#: ../installer/l10n.py:107
 msgid "Paris"
 msgstr ""
 
-#: ../installer/l10n.py:103
+#: ../installer/l10n.py:110
 msgid "New York"
 msgstr ""
 
-#: ../installer/l10n.py:104
+#: ../installer/l10n.py:111
 msgid "Los Angeles"
 msgstr ""
 
-#: ../installer/l10n.py:105
+#: ../installer/l10n.py:112
 msgid "Denver"
 msgstr ""
 
-#: ../installer/l10n.py:110
+#: ../installer/l10n.py:117
 msgid "Brazil"
 msgstr ""
 
-#: ../installer/l10n.py:111
+#: ../installer/l10n.py:118
 msgid "France"
 msgstr ""
 
-#: ../installer/l10n.py:112
+#: ../installer/l10n.py:119
 msgid "United States"
+msgstr ""
+
+#: ../installer/partition.py:122
+msgid "device is not formatted"
+msgstr ""
+
+#: ../installer/partition.py:124
+#, python-format
+msgid "%s is an invalid filesystem"
+msgstr ""
+
+#: ../installer/partition.py:130
+#, python-format
+msgid "you need at least %s"
 msgstr ""
 
 #: ../installer/partition.py:196
 msgid "not swap formatted"
+msgstr ""
+
+#: ../installer/partition.py:259
+#, python-format
+msgid "not yet supported architecture %s"
 msgstr ""
 
 #: ../installer/partition.py:264
@@ -157,6 +188,10 @@ msgstr ""
 msgid "must be on a disk with a table partition"
 msgstr ""
 
+#: ../installer/partition.py:324
+msgid "GPT is required on UEFI systems"
+msgstr ""
+
 #: ../installer/partition.py:332
 msgid "only software RAID1 is allowed"
 msgstr ""
@@ -165,52 +200,70 @@ msgstr ""
 msgid "doesn't use metadata 0.9 or 1.0"
 msgstr ""
 
-#: ../installer/settings.py:64
+#: ../installer/partition.py:457
+#, python-format
+msgid "device %s used by partition %s has disappeared"
+msgstr ""
+
+#: ../installer/partition.py:471
+#, python-format
+msgid "incompatible changes in device %s for %s"
+msgstr ""
+
+#: ../installer/settings.py:65
 #, python-format
 msgid "Failed to read package list: %s"
 msgstr ""
 
-#: ../installer/steps/__init__.py:93
+#: ../installer/steps/__init__.py:94
 #, python-format
 msgid "step '%s' can't be disabled !"
 msgstr ""
 
-#: ../installer/steps/__init__.py:142
+#: ../installer/steps/__init__.py:143
 msgid "failed, see logs for details."
 msgstr ""
 
-#: ../installer/steps/__init__.py:146
+#: ../installer/steps/__init__.py:147
 msgid "done."
 msgstr ""
 
-#: ../installer/steps/__init__.py:183
+#: ../installer/steps/__init__.py:184
 msgid "aborting step..."
 msgstr ""
 
-#: ../installer/steps/__init__.py:187
+#: ../installer/steps/__init__.py:188
 msgid "step aborted."
 msgstr ""
 
-#: ../installer/steps/end.py:28
+#: ../installer/steps/disk.py:59
+msgid "small disk(s), trying with no swap"
+msgstr ""
+
+#: ../installer/steps/disk.py:197
+msgid "Disk"
+msgstr ""
+
+#: ../installer/steps/end.py:29
 msgid "End"
 msgstr ""
 
-#: ../installer/steps/end.py:39
+#: ../installer/steps/end.py:40
 #, python-format
 msgid "Invalid end action '%s' specified"
 msgstr ""
 
 #. We're probabling generating a generic image that
 #. should be transparently used on any devices.
-#: ../installer/steps/installation.py:63
+#: ../installer/steps/installation.py:64
 msgid "Failed to generate fstab for a portable image."
 msgstr ""
 
-#: ../installer/steps/installation.py:93
+#: ../installer/steps/installation.py:94
 msgid "Installation"
 msgstr ""
 
-#: ../installer/steps/installation.py:134
+#: ../installer/steps/installation.py:135
 msgid "don't know how to check fs coherency"
 msgstr ""
 
@@ -219,50 +272,59 @@ msgstr ""
 #. for scripts. We simply fail if we don't know where
 #. to put our kernel cmdline.
 #.
-#: ../installer/steps/installation.py:221
+#: ../installer/steps/installation.py:222
 #, python-format
 msgid "Failed to set the kernel cmdline in %s"
 msgstr ""
 
-#: ../installer/steps/language.py:15
+#: ../installer/steps/language.py:16
 msgid "Language"
 msgstr ""
 
-#: ../installer/steps/language.py:22
+#: ../installer/steps/language.py:23
 #, python-format
 msgid "set location to %s"
 msgstr ""
 
-#: ../installer/steps/license.py:15
+#: ../installer/steps/license.py:16
 msgid "License"
 msgstr ""
 
-#: ../installer/steps/license.py:19
+#: ../installer/steps/license.py:20
 msgid "you rejected the terms of the license."
 msgstr ""
 
-#: ../installer/steps/license.py:20
+#: ../installer/steps/license.py:21
 msgid "you accepted the terms of the license"
 msgstr ""
 
-#: ../installer/steps/localization.py:22
-#: ../installer/ui/urwid/localization.py:110
+#: ../installer/steps/local_media.py:29
+msgid "Local Media"
+msgstr ""
+
+#: ../installer/steps/local_media.py:38
+msgid "Local Media step not implemented"
+msgstr ""
+
+#: ../installer/steps/local_media.py:43
+msgid ""
+"Local media can't be created on the target.\n"
+"\n"
+"Some medias/repos used during the installation process were also local.\n"
+"Due to a limitation (or a bug ?) of urpmi(1), packages installed on the\n"
+"target system can't be found."
+msgstr ""
+
+#: ../installer/steps/localization.py:24
+#: ../installer/ui/urwid/localization.py:114
 msgid "Localization"
 msgstr ""
 
-#: ../installer/steps/partitioning.py:58
-msgid "small disk(s), trying with no swap"
-msgstr ""
-
-#: ../installer/steps/partitioning.py:196
-msgid "Partitioning"
-msgstr ""
-
-#: ../installer/steps/password.py:15
+#: ../installer/steps/password.py:16
 msgid "Password"
 msgstr ""
 
-#: ../installer/steps/password.py:18
+#: ../installer/steps/password.py:19
 msgid "setting root's password"
 msgstr ""
 
@@ -270,43 +332,46 @@ msgstr ""
 msgid "exiting..."
 msgstr ""
 
-#: ../installer/ui/cmdline/__init__.py:131
+#: ../installer/ui/cmdline/__init__.py:133
 msgid "You must provide one or more disk(s)."
 msgstr ""
 
-#: ../installer/ui/cmdline/__init__.py:143
+#: ../installer/ui/cmdline/__init__.py:145
 msgid "Interrupt signal received, aborting..."
 msgstr ""
 
-#: ../installer/ui/cmdline/partitioning.py:30
+#: ../installer/ui/cmdline/disk.py:34
 #, python-format
 msgid "'%s' is not a block device"
 msgstr ""
 
-#: ../installer/ui/cmdline/partitioning.py:36
+#: ../installer/ui/cmdline/disk.py:40
 #, python-format
 msgid "%s is not a disk."
 msgstr ""
 
-#: ../installer/ui/cmdline/partitioning.py:42
+#: ../installer/ui/cmdline/disk.py:46
 msgid "device is not valid for an installation"
 msgstr ""
 
-#: ../installer/ui/cmdline/partitioning.py:54
-#: ../installer/ui/urwid/partitioning.py:321
+#: ../installer/ui/cmdline/disk.py:58 ../installer/ui/urwid/disk.py:325
 #, python-format
 msgid "disk(s) too small for a %s server setup"
 msgstr ""
 
-#: ../installer/ui/urwid/__init__.py:175
+#: ../installer/ui/urwid/__init__.py:176
 msgid "urwid frontend requires a tty."
 msgstr ""
 
-#: ../installer/ui/urwid/__init__.py:178
+#: ../installer/ui/urwid/__init__.py:179
 msgid "You must select the cmdline frontend when specifying disk(s)."
 msgstr ""
 
-#: ../installer/ui/urwid/__init__.py:374
+#: ../installer/ui/urwid/__init__.py:372
+msgid "Processing"
+msgstr ""
+
+#: ../installer/ui/urwid/__init__.py:375
 msgid "Press <F3> to see logs"
 msgstr ""
 
@@ -330,145 +395,51 @@ msgstr ""
 msgid "Exit"
 msgstr ""
 
-#: ../installer/ui/urwid/end.py:16
-msgid "Your system is ready to be used"
-msgstr ""
-
-#. Make the list centered inside its container
-#: ../installer/ui/urwid/end.py:18
-msgid "Quit"
-msgstr ""
-
-#: ../installer/ui/urwid/end.py:19
-msgid "Reboot"
-msgstr ""
-
-#: ../installer/ui/urwid/end.py:20
-msgid "Shutdown"
-msgstr ""
-
-#: ../installer/ui/urwid/installation.py:73
-msgid "Mandatory mountpoints"
-msgstr ""
-
-#: ../installer/ui/urwid/installation.py:74
-msgid "Optional mountpoints"
-msgstr ""
-
-#: ../installer/ui/urwid/installation.py:75
-msgid "Swaps"
-msgstr ""
-
-#: ../installer/ui/urwid/installation.py:139
-msgid "Install"
-msgstr ""
-
-#: ../installer/ui/urwid/installation.py:142
-msgid "Map partitions to block devices"
-msgstr ""
-
-#: ../installer/ui/urwid/installation.py:178
-#, python-format
-msgid "No valid device found for %s"
-msgstr ""
-
-#: ../installer/ui/urwid/installation.py:189
-#, python-format
-msgid "Choose device to use for %s"
-msgstr ""
-
-#: ../installer/ui/urwid/installation.py:196
-#, python-format
-msgid "%s is mounted, no harm will be done"
-msgstr ""
-
-#: ../installer/ui/urwid/language.py:24
-msgid "Select your location"
-msgstr ""
-
-#: ../installer/ui/urwid/license.py:16
-msgid "License Agreement"
-msgstr ""
-
-#: ../installer/ui/urwid/license.py:27
-msgid "Accept"
-msgstr ""
-
-#: ../installer/ui/urwid/license.py:28
-msgid "Refuse"
-msgstr ""
-
-#: ../installer/ui/urwid/localization.py:52
-msgid "Press <alt>-v to minimize the list"
-msgstr ""
-
-#: ../installer/ui/urwid/localization.py:54
-msgid "Press <alt>-v to show them all"
-msgstr ""
-
-#: ../installer/ui/urwid/localization.py:75
-msgid "Select a time zone"
-msgstr ""
-
-#: ../installer/ui/urwid/localization.py:93
-msgid "Select a keyboard layout"
-msgstr ""
-
-#: ../installer/ui/urwid/localization.py:112
-msgid "Time Zone"
-msgstr ""
-
-#: ../installer/ui/urwid/localization.py:113
-msgid "Keyboard Layout"
-msgstr ""
-
-#: ../installer/ui/urwid/localization.py:117
-#: ../installer/ui/urwid/partitioning.py:180
-msgid "Done"
-msgstr ""
-
-#: ../installer/ui/urwid/partitioning.py:22
+#: ../installer/ui/urwid/disk.py:23
 msgid "Type of server [1/3]"
 msgstr ""
 
-#: ../installer/ui/urwid/partitioning.py:24
+#: ../installer/ui/urwid/disk.py:25
 msgid "Small/Basic"
 msgstr ""
 
-#: ../installer/ui/urwid/partitioning.py:25
+#: ../installer/ui/urwid/disk.py:26
 msgid "File/Mail"
 msgstr ""
 
-#: ../installer/ui/urwid/partitioning.py:26
+#: ../installer/ui/urwid/disk.py:27
 msgid "Database/Web"
 msgstr ""
 
-#: ../installer/ui/urwid/partitioning.py:157
+#: ../installer/ui/urwid/disk.py:158
 msgid "Automatic drive(s) selection failed, choose drive(s) manually"
 msgstr ""
 
-#: ../installer/ui/urwid/partitioning.py:169
+#: ../installer/ui/urwid/disk.py:170
 msgid "Choose the disk(s) to use [2/3]"
 msgstr ""
 
-#: ../installer/ui/urwid/partitioning.py:177
+#: ../installer/ui/urwid/disk.py:178
 msgid "Auto"
 msgstr ""
 
-#: ../installer/ui/urwid/partitioning.py:178
+#: ../installer/ui/urwid/disk.py:179
 msgid "Clear"
 msgstr ""
 
-#: ../installer/ui/urwid/partitioning.py:179
-#: ../installer/ui/urwid/partitioning.py:270
+#: ../installer/ui/urwid/disk.py:180 ../installer/ui/urwid/disk.py:274
 msgid "Cancel"
 msgstr ""
 
-#: ../installer/ui/urwid/partitioning.py:182
+#: ../installer/ui/urwid/disk.py:181 ../installer/ui/urwid/localization.py:121
+msgid "Done"
+msgstr ""
+
+#: ../installer/ui/urwid/disk.py:183
 msgid "Press <alt>-a to see all devices"
 msgstr ""
 
-#: ../installer/ui/urwid/partitioning.py:227
+#: ../installer/ui/urwid/disk.py:228
 msgid "Disk Review [3/3]"
 msgstr ""
 
@@ -477,53 +448,158 @@ msgstr ""
 #.
 #. FIXME: show somehow if the disks contains data
 #.
-#: ../installer/ui/urwid/partitioning.py:235
+#: ../installer/ui/urwid/disk.py:236
 msgid "Disk. #"
 msgstr ""
 
-#.
-#. Partition Table
-#.
-#: ../installer/ui/urwid/partitioning.py:246
-msgid "Part. #"
+#: ../installer/ui/urwid/disk.py:248 ../installer/ui/urwid/disk.py:253
+msgid "Mount Point"
 msgstr ""
 
-#: ../installer/ui/urwid/partitioning.py:247
-msgid "Name"
-msgstr ""
-
-#: ../installer/ui/urwid/partitioning.py:249
+#: ../installer/ui/urwid/disk.py:249 ../installer/ui/urwid/disk.py:254
 msgid "FS"
 msgstr ""
 
-#: ../installer/ui/urwid/partitioning.py:251
+#: ../installer/ui/urwid/disk.py:250
 msgid "RAID"
 msgstr ""
 
-#: ../installer/ui/urwid/partitioning.py:271
+#: ../installer/ui/urwid/disk.py:275
 msgid "Create"
 msgstr ""
 
-#: ../installer/ui/urwid/password.py:17
+#: ../installer/ui/urwid/disk.py:319
+msgid "you must select at least 1 disk"
+msgstr ""
+
+#: ../installer/ui/urwid/end.py:17
+msgid "Your system is ready to be used"
+msgstr ""
+
+#. Make the list centered inside its container
+#: ../installer/ui/urwid/end.py:19
+msgid "Quit"
+msgstr ""
+
+#: ../installer/ui/urwid/end.py:20
+msgid "Reboot"
+msgstr ""
+
+#: ../installer/ui/urwid/end.py:21
+msgid "Shutdown"
+msgstr ""
+
+#: ../installer/ui/urwid/installation.py:74
+msgid "Mandatory mountpoints"
+msgstr ""
+
+#: ../installer/ui/urwid/installation.py:75
+msgid "Optional mountpoints"
+msgstr ""
+
+#: ../installer/ui/urwid/installation.py:76
+msgid "Swaps"
+msgstr ""
+
+#: ../installer/ui/urwid/installation.py:140
+msgid "Install"
+msgstr ""
+
+#: ../installer/ui/urwid/installation.py:143
+msgid "Map partitions to block devices"
+msgstr ""
+
+#: ../installer/ui/urwid/installation.py:179
+#, python-format
+msgid "No valid device found for %s"
+msgstr ""
+
+#: ../installer/ui/urwid/installation.py:190
+#, python-format
+msgid "Choose device to use for %s"
+msgstr ""
+
+#: ../installer/ui/urwid/installation.py:197
+#, python-format
+msgid "%s is mounted, no harm will be done"
+msgstr ""
+
+#: ../installer/ui/urwid/language.py:25
+msgid "Select your location"
+msgstr ""
+
+#: ../installer/ui/urwid/license.py:17
+msgid "License Agreement"
+msgstr ""
+
+#: ../installer/ui/urwid/license.py:28
+msgid "Accept"
+msgstr ""
+
+#: ../installer/ui/urwid/license.py:29
+msgid "Refuse"
+msgstr ""
+
+#: ../installer/ui/urwid/local_media.py:19
+msgid "Create a local media"
+msgstr ""
+
+#: ../installer/ui/urwid/local_media.py:20
+msgid "Destination"
+msgstr ""
+
+#: ../installer/ui/urwid/local_media.py:24
+msgid "Import"
+msgstr ""
+
+#: ../installer/ui/urwid/local_media.py:28
+msgid "You must provide a path for destination"
+msgstr ""
+
+#: ../installer/ui/urwid/localization.py:56
+msgid "Press <alt>-v to minimize the list"
+msgstr ""
+
+#: ../installer/ui/urwid/localization.py:58
+msgid "Press <alt>-v to show them all"
+msgstr ""
+
+#: ../installer/ui/urwid/localization.py:79
+msgid "Select a time zone"
+msgstr ""
+
+#: ../installer/ui/urwid/localization.py:97
+msgid "Select a keyboard layout"
+msgstr ""
+
+#: ../installer/ui/urwid/localization.py:116
+msgid "Time Zone"
+msgstr ""
+
+#: ../installer/ui/urwid/localization.py:117
+msgid "Keyboard Layout"
+msgstr ""
+
+#: ../installer/ui/urwid/password.py:18
 msgid "Enter the root password"
 msgstr ""
 
-#: ../installer/ui/urwid/password.py:19
+#: ../installer/ui/urwid/password.py:20
 msgid "Password : "
 msgstr ""
 
-#: ../installer/ui/urwid/password.py:20
+#: ../installer/ui/urwid/password.py:21
 msgid "Confirm  : "
 msgstr ""
 
-#: ../installer/ui/urwid/password.py:32
+#: ../installer/ui/urwid/password.py:33
 msgid "Press <alt>-v to hide password"
 msgstr ""
 
-#: ../installer/ui/urwid/password.py:34
+#: ../installer/ui/urwid/password.py:35
 msgid "Press <alt>-v to show password"
 msgstr ""
 
-#: ../installer/ui/urwid/password.py:50
+#: ../installer/ui/urwid/password.py:51
 msgid "passwords mismatch"
 msgstr ""
