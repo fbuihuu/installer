@@ -124,7 +124,7 @@ class Step(object):
             self.__state = _STATE_DONE
 
     def __process(self, *args):
-        self.logger.info("processing...")
+        self.logger.debug('starting step')
 
         #
         # Mount rootfs only if the step needs it. Also mount it in the
@@ -144,7 +144,7 @@ class Step(object):
         else:
             self.set_completion(100)
             self._state = _STATE_DONE
-            self.logger.info(_('done.'))
+            self.logger.debug('step finished')
 
         if not self.is_done():
             self.set_completion(0)
