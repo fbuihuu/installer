@@ -180,7 +180,7 @@ class DiskSetup(object):
         return self._partitions
 
 
-class PartitioningStep(Step):
+class DiskStep(Step):
 
     requires = ["license"]
     provides = ["partitioning"]
@@ -194,7 +194,7 @@ class PartitioningStep(Step):
 
     @property
     def name(self):
-        return _("Partitioning")
+        return _("Disk")
 
     def _do_clean_disks(self):
         """wipefs all disks and their direct siblings"""

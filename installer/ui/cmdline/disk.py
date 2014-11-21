@@ -11,7 +11,7 @@ from installer import partition
 from installer import disk
 
 
-class PartitioningView(StepView):
+class DiskView(StepView):
 
     def _run(self, args):
         disks  = []

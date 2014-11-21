@@ -160,7 +160,7 @@ class InstallationView(StepView):
 
     def _redraw(self):
         # When switching to the install view, devices can have been
-        # already assigned to partitions by the partitioning step.
+        # already assigned to partitions by the 'disk' step.
         self._partition_list_widget.refresh()
         self._update_install_button(focus=True)
 

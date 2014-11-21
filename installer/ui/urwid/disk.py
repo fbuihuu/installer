@@ -286,7 +286,7 @@ class ReviewPage(widgets.Page):
         pass
 
 
-class PartitioningView(StepView):
+class DiskView(StepView):
 
     def __init__(self, ui, step):
         StepView.__init__(self, ui, step)

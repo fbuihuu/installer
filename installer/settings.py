@@ -265,7 +265,7 @@ class Options(Section):
 class Steps(Section):
     Language     = True
     License      = True
-    Partitioning = True
+    Disk         = True
     Installation = True
     LocalMedia   = False
     Localization = True

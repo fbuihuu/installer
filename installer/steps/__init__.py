@@ -247,7 +247,7 @@ class Step(object):
 #
 from .language import LanguageStep
 from .license import LicenseStep
-from .partitioning import PartitioningStep
+from .disk import DiskStep
 from .installation import InstallStep
 from .local_media import LocalMediaStep
 from .localization import LocalizationStep
@@ -261,7 +261,7 @@ from .end import EndStep
 def initialize():
     _all_steps.append(LanguageStep())
     _all_steps.append(LicenseStep())
-    _all_steps.append(PartitioningStep())
+    _all_steps.append(DiskStep())
     _all_steps.append(InstallStep())
     _all_steps.append(LocalizationStep())
     _all_steps.append(PasswordStep())
