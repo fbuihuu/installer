@@ -86,7 +86,7 @@ class LogHandler(logging.Handler):
         self._ui = ui
 
     def emit(self, record):
-        self._ui._on_log(record.levelno, self.format(record))
+        self._ui._on_log(record.levelno, record)
 
 
 class UrwidUI(UI):
@@ -151,8 +151,6 @@ class UrwidUI(UI):
     def _init_logging(self):
         h = LogHandler(self)
         h.setLevel(logging.DEBUG)
-        f = logging.Formatter('[%(asctime)s] %(name)s: %(message)s','%H:%M:%S')
-        h.setFormatter(f)
         logger = logging.getLogger()
         logger.addHandler(h)
         logger.debug("starting logging facility.")
@@ -315,9 +313,9 @@ class UrwidUI(UI):
         view.set_completion(percent)
 
     @ui_thread
-    def _on_log(self, lvl, msg):
-        self._log_view.append_log(lvl, msg)
-        self._echo_area.notify(lvl, msg)
+    def _on_log(self, lvl, record):
+        self._log_view.append_log(lvl, record)
+        self._echo_area.notify(lvl, record)
 
     @ui_thread
     def _on_uevent(self, action, bdev):
@@ -405,11 +403,13 @@ class LogView(View):
 
     def __init__(self):
         page = widgets.Page(_("Logs"))
+        self.formatter = logging.Formatter('[%(asctime)s] %(name)s: %(message)s','%H:%M:%S')
         self._walker = urwid.SimpleFocusListWalker([])
         page.body = urwid.ListBox(self._walker)
         View.__init__(self, page)
 
-    def append_log(self, lvl, msg):
+    def append_log(self, lvl, record):
+        msg = self.formatter.format(record)
         txt = urwid.Text(msg)
         if lvl > logging.INFO:
             txt = urwid.AttrMap(txt, 'log.warn')
@@ -452,10 +452,12 @@ class EchoArea(urwid.Text):
 
     def __init__(self):
         urwid.Text.__init__(self, "")
+        self.formatter = logging.Formatter('%(message)s')
 
-    def notify(self, lvl, msg):
+    def notify(self, lvl, record):
         if lvl < logging.INFO:
             return
+        msg = self.formatter.format(record)
         msg = msg.split('\n')[0]
         if lvl > logging.INFO:
             markup = ('log.warn', msg)
