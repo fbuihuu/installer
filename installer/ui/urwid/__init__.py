@@ -369,7 +369,7 @@ class StepView(View):
         # center the progress bar inside the body page.
         body = urwid.Padding(self._progress_bar, 'center', ('relative', 70))
         body = urwid.Filler(body)
-        self._progress_page = widgets.Page()
+        self._progress_page = widgets.Page(_("Processing"))
         self._progress_page.body   = body
         self._progress_page.footer = urwid.Text(('page.legend',
                                                  _("Press <F3> to see logs")))
@@ -396,7 +396,6 @@ class StepView(View):
         #
         if self.page != self._progress_page:
             self._step_page = self.page
-            self._progress_page.title = self.page.title
             self.page = self._progress_page
 
         self._progress_bar.set_completion(percent)
