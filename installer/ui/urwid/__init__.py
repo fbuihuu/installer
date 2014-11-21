@@ -515,7 +515,7 @@ class NavigatorEntry(urwid.WidgetWrap):
 
     def __init__(self, step):
         self._step  = step
-        self._title = urwid.Text("", align="left")
+        self._title = urwid.Text("", align="left", wrap='clip')
         self._mark  = urwid.Text("", align="right")
         self._active = False
         self.refresh()
