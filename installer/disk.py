@@ -30,7 +30,6 @@ class DiskRaidError(DiskError):
     """Base class for exceptions specific to RAID error"""
 
     def __init__(self, msg):
-        msg = _("RAID error, ") + msg
         DiskError.__init__(self, message=msg)
 
 
