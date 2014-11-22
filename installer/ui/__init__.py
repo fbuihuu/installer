@@ -25,8 +25,6 @@ class UI(object):
 
     def _load_step_views(self):
         for step in steps.get_steps():
-            # Be carefull when using step.name since it can use the
-            # translated for.
             try:
                 # Import view's module if available
                 mod = import_module('.' + step.view_module_name, self.__module__)

@@ -6,6 +6,7 @@ import os
 import logging
 from threading import current_thread, Thread, RLock
 from installer import distro
+from installer import l10n
 from installer.utils import Signal, rsync
 from installer.process import monitor, monitor_chroot, monitor_kill
 from installer.partition import mount_rootfs, unmount_rootfs
@@ -78,9 +79,6 @@ class Step(object):
     mandatory = False
 
     def __init__(self):
-        # _name is the untranslated version of self.name(): we assume
-        # that translation is still off.
-        self._name = self.name
         self._skip = not settings.get('Steps', self.view_class_name)
         self._root = None
         self._thread = None
@@ -92,6 +90,15 @@ class Step(object):
 
         if self._skip and self.mandatory:
             raise SettingsError(_("step '%s' can't be disabled !" % self.name))
+
+    @property
+    def _name(self):
+        """ _name is the untranslated step's name"""
+        lang = l10n.language
+        l10n.set_translation('C')
+        name = self.name
+        l10n.set_translation(lang)
+        return name
 
     @property
     def name(self):
