@@ -33,8 +33,7 @@ class LanguageView(StepView):
         body = urwid.Padding(body,'center', width=('relative', 60))
         self.page.body = body
 
-    def on_click(self, entry):
-        country = entry.text
+    def on_click(self, country, index):
 
         for code in l10n.country_names:
             if l10n.country_names[code] == country:

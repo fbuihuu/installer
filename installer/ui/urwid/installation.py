@@ -109,8 +109,8 @@ class DeviceListWidget(widgets.ClickableTextList):
     def _on_focus_changed(self):
         urwid.emit_signal(self, "focus_changed", self.get_focus())
 
-    def _on_click(self, widget):
-        urwid.emit_signal(self, "click", self.get_focus())
+    def _on_click(self, device, index):
+        urwid.emit_signal(self, "click", device)
 
     def update(self, devices):
         self._devices = devices

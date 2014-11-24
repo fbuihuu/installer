@@ -20,8 +20,8 @@ class SelectionListWidget(widgets.ClickableTextList):
         super(SelectionListWidget, self).__init__([], self._on_click, 'left')
         self._timezone = []
 
-    def _on_click(self, widget):
-        urwid.emit_signal(self, "click", self.get_focus())
+    def _on_click(self, tz, idx):
+        urwid.emit_signal(self, "click", tz)
 
     def update(self, timezones, prefix=None):
         if prefix:

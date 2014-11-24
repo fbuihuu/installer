@@ -55,7 +55,7 @@ class ClickableTextList(urwid.WidgetWrap):
     def __init__(self, items, on_click=None, align='center'):
         self._walker = urwid.SimpleListWalker([])
         self._align = align
-        self._on_click = on_click
+        self._callback = on_click
         self.update(items)
         urwid.WidgetWrap.__init__(self, urwid.ListBox(self._walker))
 
@@ -64,8 +64,8 @@ class ClickableTextList(urwid.WidgetWrap):
         for item in items:
             clickable = ClickableText(item)
             clickable.set_layout(self._align, 'clip', None)
-            if self._on_click:
-                urwid.connect_signal(clickable, 'click', self._on_click)
+            if self._callback:
+                urwid.connect_signal(clickable, 'click', self.__on_click)
             clickables.append(clickable)
         # update walker contents once so we will trigger only one 'modified'
         # signal.
@@ -76,6 +76,11 @@ class ClickableTextList(urwid.WidgetWrap):
             if clickable.text == item:
                 self._walker.set_focus(self._walker.index(clickable))
                 return
+
+    # Make it private so it won't clash with callback names implemented
+    # by derived classes.
+    def __on_click(self, clickable):
+        self._callback(clickable.text, self._walker.index(clickable))
 
 
 class ClickableTextPile(urwid.WidgetWrap):
