@@ -146,7 +146,8 @@ class Localization(StepSection):
     _country  = ''
     _timezone = ''
     _keymap   = ''
-    _locale  = ''
+    _locale   = ''
+    _ccode    = ''
 
     def __init__(self):
         Section.__init__(self)
@@ -163,6 +164,10 @@ class Localization(StepSection):
     @property
     def country(self):
         return self._country
+
+    @property
+    def ccode(self):
+        return self._ccode
 
     @property
     def timezone(self):
@@ -194,29 +199,29 @@ class Localization(StepSection):
     @locale.setter
     def locale(self, locale):
         found = None
-        for ccode, zones in l10n.country_zones.items():
-            for zi in zones:
-                if locale == zi.locale:
-                    found = (ccode, zi)
-                    break
-                if found:
-                    # Try to find an exact match only.
-                    continue
-                if zi.locale.split('_')[0] == locale.split('_')[0]:
-                    found = (ccode, zi)
+        for zi in l10n.get_country_zones():
             if locale == zi.locale:
+                found = zi
                 break
-        if not found:
-            found = ('US', l10n.country_zones['US'][0])
+            if found:
+                # Try to find an exact match only.
+                continue
+            if zi.locale.split('_')[0] == locale.split('_')[0]:
+                found = zi
 
-        self._locale = found[1].locale
+        zi = found
+        if not zi:
+            return
+
+        self._locale = zi.locale
         # don't change values previously customized by the user.
         if not 'country' in self._explicit_settings:
-            self._country = found[0]
+            self._country = zi.country
+            self._ccode   = zi.ccode
         if not 'timezone' in self._explicit_settings:
-            self._timezone = found[1].timezone
+            self._timezone = zi.timezone
         if not 'keymap' in self._explicit_settings:
-            self._keymap = found[1].keymap
+            self._keymap = zi.keymap
 
 
 class LocalMedia(StepSection):

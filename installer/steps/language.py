@@ -19,5 +19,5 @@ class LanguageStep(Step):
         # Nothing to do here since most of the actions are done later
         # by localization step. Even changing the keyboard layout
         # depends on the frontend used.
-        country = l10n.country_names[settings.Localization.country]
+        country = settings.Localization.country
         self.logger.info(_("set location to %s") % country)

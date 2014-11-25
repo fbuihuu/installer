@@ -21,31 +21,40 @@ class LanguageView(StepView):
 
     def __init__(self, ui, step):
         StepView.__init__(self, ui, step)
-
         self.page = widgets.Page(_("Select your location"))
-        # Make the list centered inside its container
-        countries = sorted(l10n.country_names.values())
+
+        # Build a self._country_zones, which is a list of prefered
+        # zones in each country.
+        self._country_zones = []
+        ccode_set = set()
+        for zi in l10n.get_country_zones():
+            if zi.ccode not in ccode_set:
+                self._country_zones.append(zi)
+                ccode_set.add(zi.ccode)
+        countries = [z.country for z in self._country_zones]
+
         body = widgets.ClickableTextList(countries, self.on_click)
+
         # Try to move the focus on the entry that matches (roughly)
         # the current locale.
-        body.set_focus(l10n.country_names[settings.Localization.country])
+        for zi in self._country_zones:
+            if zi.ccode == settings.Localization.ccode:
+                body.set_focus(zi.country)
+                break
+
         body = urwid.Filler(body, 'middle', height=('relative', 40))
         body = urwid.Padding(body,'center', width=('relative', 60))
         self.page.body = body
 
     def on_click(self, country, index):
-
-        for code in l10n.country_names:
-            if l10n.country_names[code] == country:
-                zi = l10n.country_zones[code][0]
-                break
+        zone = self._country_zones[index]
 
         # Change the language of the whole ui. This may fail if no
         # translation is available for this lang.
-        self._ui.language = zi.locale
+        self._ui.language = zone.locale
 
         # This only inits the others l10n settings if the user didn't
         # already.
-        settings.Localization.locale = zi.locale
+        settings.Localization.locale = zone.locale
 
         self.run()

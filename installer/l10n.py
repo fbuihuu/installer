@@ -19,10 +19,10 @@ logger = logging.getLogger(__name__)
 #
 class Zone(object):
 
-    def __init__(self, city, timezone, country, keymap, locale):
+    def __init__(self, city, timezone, ccode, keymap, locale):
         self.city     = city
         self.timezone = timezone
-        self.country  = country # country code
+        self.ccode    = ccode # country code
         self.keymap   = keymap
         self.locale   = locale
 
@@ -31,14 +31,44 @@ class BrazilZone(Zone):
     def __init__(self, city, timezone):
         super(BrazilZone, self).__init__(city, timezone, 'BR', 'br-abnt2', 'pt_BR')
 
+    @property
+    def country(self):
+        return _('Brazil')
+
+
+class FranceZone(Zone):
+    def __init__(self, city, timezone):
+        super(FranceZone, self).__init__(city, timezone, 'FR', 'fr', 'fr_FR')
+
+    @property
+    def country(self):
+        return _('France')
+
 
 class UsaZone(Zone):
     def __init__(self, city, timezone):
         super(UsaZone, self).__init__(city, timezone, 'US', 'us', 'en_US')
 
+    @property
+    def country(self):
+        return _('United State')
 
-country_zones = None
-country_names = None
+
+# The first zone of the list of each country is the prefered one.
+def get_country_zones():
+    return [
+        # BR
+        BrazilZone(_('Curitiba'),  'America/Cuiaba'),
+        BrazilZone(_('Sao Paulo'), 'America/Sao_Paulo'),
+        # FR
+        FranceZone(_('Paris'),     'Europe/Paris'),
+        # US
+        UsaZone(_('New York'),    'America/New_York'),
+        UsaZone(_('Los Angeles'), 'America/Los_Angeles'),
+        UsaZone(_('Denver'),      'America/Denver'),
+    ]
+
+
 language = None
 
 #
@@ -97,27 +127,6 @@ def set_translation(lang):
 
     language = lang
 
-    # The first zone of the list of each country is the prefered one.
-    country_zones = {
-        'BR' : [
-            BrazilZone(_('Curitiba'),  'America/Cuiaba'),
-            BrazilZone(_('Sao Paulo'), 'America/Sao_Paulo'),
-        ],
-        'FR' : [
-            Zone(_('Paris'), 'Europe/Paris', 'FR', 'fr', 'fr_FR')
-        ],
-        'US' : [
-            UsaZone(_('New York'),    'America/New_York'),
-            UsaZone(_('Los Angeles'), 'America/Los_Angeles'),
-            UsaZone(_('Denver'),      'America/Denver'),
-        ],
-    }
-
-    country_names = {
-        'BR' : _('Brazil'),
-        'FR' : _('France'),
-        'US' : _('United States'),
-    }
 
 # Install _() with the default language used by the installer.
 set_translation(None)
