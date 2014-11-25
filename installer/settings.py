@@ -143,11 +143,9 @@ class License(StepSection):
 
 
 class Localization(StepSection):
-    _country  = ''
     _timezone = ''
     _keymap   = ''
     _locale   = ''
-    _ccode    = ''
 
     def __init__(self):
         Section.__init__(self)
@@ -162,14 +160,6 @@ class Localization(StepSection):
         self.locale = default
 
     @property
-    def country(self):
-        return self._country
-
-    @property
-    def ccode(self):
-        return self._ccode
-
-    @property
     def timezone(self):
         return self._timezone
 
@@ -180,11 +170,6 @@ class Localization(StepSection):
     @property
     def locale(self):
         return self._locale
-
-    @country.setter
-    def country(self, country):
-        self._explicit_settings.add('country')
-        self._country = country
 
     @timezone.setter
     def timezone(self, tz):
@@ -215,9 +200,6 @@ class Localization(StepSection):
 
         self._locale = zi.locale
         # don't change values previously customized by the user.
-        if not 'country' in self._explicit_settings:
-            self._country = zi.country
-            self._ccode   = zi.ccode
         if not 'timezone' in self._explicit_settings:
             self._timezone = zi.timezone
         if not 'keymap' in self._explicit_settings:

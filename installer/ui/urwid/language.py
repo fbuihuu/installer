@@ -2,6 +2,7 @@
 #
 from __future__ import unicode_literals
 
+import locale
 import urwid
 
 from . import StepView
@@ -27,6 +28,7 @@ class LanguageView(StepView):
         # zones in each country.
         self._country_zones = []
         ccode_set = set()
+
         for zi in l10n.get_country_zones():
             if zi.ccode not in ccode_set:
                 self._country_zones.append(zi)
@@ -37,8 +39,9 @@ class LanguageView(StepView):
 
         # Try to move the focus on the entry that matches (roughly)
         # the current locale.
+        current_locale = locale.getlocale()[0]
         for zi in self._country_zones:
-            if zi.ccode == settings.Localization.ccode:
+            if zi.locale.startswith(current_locale):
                 body.set_focus(zi.country)
                 break
 
