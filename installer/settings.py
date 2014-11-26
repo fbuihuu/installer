@@ -143,12 +143,33 @@ class License(StepSection):
 
 
 class Localization(StepSection):
-    timezone = ''
-    keymap   = ''
-    locale   = ''
+    _timezone = ''
+    _keymap   = ''
+    _locale   = ''
 
-    def __init__(self):
-        Section.__init__(self)
+    @property
+    def timezone(self):
+        return self._timezone or l10n.get_language_zone().timezone
+
+    @property
+    def keymap(self):
+        return self._keymap or l10n.get_language_zone().keymap
+
+    @property
+    def locale(self):
+        return self._locale or l10n.get_language_zone().locale
+
+    @timezone.setter
+    def timezone(self, tz):
+        self._timezone = tz
+
+    @keymap.setter
+    def keymap(self, kmap):
+        self._keymap = kmap
+
+    @locale.setter
+    def locale(self, locale):
+        self._locale = locale
 
 
 class LocalMedia(StepSection):

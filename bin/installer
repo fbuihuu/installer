@@ -5,9 +5,7 @@ from __future__ import unicode_literals
 
 import os
 import sys
-import locale
 import logging
-import gettext
 import argparse
 
 from installer import l10n
@@ -72,6 +70,17 @@ def parse_cmdline():
 
 
 def main():
+    #
+    # A program which has not called setlocale(LC_ALL, '') runs using
+    # the portable 'C' locale. The following call will init both the
+    # locale and gettext.
+    #
+    l10n.set_locale('')
+    l10n.set_language('')
+
+    #
+    # Parse the options
+    #
     args = parse_cmdline()
 
     #

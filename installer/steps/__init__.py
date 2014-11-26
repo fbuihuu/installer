@@ -95,9 +95,9 @@ class Step(object):
     def _name(self):
         """ _name is the untranslated step's name"""
         lang = l10n.language
-        l10n.set_translation('C')
+        l10n.set_language('en_US')
         name = self.name
-        l10n.set_translation(lang)
+        l10n.set_language(lang)
         return name
 
     @property
@@ -249,23 +249,26 @@ class Step(object):
         distro.install(pkgs, self._root, self._completion, completion,
                        self.set_completion, self.logger, options)
 
-#
-# Step instantiations requires working translation.
-#
-from .language import LanguageStep
-from .license import LicenseStep
-from .disk import DiskStep
-from .installation import InstallStep
-from .local_media import LocalMediaStep
-from .localization import LocalizationStep
-from .password import PasswordStep
-from .end import EndStep
 
 #
 # 'local-media' step must be the last but one since all packages must
 # have been downloaded before creating the local media.
 #
 def initialize():
+    #
+    # Some step modules assume that translation is working, therefore
+    # import them lately so the installer bin get a chance to setup
+    # the l10n module.
+    #
+    from .language import LanguageStep
+    from .license import LicenseStep
+    from .disk import DiskStep
+    from .installation import InstallStep
+    from .local_media import LocalMediaStep
+    from .localization import LocalizationStep
+    from .password import PasswordStep
+    from .end import EndStep
+
     _all_steps.append(LanguageStep())
     _all_steps.append(LicenseStep())
     _all_steps.append(DiskStep())

@@ -75,60 +75,78 @@ def _get_zone(locale):
             return z
 
 
-def get_current_zone(exact=False):
-    current_locale = locale.getlocale()[0]
-    z = _get_zone(current_locale)
-    if not z and not exact:
-        z = _get_zone(current_locale.split('_')[0])
-    return z
-
-
-def get_default_zone():
-    return _get_zone('en_US')
+def get_language_zone():
+    return _get_zone(language)
 
 
 language = None
 
 #
+# This initializes the installer locale setting. It can be called
+# either during initialization or later if the user decides to switch
+# the language used by the installer.
 #
-#
-def set_translation(lang):
-    global country_zones, country_names, language
-
-    if not lang:
-        lang = 'en_US'
-
-    # Try changing the prog current locale but that's really not a big
-    # deal if that fails.
+def set_locale(value):
     try:
-        # On Python 2.7, locale can't be unicode: basically it should
-        # had been allowed but it's too late, see link below for
-        # details: http://bugs.python.org/issue3067)
-        if sys.version_info[0] < 3:
-            lang = lang.encode('ascii')
+        if value == '':
+            # Calling resetlocale() sets the locale to the first value
+            # found in 'LC_ALL', 'LC_CTYPE', 'LANG', in that order
+            # (this search path is used in GNU setlocale(3)).
+            locale.resetlocale(locale.LC_ALL)
+        else:
+            # On Python 2.7, locale can't be unicode: basically it should
+            # had been allowed but it's too late, see link below for
+            # details: http://bugs.python.org/issue3067). On Python 3.x,
+            # str() is a nop.
+            locale.setlocale(locale.LC_ALL, str(value))
 
-        locale.setlocale(locale.LC_ALL, lang)
     except locale.Error:
-        logger.debug("failed to set current locale to %s" % lang)
+        logger.debug("failed to set current locale to %s" % value)
+
+
+def set_language(lang):
+    global language
 
     #
-    # However failing to find a translation for this lang is more
-    # annoying since the user will notice.
+    # Use the translation in the source topdir if the installer is run
+    # from there.
     #
     localedir = None
     if get_topdir():
         localedir = os.path.join(get_topdir(), 'build/mo')
 
-    trans = gettext.translation('installer', languages=[lang],
-                                localedir=localedir, fallback=True)
+    # If lang is '', the lang used by gettext, to search the .mo, will
+    # be given by the first value found in LANGUAGE, LC_ALL,
+    # LC_MESSAGES, and LANG in that order. This order is the same as
+    # GNU gettext(3).
+    #
+    langs = [lang] if lang else None
+
+    #
+    # This is used to find out which language will be used by gettext
+    # specially when lang is ''. In that case the lang can't be retrieve
+    # from the current locale since locale.getlocale() doesn't take
+    # into account LANGUAGE env variable.
+    #
+    # In case of succes gettext.find() returns a path which has the
+    # following form: <localedir>/<language>/LC_MESSAGES/<domain>.mo
+    #
+    mo = gettext.find('installer', languages=langs, localedir=localedir)
+    if mo:
+        lang = mo.split('/')[-3]
+    elif lang:
+        lang = 'en_US'
+        logger.warn("No translation found for '%s' language", lang)
+    else:
+        lang = 'en_US'
+        logger.warn("No translation found for current locale")
+
     #
     # If no translation was found then use the default language which
     # is en_US.
     #
-    if type(trans) == gettext.NullTranslations:
-        if lang != 'en_US':
-            logger.warn("No translation found for '%s' language", lang)
-            lang = 'en_US'
+    trans = gettext.translation('installer', languages=[lang],
+                                localedir=localedir)
 
     #
     # In Python 2, ensure that the _() that gets installed
@@ -145,9 +163,6 @@ def set_translation(lang):
 
     language = lang
 
-
-# Install _() with the default language used by the installer.
-set_translation(None)
 
 #
 # Time zones

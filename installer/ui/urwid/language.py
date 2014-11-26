@@ -2,7 +2,6 @@
 #
 from __future__ import unicode_literals
 
-import locale
 import urwid
 
 from . import StepView
@@ -39,9 +38,8 @@ class LanguageView(StepView):
 
         # Try to move the focus on the entry that matches (roughly)
         # the current locale.
-        current_locale = locale.getlocale()[0]
         for zi in self._country_zones:
-            if zi.locale.startswith(current_locale):
+            if zi.locale.startswith(l10n.language):
                 body.set_focus(zi.country)
                 break
 
@@ -50,5 +48,5 @@ class LanguageView(StepView):
         self.page.body = body
 
     def on_click(self, country, index):
-        self.run_sync(self._country_zones[index])
+        self.run_sync(self._country_zones[index].locale)
         self._ui._reload()
