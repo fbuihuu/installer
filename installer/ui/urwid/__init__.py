@@ -379,6 +379,9 @@ class StepView(View):
     def run(self, *args):
         self._step.process_async(*args)
 
+    def run_sync(self, *args):
+        self._step.process(*args)
+
     def set_completion(self, percent):
         #
         # Hide the progress bar when the step's job is not yet started or
