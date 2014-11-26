@@ -61,9 +61,6 @@ class UI(object):
     def redraw(self):
         raise NotImplementedError()
 
-    def notify(self, lvl, msg):
-        pass
-
     def register_hotkey(self, hotkey, cb):
         self._hotkeys[hotkey] = cb
 
