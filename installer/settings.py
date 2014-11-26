@@ -143,67 +143,12 @@ class License(StepSection):
 
 
 class Localization(StepSection):
-    _timezone = ''
-    _keymap   = ''
-    _locale   = ''
+    timezone = ''
+    keymap   = ''
+    locale   = ''
 
     def __init__(self):
         Section.__init__(self)
-        # used to keep track of the options overriden by the user explicitely.
-        self._explicit_settings = set()
-
-        # Try to find out the default settings based on the default
-        # locale.
-        default = locale.getdefaultlocale()[0]
-        if default in (None, 'C'):
-            default = 'en_US'
-        self.locale = default
-
-    @property
-    def timezone(self):
-        return self._timezone
-
-    @property
-    def keymap(self):
-        return self._keymap
-
-    @property
-    def locale(self):
-        return self._locale
-
-    @timezone.setter
-    def timezone(self, tz):
-        self._explicit_settings.add('timezone')
-        self._timezone = tz
-
-    @keymap.setter
-    def keymap(self, kmap):
-        self._explicit_settings.add('keymap')
-        self._keymap = kmap
-
-    @locale.setter
-    def locale(self, locale):
-        found = None
-        for zi in l10n.get_country_zones():
-            if locale == zi.locale:
-                found = zi
-                break
-            if found:
-                # Try to find an exact match only.
-                continue
-            if zi.locale.split('_')[0] == locale.split('_')[0]:
-                found = zi
-
-        zi = found
-        if not zi:
-            return
-
-        self._locale = zi.locale
-        # don't change values previously customized by the user.
-        if not 'timezone' in self._explicit_settings:
-            self._timezone = zi.timezone
-        if not 'keymap' in self._explicit_settings:
-            self._keymap = zi.keymap
 
 
 class LocalMedia(StepSection):

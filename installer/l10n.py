@@ -69,6 +69,24 @@ def get_country_zones():
     ]
 
 
+def _get_zone(locale):
+    for z in get_country_zones():
+        if z.locale.startswith(locale):
+            return z
+
+
+def get_current_zone(exact=False):
+    current_locale = locale.getlocale()[0]
+    z = _get_zone(current_locale)
+    if not z and not exact:
+        z = _get_zone(current_locale.split('_')[0])
+    return z
+
+
+def get_default_zone():
+    return _get_zone('en_US')
+
+
 language = None
 
 #

@@ -56,8 +56,4 @@ class LanguageView(StepView):
         # translation is available for this lang.
         self._ui.language = zone.locale
 
-        # This only inits the others l10n settings if the user didn't
-        # already.
-        settings.Localization.locale = zone.locale
-
-        self.run()
+        self.run(zone)
