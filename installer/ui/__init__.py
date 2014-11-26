@@ -23,14 +23,6 @@ class UI(object):
         steps.completion_signal.connect(self._on_step_completion)
         self._load_step_views()
 
-    @property
-    def language(self):
-        return l10n.language
-
-    @language.setter
-    def language(self, lang):
-        l10n.set_translation(lang)
-
     def _load_step_views(self):
         for step in steps.get_steps():
             # Be carefull when using step.name since it can use the

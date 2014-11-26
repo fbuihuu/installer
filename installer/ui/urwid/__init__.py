@@ -112,16 +112,6 @@ class UrwidUI(UI):
         if args.colors:
             settings.Urwid.colors = args.colors
 
-    @UI.language.setter
-    def language(self, lang):
-        if self.language != lang:
-            UI.language.fset(self, lang)
-            if self._loop:
-                # Urwid frontend needs to recreate all step views.
-                self._load_step_views()
-                self._top_bar.refresh()
-                self._navigator.refresh()
-
     def _create_main_view(self):
         self._view = urwid.WidgetPlaceholder(urwid.Text(""))
 
@@ -235,6 +225,13 @@ class UrwidUI(UI):
         if self._loop:
             self._loop.draw_screen()
             self._redraw_view()
+
+    def _reload(self):
+        if self._loop:
+            # Urwid frontend needs to recreate all step views.
+            self._load_step_views()
+            self._top_bar.refresh()
+            self._navigator.refresh()
 
     def _switch_to_step(self, step=None):
         """Switch the current view to the current step view"""

@@ -50,10 +50,5 @@ class LanguageView(StepView):
         self.page.body = body
 
     def on_click(self, country, index):
-        zone = self._country_zones[index]
-
-        # Change the language of the whole ui. This may fail if no
-        # translation is available for this lang.
-        self._ui.language = zone.locale
-
-        self.run(zone)
+        self.run_sync(self._country_zones[index])
+        self._ui._reload()
