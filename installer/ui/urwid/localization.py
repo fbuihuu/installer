@@ -16,25 +16,23 @@ class SelectionListWidget(widgets.ClickableTextList):
     signals = ['click']
 
     def __init__(self):
-        # show only timezone that match the current one
         super(SelectionListWidget, self).__init__([], self._on_click, 'left')
-        self._timezone = []
 
     def _on_click(self, tz, idx):
         urwid.emit_signal(self, "click", tz)
 
-    def update(self, timezones, prefix=None):
+    def update(self, items, prefix=None):
         if prefix:
-            timezones = [tz for tz in timezones if tz.startswith(prefix)]
-        self._timezones = timezones
-        widgets.ClickableTextList.update(self, timezones)
+            items = [item for item in items if item.startswith(prefix)]
+        self._items = items
+        widgets.ClickableTextList.update(self, items)
 
     def get_focus(self):
         widget, idx = self._walker.get_focus()
-        return self._timezones[idx]
+        return self._items[idx]
 
     def set_focus(self, tz):
-        self._walker.set_focus(self._timezones.index(tz))
+        self._walker.set_focus(self._items.index(tz))
 
 
 class SelectionPage(widgets.Page):
@@ -43,10 +41,10 @@ class SelectionPage(widgets.Page):
 
     def __init__(self, list_widget, title):
         widgets.Page.__init__(self, title)
-        self._show_all = False
-        self._tz_list  = list_widget
-        urwid.connect_signal(self._tz_list, 'click', self._on_selected)
-        body = urwid.Filler(self._tz_list, 'middle', height=('relative', 70))
+        self._show_all   = False
+        self._lst_widget = list_widget
+        urwid.connect_signal(self._lst_widget, 'click', self._on_selected)
+        body = urwid.Filler(self._lst_widget, 'middle', height=('relative', 70))
         body = urwid.Padding(body, 'center', width=('relative', 60))
         self.body   = body
         self.footer = urwid.AttrMap(urwid.Text(""), 'page.legend')
@@ -86,8 +84,8 @@ class TimezoneSelectionPage(SelectionPage):
         prefix = None
         if not self._show_all and '/' in settings.Localization.timezone:
             prefix = settings.Localization.timezone.split('/')[0]
-        self._tz_list.update(l10n.timezones, prefix)
-        self._tz_list.set_focus(settings.Localization.timezone)
+        self._lst_widget.update(l10n.timezones, prefix)
+        self._lst_widget.set_focus(settings.Localization.timezone)
 
 
 class KeymapSelectionPage(SelectionPage):
@@ -102,8 +100,8 @@ class KeymapSelectionPage(SelectionPage):
 
     def _redraw_body(self):
         prefix = None if self._show_all else settings.Localization.keymap
-        self._tz_list.update(l10n.keymaps, prefix)
-        self._tz_list.set_focus(settings.Localization.keymap)
+        self._lst_widget.update(l10n.keymaps, prefix)
+        self._lst_widget.set_focus(settings.Localization.keymap)
 
 
 class LocalizationPage(widgets.Page):
