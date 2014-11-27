@@ -177,8 +177,5 @@ class StepView(object):
     def __init__(self, ui, step):
         self._step = step
 
-    def _run(self, args):
-        self._step.process()
-
     def run(self, args):
-        self._run(args)
+        self._step.process()

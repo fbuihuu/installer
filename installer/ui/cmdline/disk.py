@@ -13,7 +13,7 @@ from installer import disk
 
 class DiskView(StepView):
 
-    def _run(self, args):
+    def run(self, args):
         disks  = []
         preset = 'small'
 
