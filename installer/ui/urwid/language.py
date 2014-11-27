@@ -7,7 +7,6 @@ import urwid
 from . import StepView
 from . import widgets
 from installer import l10n
-from installer.settings import settings
 
 
 #
@@ -48,5 +47,19 @@ class LanguageView(StepView):
         self.page.body = body
 
     def on_click(self, country, index):
-        self.run_sync(self._country_zones[index].locale)
+        #
+        # step is run simply to update its state to 'done'
+        #
+        self.run()
+
+        #
+        # Setting the locale may fail if it's not installed on the
+        # host system, but that's not an issue since we're interested
+        # mostly in setting up the language.
+        #
+        locale = self._country_zones[index].locale
+
+        l10n.set_locale(locale)
+        l10n.set_language(locale)
+
         self._ui._reload()

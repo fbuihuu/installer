@@ -142,6 +142,10 @@ class License(StepSection):
     dir = ''
 
 
+#
+# The current language is used as a hint to find out the default l10n
+# values. If the user provided some values then they will be used.
+#
 class Localization(StepSection):
     _timezone = ''
     _keymap   = ''
