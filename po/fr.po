@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-11-21 12:10+0100\n"
+"POT-Creation-Date: 2014-11-28 08:36+0100\n"
 "PO-Revision-Date: 2014-08-27 11:50+0200\n"
 "Last-Translator: Jean-Philippe <jpbraun@mandriva.com>\n"
 "Language-Team: French <http://translate.mandriva.com/projects/installer/"
@@ -119,41 +119,44 @@ msgstr "Utilisation de la configuration urpmi du système hôte"
 msgid "Retrieving repository public keys"
 msgstr "Récupération des clés publiques du dépôt"
 
-#: ../installer/l10n.py:103
-msgid "Curitiba"
-msgstr "Curitiba"
-
-#: ../installer/l10n.py:104
-msgid "Sao Paulo"
-msgstr "Sao Paulo"
-
-#: ../installer/l10n.py:107
-msgid "Paris"
-msgstr "Paris"
-
-#: ../installer/l10n.py:110
-msgid "New York"
-msgstr "New York"
-
-#: ../installer/l10n.py:111
-msgid "Los Angeles"
-msgstr "Los Angeles"
-
-#: ../installer/l10n.py:112
-msgid "Denver"
-msgstr "Denver"
-
-#: ../installer/l10n.py:117
+#: ../installer/l10n.py:36
 msgid "Brazil"
 msgstr "Brésil"
 
-#: ../installer/l10n.py:118
+#: ../installer/l10n.py:45
 msgid "France"
 msgstr "France"
 
-#: ../installer/l10n.py:119
-msgid "United States"
+#: ../installer/l10n.py:54
+msgid "United State"
 msgstr "Etats Unis"
+
+#. BR
+#: ../installer/l10n.py:61
+msgid "Curitiba"
+msgstr "Curitiba"
+
+#: ../installer/l10n.py:62
+msgid "Sao Paulo"
+msgstr "Sao Paulo"
+
+#. FR
+#: ../installer/l10n.py:64
+msgid "Paris"
+msgstr "Paris"
+
+#. US
+#: ../installer/l10n.py:66
+msgid "New York"
+msgstr "New York"
+
+#: ../installer/l10n.py:67
+msgid "Los Angeles"
+msgstr "Los Angeles"
+
+#: ../installer/l10n.py:68
+msgid "Denver"
+msgstr "Denver"
 
 #: ../installer/partition.py:122
 msgid "device is not formatted"
@@ -218,24 +221,20 @@ msgstr "%s est devenu incompatible pour %s"
 msgid "Failed to read package list: %s"
 msgstr "Echec lors de la lecture de le liste de paquets: %s"
 
-#: ../installer/steps/__init__.py:94
+#: ../installer/steps/__init__.py:92
 #, python-format
 msgid "step '%s' can't be disabled !"
 msgstr "étape '%s' ne peut être désactivée"
 
-#: ../installer/steps/__init__.py:143
+#: ../installer/steps/__init__.py:150
 msgid "failed, see logs for details."
 msgstr "echec, consultez les journaux pour plus de détails."
 
-#: ../installer/steps/__init__.py:147
-msgid "done."
-msgstr "terminé."
-
-#: ../installer/steps/__init__.py:184
+#: ../installer/steps/__init__.py:191
 msgid "aborting step..."
 msgstr "abandon de l'étape..."
 
-#: ../installer/steps/__init__.py:188
+#: ../installer/steps/__init__.py:195
 msgid "step aborted."
 msgstr "étape abandonnée."
 
@@ -281,14 +280,9 @@ msgstr "la cohérence du FS d'une des partitions ne peut être vérifiée"
 msgid "Failed to set the kernel cmdline in %s"
 msgstr "Echec lors de la configuration des options du noyau"
 
-#: ../installer/steps/language.py:16
+#: ../installer/steps/language.py:14
 msgid "Language"
 msgstr "Langue"
-
-#: ../installer/steps/language.py:23
-#, python-format
-msgid "set location to %s"
-msgstr "vous avez choisi %s comme région"
 
 #: ../installer/steps/license.py:16
 msgid "License"
@@ -326,7 +320,7 @@ msgstr ""
 "local."
 
 #: ../installer/steps/localization.py:24
-#: ../installer/ui/urwid/localization.py:114
+#: ../installer/ui/urwid/localization.py:112
 msgid "Localization"
 msgstr "Localisation"
 
@@ -338,7 +332,7 @@ msgstr "Mot de Passe"
 msgid "setting root's password"
 msgstr "configuration du mot de passe Root"
 
-#: ../installer/ui/__init__.py:56
+#: ../installer/ui/__init__.py:46
 msgid "exiting..."
 msgstr "fin de l'installation..."
 
@@ -369,41 +363,41 @@ msgstr "le peripherique n'est pas approprié pour une installation"
 msgid "disk(s) too small for a %s server setup"
 msgstr "disque(s) trop petit(s) pour une configuration '%s'"
 
-#: ../installer/ui/urwid/__init__.py:176
+#: ../installer/ui/urwid/__init__.py:164
 msgid "urwid frontend requires a tty."
 msgstr "le frontend urwid nécessite un tty."
 
-#: ../installer/ui/urwid/__init__.py:179
+#: ../installer/ui/urwid/__init__.py:167
 msgid "You must select the cmdline frontend when specifying disk(s)."
 msgstr ""
 "Vous devez selectionner le frontend cmdline lorsque des disques sont "
 "spécifiés"
 
-#: ../installer/ui/urwid/__init__.py:372
+#: ../installer/ui/urwid/__init__.py:367
 msgid "Processing"
 msgstr "En cours d'exécution"
 
-#: ../installer/ui/urwid/__init__.py:375
+#: ../installer/ui/urwid/__init__.py:370
 msgid "Press <F3> to see logs"
 msgstr "<F3> pour voir les journaux"
 
-#: ../installer/ui/urwid/__init__.py:407 ../installer/ui/urwid/__init__.py:568
+#: ../installer/ui/urwid/__init__.py:402 ../installer/ui/urwid/__init__.py:567
 msgid "Logs"
 msgstr "Journaux"
 
-#: ../installer/ui/urwid/__init__.py:423 ../installer/ui/urwid/__init__.py:568
+#: ../installer/ui/urwid/__init__.py:420 ../installer/ui/urwid/__init__.py:567
 msgid "Summary"
 msgstr "Résumé"
 
-#: ../installer/ui/urwid/__init__.py:445 ../installer/ui/urwid/__init__.py:568
+#: ../installer/ui/urwid/__init__.py:442 ../installer/ui/urwid/__init__.py:567
 msgid "Help"
 msgstr "Aide"
 
-#: ../installer/ui/urwid/__init__.py:568
+#: ../installer/ui/urwid/__init__.py:567
 msgid "Main"
 msgstr "Général"
 
-#: ../installer/ui/urwid/__init__.py:568
+#: ../installer/ui/urwid/__init__.py:567
 msgid "Exit"
 msgstr "Quitter"
 
@@ -443,7 +437,7 @@ msgstr "Recommencer"
 msgid "Cancel"
 msgstr "Abandonner"
 
-#: ../installer/ui/urwid/disk.py:181 ../installer/ui/urwid/localization.py:121
+#: ../installer/ui/urwid/disk.py:181 ../installer/ui/urwid/localization.py:119
 msgid "Done"
 msgstr "Valider"
 
@@ -536,7 +530,7 @@ msgstr "Choix du périphérique pour %s"
 msgid "%s is mounted, no harm will be done"
 msgstr "%s est actuellement monté"
 
-#: ../installer/ui/urwid/language.py:25
+#: ../installer/ui/urwid/language.py:23
 msgid "Select your location"
 msgstr "Choisissez une région"
 
@@ -568,27 +562,27 @@ msgstr "Importer"
 msgid "You must provide a path for destination"
 msgstr "Vous devez spécifier une destination"
 
-#: ../installer/ui/urwid/localization.py:56
+#: ../installer/ui/urwid/localization.py:54
 msgid "Press <alt>-v to minimize the list"
 msgstr "<alt>-v pour réduire la liste"
 
-#: ../installer/ui/urwid/localization.py:58
+#: ../installer/ui/urwid/localization.py:56
 msgid "Press <alt>-v to show them all"
 msgstr "<alt>-v pour voir tous les choix"
 
-#: ../installer/ui/urwid/localization.py:79
+#: ../installer/ui/urwid/localization.py:77
 msgid "Select a time zone"
 msgstr "Choisissez un fuseau horaire"
 
-#: ../installer/ui/urwid/localization.py:97
+#: ../installer/ui/urwid/localization.py:95
 msgid "Select a keyboard layout"
 msgstr "Choisissez un type de clavier"
 
-#: ../installer/ui/urwid/localization.py:116
+#: ../installer/ui/urwid/localization.py:114
 msgid "Time Zone"
 msgstr "Fuseau Horaire"
 
-#: ../installer/ui/urwid/localization.py:117
+#: ../installer/ui/urwid/localization.py:115
 msgid "Keyboard Layout"
 msgstr "Configuration du Clavier"
 
@@ -615,3 +609,9 @@ msgstr "<alt>-v pour voir le mot de passe"
 #: ../installer/ui/urwid/password.py:51
 msgid "passwords mismatch"
 msgstr "les 2 versions ne concordent pas"
+
+#~ msgid "done."
+#~ msgstr "terminé."
+
+#~ msgid "set location to %s"
+#~ msgstr "vous avez choisi %s comme région"
