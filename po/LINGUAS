@@ -1,5 +1,4 @@
 # Only compile the languages listed there. This used by build_i18n
 # command from DistUtilsExtra.
-en
 fr
 pt

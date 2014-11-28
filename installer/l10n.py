@@ -115,38 +115,20 @@ def set_language(lang):
     if get_topdir():
         localedir = os.path.join(get_topdir(), 'build/mo')
 
+    #
     # If lang is '', the lang used by gettext, to search the .mo, will
     # be given by the first value found in LANGUAGE, LC_ALL,
     # LC_MESSAGES, and LANG in that order. This order is the same as
-    # GNU gettext(3).
+    # the one used by GNU gettext(3).
     #
     langs = [lang] if lang else None
-
-    #
-    # This is used to find out which language will be used by gettext
-    # specially when lang is ''. In that case the lang can't be retrieve
-    # from the current locale since locale.getlocale() doesn't take
-    # into account LANGUAGE env variable.
-    #
-    # In case of succes gettext.find() returns a path which has the
-    # following form: <localedir>/<language>/LC_MESSAGES/<domain>.mo
-    #
-    mo = gettext.find('installer', languages=langs, localedir=localedir)
-    if mo:
-        lang = mo.split('/')[-3]
-    elif lang:
-        lang = 'en_US'
-        logger.warn("No translation found for '%s' language", lang)
-    else:
-        lang = 'en_US'
-        logger.warn("No translation found for current locale")
 
     #
     # If no translation was found then use the default language which
     # is en_US.
     #
-    trans = gettext.translation('installer', languages=[lang],
-                                localedir=localedir)
+    trans = gettext.translation('installer', languages=langs,
+                                localedir=localedir, fallback=True)
 
     #
     # In Python 2, ensure that the _() that gets installed
@@ -161,7 +143,14 @@ def set_language(lang):
         kwargs['unicode'] = True
     trans.install(**kwargs)
 
-    language = lang
+    #
+    # Limited report in case of missing translations: we don't trap
+    # the case where lang is '' and the corresponding translations are
+    # not installed.
+    #
+    language = trans.info().get('language', 'en_US')
+    if lang and not lang.startswith(language):
+        logger.warn("No translation found for '%s' language", lang)
 
 
 #
