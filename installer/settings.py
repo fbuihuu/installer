@@ -307,7 +307,7 @@ def load_config_file(fp):
             value = getter(section, entry)
 
             if type(default) == list:
-                value = value.split(',')
+                value = value.split()
 
             settings.set(section, entry, value)
 
