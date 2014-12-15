@@ -176,24 +176,6 @@ class Localization(StepSection):
         self._locale = locale
 
 
-class LocalMedia(StepSection):
-    _pkgfiles = []
-
-    @property
-    def packages(self):
-        # Read the files lately so the user can modify them without
-        # restarting the installer.
-        lst = []
-        for f in self._pkgfiles:
-            lst += read_package_list(f)
-        return lst
-
-    @packages.setter
-    def packages(self, pkgfiles):
-        for f in pkgfiles:
-            self._pkgfiles.append(absolute_path(f))
-
-
 #
 # Other sections.
 #
@@ -224,7 +206,6 @@ class Steps(Section):
     License      = True
     Disk         = True
     Installation = True
-    LocalMedia   = False
     Localization = True
     Password     = True
     End          = True
@@ -247,7 +228,6 @@ class _Settings(object):
             'Installation'     : Installation(),
             'Kernel'           : Kernel(),
             'License'          : License(),
-            'LocalMedia'       : LocalMedia(),
             'Options'          : Options(),
             'Steps'            : Steps(),
             'Urpmi'            : Urpmi(),

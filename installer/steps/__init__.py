@@ -264,7 +264,6 @@ def initialize():
     from .license import LicenseStep
     from .disk import DiskStep
     from .installation import InstallStep
-    from .local_media import LocalMediaStep
     from .localization import LocalizationStep
     from .password import PasswordStep
     from .end import EndStep
@@ -275,7 +274,6 @@ def initialize():
     _all_steps.append(InstallStep())
     _all_steps.append(LocalizationStep())
     _all_steps.append(PasswordStep())
-    _all_steps.append(LocalMediaStep()) # keep last but one
     _all_steps.append(EndStep())
 
     assert(get_steps())
