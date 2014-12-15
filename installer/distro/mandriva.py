@@ -119,15 +119,22 @@ def del_media(name, root, logger, ignore_error=False):
 def urpmi_init(repositories, root, logger=lambda *args: None):
     if repositories:
         #
-        # A distribution has been specified, configure the rootfs in
-        # order to use it. If the installation step has been restarted
-        # the config file already exists.
+        # One or more distributions have been specified, configure the
+        # rootfs in order to use them. If the installation step has been
+        # restarted the config file already exists.
         #
         monitor(['rm', '-f', root + '/etc/urpmi/urpmi.cfg'], logger=logger)
 
         for repo in repositories:
-            logger.info(_('Using repository: %s' % repo))
-            add_repository(repo, root, logger)
+            logger.info(_('using repository %s') % repo)
+            try:
+                add_repository(repo, root, logger)
+            except CalledProcessError:
+                logger.warn(_('failed to register repository: %s') % repo)
+
+        # For now let the 'installation' step failed if none of the
+        # repos has been registered.
+
     else:
         #
         # If no repository has been specified, we use the host urpmi
