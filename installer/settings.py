@@ -296,18 +296,16 @@ def load_config_file(fp):
 
             default = settings.get(section, entry)
             if type(default) == int:
-                getter = config.getint
+                value = config.getint(section, entry)
             elif type(default) == bool:
-                getter = config.getboolean
+                value = config.getboolean(section, entry)
             elif type(default) == float:
-                getter = config.getfloat
+                value = config.getfloat(section, entry)
             else:
-                getter = config.get
-
-            value = getter(section, entry)
-
-            if type(default) == list:
-                value = value.split()
+                # Use unicode for string values on python2.7.
+                value = '%s' % config.get(section, entry)
+                if type(default) == list:
+                    value = value.split()
 
             settings.set(section, entry, value)
 
