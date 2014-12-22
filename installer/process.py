@@ -1,6 +1,6 @@
 import os
 import signal
-import select
+import threading
 import logging
 import subprocess
 
@@ -19,6 +19,44 @@ call = subprocess.call
 # figure out systemd version
 _output = subprocess.check_output(["systemctl", "--version"]).split()
 systemd_version = int(_output[1])
+
+
+class _StreamWorker(threading.Thread):
+    """Used to parse and log subprocess' stdout and stderr"""
+
+    def __init__(self, handler):
+        threading.Thread.__init__(self)
+        self.daemon   = True
+        self._stream  = None
+        self._handler = handler
+        self._data    = None
+        self._logger  = None
+        self._log_level = None
+
+    def run(self):
+        #
+        # Note: don't use an iterate over file object construct since
+        # it uses a hidden read-ahead buffer which won't play well
+        # with long running process with limited outputs such as
+        # pacstrap.  See:
+        # http://stackoverflow.com/questions/1183643/unbuffered-read-from-process-using-subprocess-in-python
+        #
+        while True:
+            line = self._stream.readline().decode()
+            if not line:
+                break
+            if self._logger:
+                self._logger.log(self._log_level, line.rstrip())
+            if self._handler:
+                self._data = self._handler(self._stream, line, self._data)
+
+    def connect(self, stream):
+        self._stream = stream
+        self.start()
+
+    def set_logger(self, logger, log_level):
+        self._logger = logger
+        self._log_level = log_level
 
 #
 # Redefine some subprocess' helpers to make sure they use 'LC_ALL=C'
@@ -61,9 +99,6 @@ def monitor_kill(sig=signal.SIGTERM, logger=None):
 def _monitor(args, logger=None, stdout_handler=None, stderr_handler=None):
     global _current
 
-    fd_map = {}
-    data = None
-
     if logger:
         logger.debug("running: %s", " ".join(args))
 
@@ -79,6 +114,15 @@ def _monitor(args, logger=None, stdout_handler=None, stderr_handler=None):
         return
 
     #
+    # Prepare the process outputs parsers.
+    #
+    stdout_worker = _StreamWorker(stdout_handler)
+    stderr_worker = _StreamWorker(stderr_handler)
+
+    stdout_worker.set_logger(logger, logging.DEBUG)
+    stderr_worker.set_logger(logger, logging.WARNING)
+
+    #
     # Make the new created process the group leader, so we can kill
     # it *and* all its sibling easily by sending signals to the whole
     # group. pacstrap for example needs that.
@@ -86,53 +130,12 @@ def _monitor(args, logger=None, stdout_handler=None, stderr_handler=None):
     p = subprocess.Popen(args, env=env, stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE, preexec_fn=os.setpgrp)
     _current = p
-
-    if not stdout_handler:
-        stdout_handler = lambda p,l,d: d
-    if not stderr_handler:
-        stderr_handler = lambda p,l,d: d
-
-    fd_map[p.stdout.fileno()] = (p.stdout, stdout_handler, logging.DEBUG)
-    fd_map[p.stderr.fileno()] = (p.stderr, stderr_handler, logging.WARNING)
-
-    poller = select.poll()
-    poller.register(p.stdout, select.POLLIN | select.POLLPRI | select.POLLHUP)
-    poller.register(p.stderr, select.POLLIN | select.POLLPRI | select.POLLHUP)
-
-    while fd_map:
-        try:
-            ready = poller.poll()
-        except select.error as e:
-            if e.args[0] == errno.EINTR:
-                continue
-            raise
-
-        for fd, event in ready:
-
-            if event & (select.POLLIN | select.POLLPRI):
-                (fileobj, handler, level) = fd_map[fd]
-                #
-                # Note: don't use an iterate over file object construct since
-                # it uses a hidden read-ahead buffer which won't play well
-                # with long running process with limited outputs such as
-                # pacstrap.  See:
-                # http://stackoverflow.com/questions/1183643/unbuffered-read-from-process-using-subprocess-in-python
-                #
-                while True:
-                    line = fileobj.readline()
-                    line = line.decode()
-                    if not line:
-                        break
-                    if logger:
-                        logger.log(level, line.rstrip())
-                    data = handler(p, line, data)
-
-            # Make sure to deal with fd hangup after emptying them.
-            if event & select.POLLHUP:
-                poller.unregister(fd)
-                del fd_map[fd]
+    stdout_worker.connect(p.stdout)
+    stderr_worker.connect(p.stderr)
 
     retcode = p.wait()
+    stdout_worker.join()
+    stderr_worker.join()
     _current = None
     if retcode:
         raise CalledProcessError(retcode, " ".join(args))
