@@ -120,17 +120,24 @@ def urpmi_init(repositories, root, logger=lambda *args: None):
     if repositories:
         #
         # One or more distributions have been specified, configure the
-        # rootfs in order to use them. If the installation step has been
+        # rootfs in order to use the first good one. For now we don't
+        # try to configure several repositories since it seems that
+        # urpmi(1) doesn't like it, specially when the cdrom comes at
+        # first...
+        #
+        # If the installation step has been
         # restarted the config file already exists.
         #
         monitor(['rm', '-f', root + '/etc/urpmi/urpmi.cfg'], logger=logger)
 
         for repo in repositories:
-            logger.info(_('using repository %s') % repo)
             try:
                 add_repository(repo, root, logger)
             except CalledProcessError:
-                logger.warn(_('failed to register repository: %s') % repo)
+                logger.debug('failed to register repository: %s, skipping...' % repo)
+            else:
+                logger.info(_('using repository %s') % repo)
+                break
 
         # For now let the 'installation' step failed if none of the
         # repos has been registered.
