@@ -55,7 +55,7 @@ def read_package_list(filename):
                     if not ':' in line:
                         line = '1:' + line
                     level, package = line.split(':', 1)
-                    if level >= settings.Options.level:
+                    if int(level) >= settings.Options.level:
                         lst.append(package)
     except IOError:
         raise SettingsError(_('Failed to read package list: %s' % filename))
