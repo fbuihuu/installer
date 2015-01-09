@@ -43,8 +43,6 @@ class AttributeSettingsError(SettingsError, AttributeError):
 #
 # Helpers
 #
-_package_pattern = re.compile(r'([0-9]+):(\w+)')
-
 def read_package_list(filename):
     """Read a package list given by a file"""
     lst = []
@@ -54,13 +52,11 @@ def read_package_list(filename):
                 line = line.partition('#')[0]
                 line = line.strip()
                 if line:
-                    level = 1 # default package level
-                    match = _package_pattern.match(line)
-                    if match:
-                        level = int(match.group(1))
-                        line  = match.group(2)
+                    if not ':' in line:
+                        line = '1:' + line
+                    level, package = line.split(':', 1)
                     if level >= settings.Options.level:
-                        lst.append(line)
+                        lst.append(package)
     except IOError:
         raise SettingsError(_('Failed to read package list: %s' % filename))
     return lst
