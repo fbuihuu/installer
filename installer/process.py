@@ -1,4 +1,5 @@
 import os
+import stat
 import signal
 import threading
 import logging
@@ -177,8 +178,11 @@ def _mount_bind(sources, rootfs, ro=False):
         raise
 
 
-def _mount_tmpfs(sources, rootfs):
-    opts = 'strictatime,nodev,nosuid'
+def _mount_tmpfs(sources, rootfs, nodev=True):
+    opts = 'strictatime,nosuid'
+    if nodev:
+        opts += ',nodev'
+
     try:
         for i, src in enumerate(sources):
             dst = rootfs + src
@@ -190,6 +194,23 @@ def _mount_tmpfs(sources, rootfs):
         for src in reversed(sources[:i]):
             check_call(['umount', rootfs + src], stdout=DEVNULL)
         raise
+
+
+def _create_device_nodes(rootfs):
+    devices = ('null', 'zero', 'random', 'urandom', 'tty')
+
+    for dev in devices:
+        node = os.path.join('/dev', dev)
+        st   = os.stat(node)
+
+        mode = st.st_mode
+        assert(stat.S_ISCHR(mode) or stat.S_ISBLK(mode))
+
+        dirname = os.path.dirname(node)
+        if not os.path.exists(dirname):
+            os.makedirs(dirname)
+
+        os.mknod(rootfs + node, st.st_mode, st.st_rdev)
 
 
 def monitor_chroot(rootfs, args, bind_mounts=[],
@@ -218,7 +239,7 @@ def monitor_chroot(rootfs, args, bind_mounts=[],
     if chrooter in ('chroot', None):
 
         # Manually bind mount main pseudo fs.
-        sources = ['/dev', '/proc', '/sys']
+        sources = ['/proc', '/sys']
         _mount_bind(sources, rootfs)
         mounts.extend(sources)
 
@@ -226,6 +247,13 @@ def monitor_chroot(rootfs, args, bind_mounts=[],
         sources = ['/tmp', '/run']
         _mount_tmpfs(sources, rootfs)
         mounts.extend(sources)
+
+        # Create a minimal set of device nodes inside rootfs to
+        # satisfy any reasonable package installations.
+        if '/dev' not in bind_mounts:
+            _mount_tmpfs(['/dev'], rootfs, nodev=False)
+            mounts.append('/dev')
+            _create_device_nodes(rootfs)
 
         # bind mount user's dirs if any at last so they have
         # precedence.

@@ -274,7 +274,7 @@ class _InstallStep(Step):
         # the vbr will be mirrored too.
         #
         self._chroot(['sh', '-c', 'cp /usr/lib/syslinux/bios/*.c32 /boot/syslinux/'])
-        self._chroot(['extlinux', '--install', '/boot/syslinux'])
+        self._chroot(['extlinux', '--install', '/boot/syslinux'], bind_mounts=['/dev'])
 
         bootcode = "gptmbr.bin" if gpt else "mbr.bin"
         bootcode = os.path.join("/usr/lib/syslinux/bios", bootcode)
@@ -290,7 +290,8 @@ class _InstallStep(Step):
             # install mbr
             self.logger.debug("installing bootcode in %s MBR", parent.devpath)
             cmd  = "dd bs=440 conv=notrunc count=1 if={0} of={1} 2>/dev/null"
-            self._chroot(['sh', '-c', cmd.format(bootcode, parent.devpath)])
+            self._chroot(['sh', '-c', cmd.format(bootcode, parent.devpath)],
+                         bind_mounts=['/dev'])
 
             if gpt:
                 #
@@ -299,11 +300,13 @@ class _InstallStep(Step):
                 # required by syslinux on BIOS system.
                 #
                 self._chroot(['sgdisk', parent.devpath,
-                              '--attributes=%d:set:2' % partnums[i]])
+                              '--attributes=%d:set:2' % partnums[i]],
+                             bind_mounts=['/dev'])
             else:
                 # on MBR, we need to mark the boot partition active.
                 self._chroot(['sfdisk' '--activate=%d' % partnums[i],
-                              parent.devpath])
+                              parent.devpath],
+                             bind_mounts=['/dev'])
 
     def _do_bootloader_on_bios_with_grub(self, bootable, grub="grub"):
         self._chroot([grub + '-mkconfig', '-o', '/boot/' + grub + '/grub.cfg'])
@@ -326,10 +329,10 @@ class _InstallStep(Step):
         #
         if is_efi() and settings.Options.hostonly:
             self._chroot(['gummiboot', '--path=/boot', 'install'],
-                         bind_mounts=['/sys/firmware/efi/efivars'])
+                         bind_mounts=['/sys/firmware/efi/efivars', '/dev'])
         else:
             self._chroot(['gummiboot', '--path=/boot', '--no-variables',
-                          'install'])
+                          'install'], bind_mounts=['/dev'])
 
 
 class ArchInstallStep(_InstallStep):
