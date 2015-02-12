@@ -132,11 +132,14 @@ def urpmi_init(repositories, root, logger=lambda *args: None):
 
         for repo in repositories:
             try:
-                add_repository(repo, root, logger)
+                # don't log any errors since they're not fatal.
+                add_repository(repo, root, None)
             except CalledProcessError:
                 logger.debug('failed to register repository: %s, skipping...' % repo)
             else:
                 logger.info(_('using repository %s') % repo)
+                logger.debug('active medias:')
+                monitor(['urpmq', '--urpmi-root', root, '--list-media', 'active'], logger)
                 break
 
         # For now let the 'installation' step failed if none of the
