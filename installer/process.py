@@ -217,8 +217,8 @@ def monitor_chroot(rootfs, args, bind_mounts=[],
 
     if chrooter in ('chroot', None):
 
-        # Manually bind mount default and requested directories.
-        sources = ['/dev', '/proc', '/sys'] + bind_mounts
+        # Manually bind mount main pseudo fs.
+        sources = ['/dev', '/proc', '/sys']
         _mount_bind(sources, rootfs)
         mounts.extend(sources)
 
@@ -226,6 +226,11 @@ def monitor_chroot(rootfs, args, bind_mounts=[],
         sources = ['/tmp', '/run']
         _mount_tmpfs(sources, rootfs)
         mounts.extend(sources)
+
+        # bind mount user's dirs if any at last so they have
+        # precedence.
+        _mount_bind(bind_mounts, rootfs)
+        mounts.extend(bind_mounts)
 
         # Finally copy /etc/resolv.conf into the chroot but don't barf
         # if that fails.
