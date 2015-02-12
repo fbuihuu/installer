@@ -4,7 +4,6 @@ import threading
 import logging
 import subprocess
 
-
 try:
     from subprocess import DEVNULL # py3k
 except ImportError:
@@ -158,6 +157,41 @@ def monitor(args, logger=None, stdout_handler=None, stderr_handler=None):
 # cmd parameter should be a string which specifies the command to execute
 # through the shell.
 #
+
+#
+# Mount helpers: target dir is always in the chroot.
+#
+def _mount_bind(sources, rootfs, ro=False):
+    try:
+        for i, src in enumerate(sources):
+            dst = rootfs + src
+            if not os.path.exists(dst):
+                os.makedirs(dst)
+            check_call(['mount', '--bind', src, dst])
+            if ro:
+                check_call(['mount', '-o', 'remount,ro', dst])
+    except:
+        # This shouldn't fail.
+        for src in reversed(sources[:i]):
+            check_call(['umount', rootfs + src], stdout=DEVNULL)
+        raise
+
+
+def _mount_tmpfs(sources, rootfs):
+    opts = 'strictatime,nodev,nosuid'
+    try:
+        for i, src in enumerate(sources):
+            dst = rootfs + src
+            if not os.path.exists(dst):
+                os.makedirs(dst)
+            check_call(['mount', '-t', 'tmpfs', '-o', opts, 'none', dst])
+    except:
+        # This shouldn't fail.
+        for src in reversed(sources[:i]):
+            check_call(['umount', rootfs + src], stdout=DEVNULL)
+        raise
+
+
 def monitor_chroot(rootfs, args, bind_mounts=[],
                    chrooter='chroot', **kwargs):
     mounts = []
@@ -183,21 +217,15 @@ def monitor_chroot(rootfs, args, bind_mounts=[],
 
     if chrooter in ('chroot', None):
 
-        # Manually bind mount default and requested directories.o
-        for src in ['/dev', '/proc', '/sys'] + bind_mounts:
-            dst = rootfs + src
-            if not os.path.exists(dst):
-                os.mkdir(dst)
-            check_call(["mount", "-o", "bind", src, dst])
-            mounts.append(dst)
+        # Manually bind mount default and requested directories.
+        sources = ['/dev', '/proc', '/sys'] + bind_mounts
+        _mount_bind(sources, rootfs)
+        mounts.extend(sources)
 
         # Manually mount usual tmpfs directories.
-        for dst in ['/tmp', '/run']:
-            dst = rootfs + dst
-            if not os.path.exists(dst):
-                os.mkdir(dst)
-            check_call(["mount", "-t", "tmpfs", "none", dst])
-            mounts.append(dst)
+        sources = ['/tmp', '/run']
+        _mount_tmpfs(sources, rootfs)
+        mounts.extend(sources)
 
         # Finally copy /etc/resolv.conf into the chroot but don't barf
         # if that fails.
@@ -208,4 +236,4 @@ def monitor_chroot(rootfs, args, bind_mounts=[],
         monitor(chroot + args, **kwargs)
     finally:
         for m in reversed(mounts):
-            check_call(["umount", "-l", m], stdout=DEVNULL)
+            check_call(["umount", "-l", rootfs + m], stdout=DEVNULL)
