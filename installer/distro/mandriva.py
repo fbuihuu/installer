@@ -169,7 +169,8 @@ def urpmi_init(repositories, root, logger=lambda *args: None):
     # target system.
     #
     if settings.Urpmi.options:
-        logger.debug('Adding user options in urpmi.cfg')
+        logger.debug('Adding user options in target urpmi.cfg: %s',
+                     settings.Urpmi.options)
         _urpmi_config_set_options(settings.Urpmi.options.split(),
                                   root + '/etc/urpmi/urpmi.cfg')
 
