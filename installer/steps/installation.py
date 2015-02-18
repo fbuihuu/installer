@@ -406,7 +406,7 @@ initrd      /{initrd}
         # modify /etc/mkinitcpio.conf
         re = "s/^HOOKS=.*/HOOKS='{0}'/".format(" ".join(hooks))
         self._monitor(["sed", "-i", re, self._root+'/etc/mkinitcpio.conf'])
-        self._chroot(['mkinitcpio', '-p', 'linux'])
+        self._chroot(['mkinitcpio', '-p', 'linux'], bind_mounts=['/dev'])
         self.set_completion(99)
 
 
@@ -470,7 +470,8 @@ class MandrivaInstallStep(_InstallStep):
         # initialized.
         #
         hostonly  = '--hostonly' if settings.Options.hostonly else '--no-hostonly'
-        self._chroot(['dracut', hostonly, '--force', initramfs, uname_r])
+        self._chroot(['dracut', hostonly, '--force', initramfs, uname_r],
+                     bind_mounts=['/dev'])
         self.set_completion(98)
 
 
