@@ -6,6 +6,7 @@
 from __future__ import unicode_literals
 
 import os
+import sys
 import threading
 import logging
 from gi.repository import GUdev
@@ -608,8 +609,15 @@ def __on_uevent(client, action, gudev):
     if action == "change":
         __on_change_uevent(gudev)
 
-# It looks like GUDev doesn't expect unicode for subsystems on python 2.7
-__client = GUdev.Client(subsystems=[b'block'])
+#
+# Gudev.Client() doesn't take unicode on python2.7 which is probably a
+# bug, so use byte string for this case.
+#
+block = 'block'
+if sys.version_info[0] < 3:
+    block = block.encode('ascii')
+
+__client = GUdev.Client(subsystems=[block])
 __client.connect("uevent", __on_uevent)
 for gudev in __client.query_by_subsystem("block"):
     __on_add_uevent(gudev)
